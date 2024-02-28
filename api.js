@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
@@ -16,10 +15,6 @@ const operaciones = require('./routes/operaciones')
 const app = express();
 const port = process.env.PORT || 3000;
 const mongodbUri = process.env.MONGODB_URI;
-
-// mongoose.connect(mongodbUri)
-//     .then(() => console.log('Conexión a MongoDB establecida'))
-//     .catch(err => console.error('Error al conectar a MongoDB:', err));
 
 app.use(cookieParser());
 
