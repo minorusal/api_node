@@ -14,7 +14,11 @@ const getApis = require('./routes/getApis');
 const operaciones = require('./routes/operaciones')
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: 'http://minoru-aws-demo-s3.s3-website-us-east-1.amazonaws.com',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 const port = process.env.PORT || 3000;
 const mongodbUri = process.env.MONGODB_URI;
 
