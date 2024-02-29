@@ -20,8 +20,13 @@ const mongodbUri = process.env.MONGODB_URI;
 app.use(cookieParser());
 
 app.use(bodyParser.json());
+const corsOptions = {
+    origin: 'http://localhost:4200',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  };
 
-app.use(cors());
+app.use(cors(corsOptions));
 
 // Rutas de autentcacion
 app.use('/auth', authRouter);
