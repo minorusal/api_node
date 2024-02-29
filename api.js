@@ -14,19 +14,14 @@ const getApis = require('./routes/getApis');
 const operaciones = require('./routes/operaciones')
 
 const app = express();
+app.use(cors());
 const port = process.env.PORT || 3000;
 const mongodbUri = process.env.MONGODB_URI;
 
 app.use(cookieParser());
 
 app.use(bodyParser.json());
-const corsOptions = {
-    origin: 'http://localhost:4200',
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  };
 
-app.use(cors(corsOptions));
 
 // Rutas de autentcacion
 app.use('/auth', authRouter);
