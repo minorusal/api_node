@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 require('./middlewares/passport');
+const cors = require('cors');
 
 const userRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
@@ -13,13 +14,14 @@ const getApis = require('./routes/getApis');
 const operaciones = require('./routes/operaciones')
 
 const app = express();
-app.use(cors());
 const port = process.env.PORT || 3000;
 const mongodbUri = process.env.MONGODB_URI;
 
 app.use(cookieParser());
 
 app.use(bodyParser.json());
+
+app.use(cors());
 
 // Rutas de autentcacion
 app.use('/auth', authRouter);
