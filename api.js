@@ -13,6 +13,7 @@ const getApis = require('./routes/getApis');
 const operaciones = require('./routes/operaciones')
 
 const app = express();
+app.use(cors());
 const port = process.env.PORT || 3000;
 const mongodbUri = process.env.MONGODB_URI;
 
