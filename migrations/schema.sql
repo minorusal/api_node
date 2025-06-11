@@ -55,3 +55,21 @@ CREATE TABLE IF NOT EXISTS demo_table (
     numB DECIMAL(10,2) NOT NULL,
     resultado DECIMAL(10,2) NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS clients (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    contact_name VARCHAR(100) NOT NULL,
+    company_name VARCHAR(100),
+    address TEXT,
+    requires_invoice BOOLEAN DEFAULT FALSE,
+    billing_info TEXT
+);
+
+CREATE TABLE IF NOT EXISTS projects (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    client_id INT NOT NULL,
+    playset_id INT NOT NULL,
+    sale_price DECIMAL(10,2),
+    FOREIGN KEY (client_id) REFERENCES clients(id),
+    FOREIGN KEY (playset_id) REFERENCES playsets(id)
+);

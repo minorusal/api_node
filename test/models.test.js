@@ -3,6 +3,8 @@ const materials = require('../models/materialsModel');
 const accessories = require('../models/accessoriesModel');
 const playsets = require('../models/playsetsModel');
 const playsetAccessories = require('../models/playsetAccessoriesModel');
+const clients = require('../models/clientsModel');
+const projects = require('../models/projectsModel');
 
 describe('Model exports', () => {
   it('materials model exposes CRUD functions', () => {
@@ -25,6 +27,18 @@ describe('Model exports', () => {
 
   it('playsetAccessories model exposes cost function', () => {
     expect(playsetAccessories.calculatePlaysetCost).to.be.a('function');
+  });
+
+  it('clients model exposes CRUD functions', () => {
+    expect(clients.createClient).to.be.a('function');
+    expect(clients.findById).to.be.a('function');
+    expect(clients.findAll).to.be.a('function');
+  });
+
+  it('projects model exposes CRUD functions', () => {
+    expect(projects.createProject).to.be.a('function');
+    expect(projects.findById).to.be.a('function');
+    expect(projects.findAll).to.be.a('function');
   });
 });
 

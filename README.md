@@ -42,6 +42,10 @@ DB_NAME=demodb
 - `GET /playset-accessories` Lista vínculos playset-accesorio (protegido).
 - `PUT /playset-accessories/:id` Actualiza la cantidad del vínculo (protegido).
 - `DELETE /playset-accessories/:id` Elimina un vínculo (protegido).
+- `GET /clients` Lista clientes (protegido).
+- `POST /clients` Crea un cliente (protegido).
+- `GET /projects` Lista proyectos (protegido).
+- `POST /projects` Crea un proyecto con cliente y playset (protegido).
 
 ## Ejemplo de construcción de un playset
 
