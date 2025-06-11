@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { log } = require('./logger');
 
 /**
  * Suma dos números y retorna el resultado.
@@ -9,7 +10,7 @@ const jwt = require('jsonwebtoken');
  */
 const sumaDosNumeros = async (numA, numB) => {
     try {
-        console.log(numA, numB);
+        log(numA, numB);
         return numA + numB;
     } catch (error) {
         throw new Error(`Error al realizar la suma: ${error.message}`);

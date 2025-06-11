@@ -5,9 +5,49 @@ const jwt = require('jsonwebtoken');
 const db = require('../db');
 
 /**
- * Suma dos números y guarda el resultado en la base de datos.
- * @route POST /suma-numeros
+ * @openapi
+ * /operaciones/suma-numeros:
+ *   post:
+ *     summary: Sumar dos números y guardar en base de datos
+ *     tags:
+ *       - Operaciones
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               numA:
+ *                 type: number
+ *               numB:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Resultado de la suma
+ *
+ * /operaciones/validacion-token-jwt:
+ *   post:
+ *     summary: Validar tokens JWT
+ *     tags:
+ *       - Operaciones
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               sessionToken:
+ *                 type: string
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Resultado de la validación
  */
+
+// Ruta para obtener la informacion que se obtiene de la api publica
 router.post('/suma-numeros', async (req, res) => {
     const { numA, numB } = req.body;
     if (!numA || !numB) {
@@ -47,7 +87,7 @@ router.post('/suma-numeros', async (req, res) => {
 router.post('/validacion-token-jwt', async (req, res) => {
     const { sessionToken, refreshToken } = req.body;
     if (!sessionToken || !refreshToken) {
-        return res.status(400).json({ error: 'Se requieren dos números' });
+        return res.status(400).json({ error: 'Se requieren dos tokens' });
     }
     const resultST = await operaciones.validaToken(sessionToken);
     const resultRT = await operaciones.validaToken(refreshToken);

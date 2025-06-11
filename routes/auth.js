@@ -8,9 +8,60 @@ require('dotenv').config();
 const jwtSecret = process.env.JWT_SECRET;
 
 /**
- * Registro de usuarios.
- * @route POST /register
+ * @openapi
+ * /auth/register:
+ *   post:
+ *     summary: Registrar un nuevo usuario
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Usuario creado
+ *
+ * /auth/login:
+ *   post:
+ *     summary: Iniciar sesión
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Autenticación exitosa
+ *       401:
+ *         description: Credenciales inválidas
+ *
+ * /auth/logout:
+ *   post:
+ *     summary: Cerrar sesión
+ *     tags:
+ *       - Auth
+ *     responses:
+ *       200:
+ *         description: Logout exitoso
  */
+
+// Ruta de registro de usuarios
 router.post('/register', async (req, res, next) => {
     try {
         const { username, password } = req.body;

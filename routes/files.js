@@ -4,6 +4,38 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { readJSONFile } = require('../Modules/filesInformation');
+const { log } = require('../Modules/logger');
+
+/**
+ * @openapi
+ * /files/upload:
+ *   post:
+ *     summary: Subir archivo de imagen
+ *     tags:
+ *       - Files
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Archivo subido
+ *
+ * /files/read-json:
+ *   get:
+ *     summary: Leer archivo JSON de la carpeta uploads
+ *     tags:
+ *       - Files
+ *     responses:
+ *       200:
+ *         description: Contenido del archivo JSON
+ */
 
 // Ruta de la carpeta donde se guardaran los archivos
 const uploadDirectory = './uploads';
@@ -58,9 +90,9 @@ router.post('/upload', upload.single('file'), (req, res) => {
  */
 router.get('/read-json', async (req, res) => {
     try {
-        console.log('Si se consume');
+        log('Si se consume');
         const jsonData = await readJSONFile('./uploads/data.json');
-        console.log(jsonData);
+        log(jsonData);
         res.json(jsonData);
     } catch (error) {
         res.status(500).json({ message: error.message });

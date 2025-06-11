@@ -4,8 +4,94 @@ const PlaysetAccessories = require('../models/playsetAccessoriesModel');
 const router = express.Router();
 
 /**
- * Lista todos los playsets con su costo total.
- * @route GET /playsets
+ * @openapi
+ * /playsets:
+ *   get:
+ *     summary: Listar playsets con costo calculado
+ *     tags:
+ *       - Playsets
+ *     responses:
+ *       200:
+ *         description: Lista de playsets
+ *   post:
+ *     summary: Crear playset
+ *     tags:
+ *       - Playsets
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Playset creado
+ *
+ * /playsets/{id}:
+ *   get:
+ *     summary: Obtener playset por ID
+ *     tags:
+ *       - Playsets
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Playset encontrado
+ *       404:
+ *         description: Playset no encontrado
+ *   put:
+ *     summary: Actualizar playset
+ *     tags:
+ *       - Playsets
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Playset actualizado
+ *       404:
+ *         description: Playset no encontrado
+ *   delete:
+ *     summary: Eliminar playset
+ *     tags:
+ *       - Playsets
+ *     responses:
+ *       200:
+ *         description: Playset eliminado
+ *       404:
+ *         description: Playset no encontrado
+ *
+ * /playsets/{id}/cost:
+ *   get:
+ *     summary: Calcular costo total de un playset
+ *     tags:
+ *       - Playsets
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Costo del playset
+ *       404:
+ *         description: Playset no encontrado
  */
 router.get('/playsets', async (req, res) => {
   try {

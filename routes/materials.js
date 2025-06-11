@@ -3,8 +3,94 @@ const Materials = require('../models/materialsModel');
 const router = express.Router();
 
 /**
- * Lista todos los materiales.
- * @route GET /materials
+ * @openapi
+ * /materials:
+ *   get:
+ *     summary: Listar materiales
+ *     tags:
+ *       - Materials
+ *     responses:
+ *       200:
+ *         description: Lista de materiales
+ *   post:
+ *     summary: Crear material
+ *     tags:
+ *       - Materials
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               thickness_mm:
+ *                 type: number
+ *               width_m:
+ *                 type: number
+ *               length_m:
+ *                 type: number
+ *               price:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Material creado
+ *
+ * /materials/{id}:
+ *   get:
+ *     summary: Obtener material por ID
+ *     tags:
+ *       - Materials
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Material encontrado
+ *       404:
+ *         description: Material no encontrado
+ *   put:
+ *     summary: Actualizar material
+ *     tags:
+ *       - Materials
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               thickness_mm:
+ *                 type: number
+ *               width_m:
+ *                 type: number
+ *               length_m:
+ *                 type: number
+ *               price:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Material actualizado
+ *       404:
+ *         description: Material no encontrado
+ *   delete:
+ *     summary: Eliminar material
+ *     tags:
+ *       - Materials
+ *     responses:
+ *       200:
+ *         description: Material eliminado
+ *       404:
+ *         description: Material no encontrado
  */
 router.get('/materials', async (req, res) => {
   try {

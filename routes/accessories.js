@@ -3,8 +3,78 @@ const Accessories = require('../models/accessoriesModel');
 const router = express.Router();
 
 /**
- * Lista todos los accesorios.
- * @route GET /accessories
+ * @openapi
+ * /accessories:
+ *   get:
+ *     summary: Listar accesorios
+ *     tags:
+ *       - Accessories
+ *     responses:
+ *       200:
+ *         description: Lista de accesorios
+ *   post:
+ *     summary: Crear accesorio
+ *     tags:
+ *       - Accessories
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Accesorio creado
+ *
+ * /accessories/{id}:
+ *   get:
+ *     summary: Obtener accesorio por ID
+ *     tags:
+ *       - Accessories
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Accesorio encontrado
+ *       404:
+ *         description: Accesorio no encontrado
+ *   put:
+ *     summary: Actualizar accesorio
+ *     tags:
+ *       - Accessories
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Accesorio actualizado
+ *       404:
+ *         description: Accesorio no encontrado
+ *   delete:
+ *     summary: Eliminar accesorio
+ *     tags:
+ *       - Accessories
+ *     responses:
+ *       200:
+ *         description: Accesorio eliminado
+ *       404:
+ *         description: Accesorio no encontrado
  */
 router.get('/accessories', async (req, res) => {
   try {
