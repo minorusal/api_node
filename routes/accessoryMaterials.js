@@ -8,7 +8,9 @@ router.post('/accessory-materials', async (req, res) => {
     const link = await AccessoryMaterials.linkMaterial(
       accessoryId,
       materialId,
-      quantity
+      quantity,
+      width,
+      length
     );
     const cost = await AccessoryMaterials.calculateCost(
       materialId,
@@ -26,6 +28,29 @@ router.get('/accessory-materials', async (req, res) => {
   try {
     const links = await AccessoryMaterials.findAll();
     res.json(links);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.get('/accessories/:id/materials-cost', async (req, res) => {
+  try {
+    const rows = await AccessoryMaterials.findMaterialsCostByAccessory(
+      req.params.id
+    );
+    if (rows.length === 0)
+      return res.status(404).json({ message: 'Accesorio no encontrado' });
+    const { accessory_id, accessory_name } = rows[0];
+    const materials = rows.map((row) => ({
+      material_id: row.material_id,
+      material_name: row.material_name,
+      quantity: row.quantity,
+      width_m: row.width_m,
+      length_m: row.length_m,
+      cost: row.cost
+    }));
+    const total_cost = materials.reduce((sum, m) => sum + m.cost, 0);
+    res.json({ accessory_id, accessory_name, total_cost, materials });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

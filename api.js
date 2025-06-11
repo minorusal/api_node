@@ -70,10 +70,10 @@ const authenticateJWT = (req, res, next) => {
 // Rutas protegidas
 app.use('/', authenticateJWT, userRouter);
 app.use('/', authenticateJWT, materialsRouter);
+app.use('/', authenticateJWT, accessoryMaterialsRouter);
 app.use('/', authenticateJWT, accessoriesRouter);
 app.use('/', authenticateJWT, playsetsRouter);
 app.use('/', authenticateJWT, materialAttributesRouter);
-app.use('/', authenticateJWT, accessoryMaterialsRouter);
 
 // Middleware para manejar errores
 app.use((err, req, res, next) => {

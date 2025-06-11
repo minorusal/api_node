@@ -133,6 +133,21 @@
           "response": []
         },
         {
+          "name": "Accessory Materials Cost",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "http://localhost:3000/accessories/1/materials-cost",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["accessories", "1", "materials-cost"]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Create Accessory",
           "request": {
             "method": "POST",
