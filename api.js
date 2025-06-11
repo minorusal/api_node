@@ -15,6 +15,8 @@ const operaciones = require('./routes/operaciones')
 const materialsRouter = require('./routes/materials');
 const accessoriesRouter = require('./routes/accessories');
 const playsetsRouter = require('./routes/playsets');
+const materialAttributesRouter = require('./routes/materialAttributes');
+const accessoryMaterialsRouter = require('./routes/accessoryMaterials');
 
 const app = express();
 app.use(passport.initialize());
@@ -70,6 +72,8 @@ app.use('/', authenticateJWT, userRouter);
 app.use('/', authenticateJWT, materialsRouter);
 app.use('/', authenticateJWT, accessoriesRouter);
 app.use('/', authenticateJWT, playsetsRouter);
+app.use('/', authenticateJWT, materialAttributesRouter);
+app.use('/', authenticateJWT, accessoryMaterialsRouter);
 
 // Middleware para manejar errores
 app.use((err, req, res, next) => {
