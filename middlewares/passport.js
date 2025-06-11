@@ -10,17 +10,15 @@ const jwtSecret = process.env.JWT_SECRET;
 // Configurar estrategia local para la autenticacion
 passport.use(new LocalStrategy(async (username, password, done) => {
     try {
-        console.log(username);
-        const user = await User.findOne({ username });
+        const user = await User.findByUsername(username);
         if (!user) {
             return done(null, false, { message: 'Nombre de usuario incorrecto' });
         }
         const isMatch = await bcrypt.compare(password, user.password);
         if (isMatch) {
             return done(null, user);
-        } else {
-            return done(null, false, { message: 'Contraseña incorrecta' });
         }
+        return done(null, false, { message: 'Contraseña incorrecta' });
     } catch (error) {
         return done(error);
     }

@@ -16,7 +16,7 @@ const operaciones = require('./routes/operaciones')
 const app = express();
 app.use(passport.initialize());
 app.use(cors({
-    origin: 'http://minoru-aws-demo-s3.s3-website-us-east-1.amazonaws.com',
+    origin: process.env.CORS_ORIGIN || '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));

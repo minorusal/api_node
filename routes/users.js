@@ -1,51 +1,73 @@
 const express = require('express');
 const User = require('../models/usersModel');
+const bcrypt = require('bcryptjs');
 const router = express.Router();
 
 // Ruta para obtener todos los usuarios
-// router.get('/users', async (req, res) => {
-//     const usuarios = await User.find();
-//     res.json(usuarios);
-// });
+router.get('/users', async (req, res) => {
+    try {
+        const usuarios = await User.findAll();
+        res.json(usuarios);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 // Ruta para obtener un usuario por su ID
-// router.get('/users/:id', async (req, res) => {
-//     const { id } = req.params;
-//     const usuario = await User.findById(id);
-//     if (!usuario) {
-//         return res.status(404).json({ message: 'El usuario no existe' });
-//     }
-//     const updatedUsuario = await User.findByIdAndUpdate(id, req.body, { new: true });
-//     res.json(updatedUsuario);
-// });
+router.get('/users/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const usuario = await User.findById(id);
+        if (!usuario) {
+            return res.status(404).json({ message: 'El usuario no existe' });
+        }
+        res.json(usuario);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 // Ruta para crear un nuevo usuario
-// router.post('/users', async (req, res) => {
-//     const usuario = new User(req.body);
-//     await usuario.save();
-//     res.json(usuario);
-// });
+router.post('/users', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = await User.createUser(username, hashedPassword);
+        res.status(201).json(newUser);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 // Ruta para actualizar un usuario por su ID
-// router.put('/users/:id', async (req, res) => {
-//     const { id } = req.params;
-//     const usuario = await User.findById(id);
-//     if (!usuario) {
-//         return res.status(404).json({ message: 'El usuario no existe' });
-//     }
-//     const updatedUsuario = await User.findByIdAndUpdate(id, req.body, { new: true });
-//     res.json(updatedUsuario);
-// });
+router.put('/users/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { username } = req.body;
+        const usuario = await User.findById(id);
+        if (!usuario) {
+            return res.status(404).json({ message: 'El usuario no existe' });
+        }
+        await User.updateUser(id, username);
+        res.json({ message: 'Usuario actualizado' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 // Ruta para eliminar un usuario por su ID
-// router.delete('/users/:id', async (req, res) => {
-//     const { id } = req.params;
-//     const user = await User.findById(id);
-//     if (!user) {
-//         return res.status(404).json({ message: 'El usuario no existe' });
-//     }
-//     await User.findByIdAndDelete(id);
-//     res.status(200).json({ message: 'Usuario eliminado correctamente' });
-// });
+router.delete('/users/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const usuario = await User.findById(id);
+        if (!usuario) {
+            return res.status(404).json({ message: 'El usuario no existe' });
+        }
+        await User.deleteUser(id);
+        res.status(200).json({ message: 'Usuario eliminado correctamente' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 module.exports = router;
