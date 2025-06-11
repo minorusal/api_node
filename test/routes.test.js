@@ -5,6 +5,8 @@ const playsetsRouter = require('../routes/playsets');
 const materialAttributesRouter = require('../routes/materialAttributes');
 const accessoryMaterialsRouter = require('../routes/accessoryMaterials');
 const playsetAccessoriesRouter = require('../routes/playsetAccessories');
+const clientsRouter = require('../routes/clients');
+const projectsRouter = require('../routes/projects');
 
 describe('Route definitions', () => {
   it('materials router has routes configured', () => {
@@ -36,5 +38,13 @@ describe('Route definitions', () => {
 
   it('playset accessories router has routes configured', () => {
     expect(playsetAccessoriesRouter.stack).to.be.an('array').that.is.not.empty;
+  });
+
+  it('clients router has routes configured', () => {
+    expect(clientsRouter.stack).to.be.an('array').that.is.not.empty;
+  });
+
+  it('projects router has routes configured', () => {
+    expect(projectsRouter.stack).to.be.an('array').that.is.not.empty;
   });
 });
