@@ -51,7 +51,29 @@ const router = express.Router();
 router.get('/projects', async (req, res) => {
   try {
     const projects = await Projects.findAll();
-    res.json(projects);
+    const detailed = await Promise.all(
+      projects.map(async (p) => {
+        const costInfo = await PlaysetAccessories.calculatePlaysetCost(p.playset_id);
+        if (!costInfo) return { ...p, accessories: [], total_investment_cost: 0, total_cost_with_margin: 0 };
+
+        const marginFactor = p.sale_price && costInfo.total_cost > 0 ? p.sale_price / costInfo.total_cost : 1;
+        const accessories = costInfo.accessories.map((a) => {
+          const costWithMargin = +(a.cost * marginFactor).toFixed(2);
+          return {
+            accessory_id: a.accessory_id,
+            accessory_name: a.accessory_name,
+            quantity: a.quantity,
+            materials: a.materials,
+            investment_cost: a.cost,
+            cost_with_margin: costWithMargin
+          };
+        });
+        const total_investment_cost = accessories.reduce((sum, acc) => sum + acc.investment_cost, 0);
+        const total_cost_with_margin = accessories.reduce((sum, acc) => sum + acc.cost_with_margin, 0);
+        return { ...p, accessories, total_investment_cost, total_cost_with_margin };
+      })
+    );
+    res.json(detailed);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
