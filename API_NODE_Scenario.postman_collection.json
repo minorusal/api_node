@@ -177,7 +177,7 @@
       ]
     },
     {
-      "name": "Accessory Materials Cost",
+      "name": "Accessories Materials Cost",
       "request": {
         "method": "GET",
         "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
@@ -187,6 +187,7 @@
           "host": ["localhost"],
           "port": "3000",
           "path": ["accessories", "1", "materials-cost"]
+
         }
       },
       "response": []
