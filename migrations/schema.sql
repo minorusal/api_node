@@ -47,3 +47,11 @@ CREATE TABLE IF NOT EXISTS playset_accessories (
     FOREIGN KEY (playset_id) REFERENCES playsets(id),
     FOREIGN KEY (accessory_id) REFERENCES accessories(id)
 );
+
+-- Tabla de ejemplo para almacenar operaciones básicas
+CREATE TABLE IF NOT EXISTS demo_table (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    numA DECIMAL(10,2) NOT NULL,
+    numB DECIMAL(10,2) NOT NULL,
+    resultado DECIMAL(10,2) NOT NULL
+);
