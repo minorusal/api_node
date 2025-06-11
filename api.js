@@ -12,6 +12,9 @@ const authRouter = require('./routes/auth');
 const filesRouter = require('./routes/files');
 const getApis = require('./routes/getApis');
 const operaciones = require('./routes/operaciones')
+const materialsRouter = require('./routes/materials');
+const accessoriesRouter = require('./routes/accessories');
+const playsetsRouter = require('./routes/playsets');
 
 const app = express();
 app.use(passport.initialize());
@@ -64,6 +67,9 @@ const authenticateJWT = (req, res, next) => {
 
 // Rutas protegidas
 app.use('/', authenticateJWT, userRouter);
+app.use('/', authenticateJWT, materialsRouter);
+app.use('/', authenticateJWT, accessoriesRouter);
+app.use('/', authenticateJWT, playsetsRouter);
 
 // Middleware para manejar errores
 app.use((err, req, res, next) => {
