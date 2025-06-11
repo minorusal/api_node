@@ -4,9 +4,19 @@ const router = express.Router();
 
 router.post('/accessory-materials', async (req, res) => {
   try {
-    const { accessoryId, materialId, quantity } = req.body;
-    const link = await AccessoryMaterials.linkMaterial(accessoryId, materialId, quantity);
-    res.status(201).json(link);
+    const { accessoryId, materialId, quantity, width, length } = req.body;
+    const link = await AccessoryMaterials.linkMaterial(
+      accessoryId,
+      materialId,
+      quantity
+    );
+    const cost = await AccessoryMaterials.calculateCost(
+      materialId,
+      width,
+      length,
+      quantity
+    );
+    res.status(201).json({ ...link, cost });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

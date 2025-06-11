@@ -1,12 +1,25 @@
 const db = require('../db');
 
-const createMaterial = (name, description) => {
+const createMaterial = (name, description, thickness, width, length, price) => {
   return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO raw_materials (name, description) VALUES (?, ?)';
-    db.query(sql, [name, description], (err, result) => {
-      if (err) return reject(err);
-      resolve({ id: result.insertId, name, description });
-    });
+    const sql =
+      'INSERT INTO raw_materials (name, description, thickness_mm, width_m, length_m, price) VALUES (?, ?, ?, ?, ?, ?)';
+    db.query(
+      sql,
+      [name, description, thickness, width, length, price],
+      (err, result) => {
+        if (err) return reject(err);
+        resolve({
+          id: result.insertId,
+          name,
+          description,
+          thickness_mm: thickness,
+          width_m: width,
+          length_m: length,
+          price
+        });
+      }
+    );
   });
 };
 
@@ -28,13 +41,26 @@ const findAll = () => {
   });
 };
 
-const updateMaterial = (id, name, description) => {
+const updateMaterial = (
+  id,
+  name,
+  description,
+  thickness,
+  width,
+  length,
+  price
+) => {
   return new Promise((resolve, reject) => {
-    const sql = 'UPDATE raw_materials SET name = ?, description = ? WHERE id = ?';
-    db.query(sql, [name, description, id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
+    const sql =
+      'UPDATE raw_materials SET name = ?, description = ?, thickness_mm = ?, width_m = ?, length_m = ?, price = ? WHERE id = ?';
+    db.query(
+      sql,
+      [name, description, thickness, width, length, price, id],
+      (err, result) => {
+        if (err) return reject(err);
+        resolve(result);
+      }
+    );
   });
 };
 
