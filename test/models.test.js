@@ -74,5 +74,17 @@ describe('Model logic', () => {
     // total cost = 3 * 2 = 6
     expect(cost).to.be.closeTo(6, 0.0001);
   });
+
+  it('calculateSegment returns used length based on material width', async () => {
+    db.query = (sql, params, callback) => {
+      callback(null, [{ width_m: 2 }]);
+    };
+
+    const segment = await accessoryMaterials.calculateSegment(1, 1, 1.5, 2);
+
+    // pieceArea = 1 * 1.5 = 1.5
+    // segmentLength = (1.5 / 2) * 2 = 1.5
+    expect(segment).to.be.closeTo(1.5, 0.0001);
+  });
 });
 

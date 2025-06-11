@@ -26,6 +26,20 @@ const calculateCost = (materialId, width, length, quantity = 1) => {
   });
 };
 
+const calculateSegment = (materialId, width, length, quantity = 1) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'SELECT width_m FROM raw_materials WHERE id = ?';
+    db.query(sql, [materialId], (err, rows) => {
+      if (err) return reject(err);
+      if (rows.length === 0) return reject(new Error('Material not found'));
+      const materialWidth = rows[0].width_m;
+      const pieceArea = width * length;
+      const segmentLength = (pieceArea / materialWidth) * quantity;
+      resolve(segmentLength);
+    });
+  });
+};
+
 const findById = (id) => {
   return new Promise((resolve, reject) => {
     db.query('SELECT * FROM accessory_materials WHERE id = ?', [id], (err, rows) => {
@@ -69,5 +83,6 @@ module.exports = {
   findAll,
   updateLink,
   deleteLink,
-  calculateCost
+  calculateCost,
+  calculateSegment
 };
