@@ -34,6 +34,9 @@ DB_NAME=demodb
 - `POST /files/upload` Sube una imagen.
 - `POST /operaciones/suma-numeros` Retorna la suma de dos números y almacena el resultado en MySQL.
 - `GET /public-apis/get-api` Consume una API pública.
+- `GET /materials` Lista materiales (protegido).
+- `GET /accessories` Lista accesorios (protegido).
+- `GET /playsets` Lista playsets (protegido).
 
 ## Configuración de CORS
 
