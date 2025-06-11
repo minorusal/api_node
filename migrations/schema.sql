@@ -1,7 +1,11 @@
 CREATE TABLE IF NOT EXISTS raw_materials (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    description TEXT
+    description TEXT,
+    thickness_mm DECIMAL(10,2),
+    width_m DECIMAL(10,2),
+    length_m DECIMAL(10,2),
+    price DECIMAL(10,2)
 );
 
 CREATE TABLE IF NOT EXISTS material_attributes (
