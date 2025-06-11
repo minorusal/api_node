@@ -83,7 +83,7 @@ router.post('/suma-numeros', async (req, res) => {
 router.post('/validacion-token-jwt', async (req, res) => {
     const { sessionToken, refreshToken } = req.body;
     if (!sessionToken || !refreshToken) {
-        return res.status(400).json({ error: 'Se requieren dos números' });
+        return res.status(400).json({ error: 'Se requieren dos tokens' });
     }
     const resultST = await operaciones.validaToken(sessionToken);
     const resultRT = await operaciones.validaToken(refreshToken);
