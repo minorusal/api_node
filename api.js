@@ -20,7 +20,6 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 const port = process.env.PORT || 3000;
-const mongodbUri = process.env.MONGODB_URI;
 
 app.use(cookieParser());
 
@@ -62,22 +61,14 @@ const authenticateJWT = (req, res, next) => {
     });
 };
 
-// Middleware para manejar errrores de passport
-app.use((err, req, res, next) => {
-    if (err.name === 'UnauthorizedError') {
-        res.status(401).json({ message: 'Token inválido o no proporcionado' });
-    } else {
-        console.error(err.stack);
-        res.status(500).send('Algo salió mal en el servidor');
-    }
-});
-
 // Rutas protegidas
 app.use('/', authenticateJWT, userRouter);
 
-
-// Middleware para manejar errores generales
+// Middleware para manejar errores
 app.use((err, req, res, next) => {
+    if (err.name === 'UnauthorizedError') {
+        return res.status(401).json({ message: 'Token inválido o no proporcionado' });
+    }
     console.error(err.stack);
     res.status(500).send('Algo salió mal en el servidor');
 });

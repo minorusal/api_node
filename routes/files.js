@@ -61,6 +61,4 @@ router.get('/read-json', async (req, res) => {
     }
 });
 
-
-
 module.exports = router;
