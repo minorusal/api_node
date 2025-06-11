@@ -72,4 +72,13 @@ especifica se permite cualquier origen.
 
 ## Pruebas
 
-Ejecuta `npm test` para correr las pruebas unitarias con Mocha.
+Para asegurarte de que las dependencias de desarrollo necesarias para las
+pruebas estén instaladas, ejecuta primero `npm install` y luego `npm test`:
+
+```bash
+npm install
+npm test
+```
+
+También puedes usar el script `run-tests.sh` incluido en este repositorio, el
+cual instala las dependencias y lanza las pruebas en un solo paso.
