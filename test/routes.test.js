@@ -2,7 +2,6 @@ const { expect } = require('chai');
 const materialsRouter = require('../routes/materials');
 const accessoriesRouter = require('../routes/accessories');
 const playsetsRouter = require('../routes/playsets');
-const playsetAccessoriesRouter = require('../routes/playsetAccessories');
 const materialAttributesRouter = require('../routes/materialAttributes');
 const accessoryMaterialsRouter = require('../routes/accessoryMaterials');
 const playsetAccessoriesRouter = require('../routes/playsetAccessories');
@@ -18,6 +17,13 @@ describe('Route definitions', () => {
 
   it('playsets router has routes configured', () => {
     expect(playsetsRouter.stack).to.be.an('array').that.is.not.empty;
+  });
+
+  it('playsets router registers cost route', () => {
+    const hasRoute = playsetsRouter.stack.some(
+      layer => layer.route && layer.route.path === '/playsets/:id/cost' && layer.route.methods.get
+    );
+    expect(hasRoute).to.be.true;
   });
 
   it('material attributes router has routes configured', () => {
