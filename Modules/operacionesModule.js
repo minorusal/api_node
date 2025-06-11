@@ -11,7 +11,7 @@ const sumaDosNumeros = async (numA, numB) => {
 
 const validaToken = async (token) => {
     try {
-        const secretKey = '4RC542024L3v4n74m13n70';
+        const secretKey = process.env.OPERACIONES_SECRET;
         const dataToken =  await jwt.verify(token, secretKey);
         return dataToken
     } catch (error) {
