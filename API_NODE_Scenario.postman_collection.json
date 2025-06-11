@@ -175,6 +175,21 @@
           "body": "{\n  \"id\": 3,\n  \"accessoryId\": 1,\n  \"materialId\": 3,\n  \"quantity\": 1,\n  \"cost\": 28,\n  \"segment\": {\n    \"width\": 0.6,\n    \"length\": 0.7\n  }\n}"
         }
       ]
+    },
+    {
+      "name": "Accessories Materials Cost",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+        "url": {
+          "raw": "http://localhost:3000/accessories/materials-cost",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["accessories", "materials-cost"]
+        }
+      },
+      "response": []
     }
   ]
 }
