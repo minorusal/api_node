@@ -43,6 +43,28 @@ DB_NAME=demodb
 - `PUT /playset-accessories/:id` Actualiza la cantidad del vínculo (protegido).
 - `DELETE /playset-accessories/:id` Elimina un vínculo (protegido).
 
+## Ejemplo de construcción de un playset
+
+Para crear un playset y vincular accesorios se pueden usar los nuevos endpoints.
+A continuación se muestran peticiones de ejemplo:
+
+```bash
+curl -X POST http://localhost:3000/playsets \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"name":"Mi playset","description":"Con varios accesorios"}'
+```
+
+```bash
+curl -X POST http://localhost:3000/playset-accessories \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"playsetId":1,"accessoryId":2,"quantity":1}'
+```
+
+Puedes usar `API_NODE_Scenario.postman_collection.json` como referencia para
+probar estas solicitudes y construir un playset completo.
+
 ## Configuración de CORS
 
 El dominio permitido se define con la variable de entorno `CORS_ORIGIN`. Si no se
