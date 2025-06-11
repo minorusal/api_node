@@ -5,6 +5,7 @@ const playsetsRouter = require('../routes/playsets');
 const playsetAccessoriesRouter = require('../routes/playsetAccessories');
 const materialAttributesRouter = require('../routes/materialAttributes');
 const accessoryMaterialsRouter = require('../routes/accessoryMaterials');
+const playsetAccessoriesRouter = require('../routes/playsetAccessories');
 
 describe('Route definitions', () => {
   it('materials router has routes configured', () => {
