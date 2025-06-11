@@ -10,6 +10,14 @@ const query = (sql, params = []) => {
   });
 };
 
+/**
+ * Vincula un accesorio a un playset.
+ * @param {number} playsetId - ID del playset.
+ * @param {number} accessoryId - ID del accesorio.
+ * @param {number} quantity - Cantidad del accesorio en el playset.
+ * @returns {Promise<object>} Registro creado con su ID.
+ * @throws {Error} Si la inserción falla.
+ */
 const linkAccessory = (playsetId, accessoryId, quantity) => {
   return new Promise((resolve, reject) => {
     const sql = 'INSERT INTO playset_accessories (playset_id, accessory_id, quantity) VALUES (?, ?, ?)';
@@ -20,6 +28,12 @@ const linkAccessory = (playsetId, accessoryId, quantity) => {
   });
 };
 
+/**
+ * Obtiene un vínculo por su ID.
+ * @param {number} id - Identificador del vínculo.
+ * @returns {Promise<object>} Vínculo encontrado o undefined.
+ * @throws {Error} Si ocurre un error en la consulta.
+ */
 const findById = (id) => {
   return new Promise((resolve, reject) => {
     db.query('SELECT * FROM playset_accessories WHERE id = ?', [id], (err, rows) => {
@@ -29,6 +43,11 @@ const findById = (id) => {
   });
 };
 
+/**
+ * Lista todos los vínculos existentes entre playsets y accesorios.
+ * @returns {Promise<object[]>} Arreglo de vínculos.
+ * @throws {Error} Si la consulta falla.
+ */
 const findAll = () => {
   return new Promise((resolve, reject) => {
     db.query('SELECT * FROM playset_accessories', (err, rows) => {
@@ -38,6 +57,12 @@ const findAll = () => {
   });
 };
 
+/**
+ * Calcula el costo total de un playset a partir de sus accesorios.
+ * @param {number} playsetId - ID del playset.
+ * @returns {Promise<object|null>} Detalle de costos o null si no existe.
+ * @throws {Error} Si ocurre un error en las consultas.
+ */
 const calculatePlaysetCost = async (playsetId) => {
   const playsetRows = await query(
     'SELECT id, name, description FROM playsets WHERE id = ?',
@@ -87,6 +112,13 @@ const calculatePlaysetCost = async (playsetId) => {
   };
 };
 
+/**
+ * Actualiza la cantidad de un accesorio en un playset.
+ * @param {number} id - ID del vínculo.
+ * @param {number} quantity - Nueva cantidad del accesorio.
+ * @returns {Promise<object>} Resultado de la actualización.
+ * @throws {Error} Si la consulta falla.
+ */
 const updateLink = (id, quantity) => {
   return new Promise((resolve, reject) => {
     const sql = 'UPDATE playset_accessories SET quantity = ? WHERE id = ?';
@@ -97,6 +129,12 @@ const updateLink = (id, quantity) => {
   });
 };
 
+/**
+ * Elimina un vínculo entre playset y accesorio.
+ * @param {number} id - Identificador del vínculo.
+ * @returns {Promise<object>} Resultado de la eliminación.
+ * @throws {Error} Si ocurre un error en la base de datos.
+ */
 const deleteLink = (id) => {
   return new Promise((resolve, reject) => {
     db.query('DELETE FROM playset_accessories WHERE id = ?', [id], (err, result) => {

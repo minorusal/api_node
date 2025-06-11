@@ -74,7 +74,10 @@ router.post('/playset-accessories', async (req, res) => {
   }
 });
 
-// List all links
+/**
+ * Lista todos los vínculos existentes.
+ * @route GET /playset-accessories
+ */
 router.get('/playset-accessories', async (req, res) => {
   try {
     const links = await PlaysetAccessories.findAll();
@@ -84,7 +87,10 @@ router.get('/playset-accessories', async (req, res) => {
   }
 });
 
-// Update quantity for a link
+/**
+ * Actualiza la cantidad de un vínculo.
+ * @route PUT /playset-accessories/:id
+ */
 router.put('/playset-accessories/:id', async (req, res) => {
   try {
     const { quantity } = req.body;
@@ -97,7 +103,10 @@ router.put('/playset-accessories/:id', async (req, res) => {
   }
 });
 
-// Delete link
+/**
+ * Elimina un vínculo.
+ * @route DELETE /playset-accessories/:id
+ */
 router.delete('/playset-accessories/:id', async (req, res) => {
   try {
     const link = await PlaysetAccessories.findById(req.params.id);

@@ -53,7 +53,6 @@ const router = express.Router();
  *       404:
  *         description: Accesorio no encontrado
  */
-
 router.post('/accessory-materials', async (req, res) => {
   try {
     const { accessoryId, materialId, quantity, width, length } = req.body;
@@ -76,6 +75,10 @@ router.post('/accessory-materials', async (req, res) => {
   }
 });
 
+/**
+ * Lista todas las relaciones accesorio-material.
+ * @route GET /accessory-materials
+ */
 router.get('/accessory-materials', async (req, res) => {
   try {
     const links = await AccessoryMaterials.findAll();
@@ -85,6 +88,10 @@ router.get('/accessory-materials', async (req, res) => {
   }
 });
 
+/**
+ * Obtiene el costo de materiales para un accesorio.
+ * @route GET /accessories/:id/materials-cost
+ */
 router.get('/accessories/:id/materials-cost', async (req, res) => {
   try {
     const rows = await AccessoryMaterials.findMaterialsCostByAccessory(

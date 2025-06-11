@@ -73,7 +73,10 @@ router.post('/register', async (req, res, next) => {
     }
 });
 
-// Ruta de login de usuarios
+/**
+ * Inicio de sesión de usuarios.
+ * @route POST /login
+ */
 router.post('/login', async (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
         try {
@@ -94,7 +97,10 @@ router.post('/login', async (req, res, next) => {
     })(req, res, next);
 });
 
-// Ruta para el logout de usuarios
+/**
+ * Cierre de sesión.
+ * @route POST /logout
+ */
 router.post('/logout', (req, res) => {
     if (!req.cookies.jwt) {
         return res.status(401).json({ message: 'No hay sesión activa' });

@@ -33,7 +33,6 @@ const router = express.Router();
  *       201:
  *         description: Atributo creado
  */
-
 router.post('/material-attributes', async (req, res) => {
   try {
     const { materialId, attributeName, attributeValue } = req.body;
@@ -44,6 +43,10 @@ router.post('/material-attributes', async (req, res) => {
   }
 });
 
+/**
+ * Lista todos los atributos de materiales.
+ * @route GET /material-attributes
+ */
 router.get('/material-attributes', async (req, res) => {
   try {
     const attrs = await MaterialAttributes.findAll();

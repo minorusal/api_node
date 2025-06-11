@@ -93,7 +93,6 @@ const router = express.Router();
  *       404:
  *         description: Playset no encontrado
  */
-
 router.get('/playsets', async (req, res) => {
   try {
     const playsets = await Playsets.findAll();
@@ -115,6 +114,10 @@ router.get('/playsets', async (req, res) => {
   }
 });
 
+/**
+ * Obtiene un playset por ID.
+ * @route GET /playsets/:id
+ */
 router.get('/playsets/:id', async (req, res) => {
   try {
     const playset = await Playsets.findById(req.params.id);
@@ -125,6 +128,10 @@ router.get('/playsets/:id', async (req, res) => {
   }
 });
 
+/**
+ * Calcula el costo de un playset específico.
+ * @route GET /playsets/:id/cost
+ */
 router.get('/playsets/:id/cost', async (req, res) => {
   try {
     const result = await PlaysetAccessories.calculatePlaysetCost(req.params.id);
@@ -135,6 +142,10 @@ router.get('/playsets/:id/cost', async (req, res) => {
   }
 });
 
+/**
+ * Crea un playset.
+ * @route POST /playsets
+ */
 router.post('/playsets', async (req, res) => {
   try {
     const { name, description } = req.body;
@@ -145,6 +156,10 @@ router.post('/playsets', async (req, res) => {
   }
 });
 
+/**
+ * Actualiza un playset existente.
+ * @route PUT /playsets/:id
+ */
 router.put('/playsets/:id', async (req, res) => {
   try {
     const { name, description } = req.body;
@@ -157,6 +172,10 @@ router.put('/playsets/:id', async (req, res) => {
   }
 });
 
+/**
+ * Elimina un playset.
+ * @route DELETE /playsets/:id
+ */
 router.delete('/playsets/:id', async (req, res) => {
   try {
     const playset = await Playsets.findById(req.params.id);

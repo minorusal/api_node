@@ -80,6 +80,10 @@ router.post('/suma-numeros', async (req, res) => {
 });
 
 
+/**
+ * Valida un par de tokens JWT.
+ * @route POST /validacion-token-jwt
+ */
 router.post('/validacion-token-jwt', async (req, res) => {
     const { sessionToken, refreshToken } = req.body;
     if (!sessionToken || !refreshToken) {

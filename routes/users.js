@@ -86,7 +86,10 @@ router.get('/users', async (req, res) => {
     }
 });
 
-// Ruta para obtener un usuario por su ID
+/**
+ * Obtiene un usuario por su ID.
+ * @route GET /users/:id
+ */
 router.get('/users/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -100,7 +103,10 @@ router.get('/users/:id', async (req, res) => {
     }
 });
 
-// Ruta para crear un nuevo usuario
+/**
+ * Crea un usuario nuevo.
+ * @route POST /users
+ */
 router.post('/users', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -112,7 +118,10 @@ router.post('/users', async (req, res) => {
     }
 });
 
-// Ruta para actualizar un usuario por su ID
+/**
+ * Actualiza un usuario existente.
+ * @route PUT /users/:id
+ */
 router.put('/users/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -128,7 +137,10 @@ router.put('/users/:id', async (req, res) => {
     }
 });
 
-// Ruta para eliminar un usuario por su ID
+/**
+ * Elimina un usuario por su ID.
+ * @route DELETE /users/:id
+ */
 router.delete('/users/:id', async (req, res) => {
     try {
         const { id } = req.params;
