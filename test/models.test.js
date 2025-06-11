@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const materials = require('../models/materialsModel');
 const accessories = require('../models/accessoriesModel');
 const playsets = require('../models/playsetsModel');
+const playsetAccessories = require('../models/playsetAccessoriesModel');
 
 describe('Model exports', () => {
   it('materials model exposes CRUD functions', () => {
@@ -20,6 +21,10 @@ describe('Model exports', () => {
     expect(playsets.createPlayset).to.be.a('function');
     expect(playsets.findById).to.be.a('function');
     expect(playsets.findAll).to.be.a('function');
+  });
+
+  it('playsetAccessories model exposes cost function', () => {
+    expect(playsetAccessories.calculatePlaysetCost).to.be.a('function');
   });
 });
 
@@ -73,6 +78,26 @@ describe('Model logic', () => {
     // unitCost = (12 / 6) * 1.5 = 3
     // total cost = 3 * 2 = 6
     expect(cost).to.be.closeTo(6, 0.0001);
+  });
+
+  it('calculatePlaysetCost sums accessory material costs', async () => {
+    const playsetAccessoriesModel = require('../models/playsetAccessoriesModel');
+    const originalCalc = accessoryMaterials.calculateCost;
+    accessoryMaterials.calculateCost = async () => 4;
+
+    db.query = (sql, params, callback) => {
+      if (sql.includes('FROM playsets')) return callback(null, [{ id: 1, name: 'Set' }]);
+      if (sql.includes('playset_accessories')) return callback(null, [{ accessory_id: 2, quantity: 1, name: 'Acc' }]);
+      if (sql.includes('accessory_materials')) return callback(null, [{ material_id: 3, quantity: 1, width_m: 1, length_m: 1 }]);
+      callback(null, []);
+    };
+
+    const result = await playsetAccessoriesModel.calculatePlaysetCost(1);
+
+    expect(result.total_cost).to.equal(4);
+    expect(result.accessories).to.have.lengthOf(1);
+
+    accessoryMaterials.calculateCost = originalCalc;
   });
 });
 

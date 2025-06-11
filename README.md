@@ -37,6 +37,7 @@ DB_NAME=demodb
 - `GET /materials` Lista materiales (protegido).
 - `GET /accessories` Lista accesorios (protegido).
 - `GET /playsets` Lista playsets (protegido).
+- `GET /playsets/:id/cost` Calcula el costo total de un playset.
 
 ## Configuración de CORS
 
