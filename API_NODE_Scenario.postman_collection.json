@@ -31,7 +31,7 @@
         "header": [{"key":"Authorization","value":"Bearer {{token}}"}],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Tabla de madera\",\n  \"description\": \"Madera 16mm 1.22x2.44m costo 1000\"\n}",
+          "raw": "{\n  \"name\": \"Tabla de madera\",\n  \"description\": \"Madera 16mm 1.22x2.44m costo 1000\",\n  \"thickness_mm\": 16,\n  \"width_m\": 1.22,\n  \"length_m\": 2.44,\n  \"price\": 1000\n}",
           "options": {"raw": {"language":"json"}}
         },
         "url": {
@@ -51,7 +51,7 @@
         "header": [{"key":"Authorization","value":"Bearer {{token}}"}],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Tornillo cabeza de coche\",\n  \"description\": \"1 1/2 pulgada calibre 1/4 costo 5\"\n}",
+          "raw": "{\n  \"name\": \"Tornillo cabeza de coche\",\n  \"description\": \"1 1/2 pulgada calibre 1/4 costo 5\",\n  \"thickness_mm\": 6,\n  \"width_m\": 0.006,\n  \"length_m\": 0.038,\n  \"price\": 5\n}",
           "options": {"raw": {"language":"json"}}
         },
         "url": {
@@ -71,7 +71,7 @@
         "header": [{"key":"Authorization","value":"Bearer {{token}}"}],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Vinil 18oz\",\n  \"description\": \"Rollo 60m x 1.50m costo 6000\"\n}",
+          "raw": "{\n  \"name\": \"Vinil 18oz\",\n  \"description\": \"Rollo 60m x 1.50m costo 6000\",\n  \"thickness_mm\": 1,\n  \"width_m\": 1.5,\n  \"length_m\": 60,\n  \"price\": 6000\n}",
           "options": {"raw": {"language":"json"}}
         },
         "url": {
@@ -111,7 +111,7 @@
         "header": [{"key":"Authorization","value":"Bearer {{token}}"}],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"accessoryId\": 1,\n  \"materialId\": 1,\n  \"quantity\": 1\n}",
+          "raw": "{\n  \"accessoryId\": 1,\n  \"materialId\": 1,\n  \"quantity\": 1,\n  \"width\": 0.3,\n  \"length\": 0.4\n}",
           "options": {"raw": {"language":"json"}}
         },
         "url": {
