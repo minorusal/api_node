@@ -12,8 +12,7 @@ router.post('/register', async (req, res, next) => {
     try {
         const { username, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ username, password: hashedPassword });
-        await newUser.save();
+        await User.createUser(username, hashedPassword);
         res.status(201).json({ message: 'Usuario creado exitosamente' });
     } catch (error) {
         next(error);
@@ -31,7 +30,7 @@ router.post('/login', async (req, res, next) => {
                 if (error) {
                     return next(error);
                 }
-                const token = jwt.sign({ sub: user._id }, jwtSecret);
+                const token = jwt.sign({ sub: user.id }, jwtSecret);
                 res.cookie('jwt', token, { httpOnly: true });
                 return res.status(200).json({ message: 'Autenticación exitosa', token });
             });
