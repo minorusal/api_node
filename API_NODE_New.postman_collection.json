@@ -266,6 +266,26 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Playset Accessories",
+      "item": [
+        {
+          "name": "List Playset Accessories",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "http://localhost:3000/playset-accessories",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["playset-accessories"]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
