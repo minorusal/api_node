@@ -82,3 +82,13 @@ npm test
 
 También puedes usar el script `run-tests.sh` incluido en este repositorio, el
 cual instala las dependencias y lanza las pruebas en un solo paso.
+
+## Documentación Swagger
+
+La versión utilizada del paquete `swagger-ui-express` es ^5.0.1. Puedes acceder a la documentación interactiva en:
+
+```
+http://localhost:3000/api-docs
+```
+
+Cambia el puerto si usas un valor distinto en la variable `PORT`.
