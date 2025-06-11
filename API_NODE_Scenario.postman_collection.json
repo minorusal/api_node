@@ -1,0 +1,168 @@
+{
+  "info": {
+    "name": "API_NODE_SCENARIO",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{user}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {"raw": {"language": "json"}}
+        },
+        "url": {
+          "raw": "http://localhost:3000/auth/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["auth","login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Wood Board",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Authorization","value":"Bearer {{token}}"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Tabla de madera\",\n  \"description\": \"Madera 16mm 1.22x2.44m costo 1000\"\n}",
+          "options": {"raw": {"language":"json"}}
+        },
+        "url": {
+          "raw": "http://localhost:3000/materials",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["materials"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Tornillo",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Authorization","value":"Bearer {{token}}"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Tornillo cabeza de coche\",\n  \"description\": \"1 1/2 pulgada calibre 1/4 costo 5\"\n}",
+          "options": {"raw": {"language":"json"}}
+        },
+        "url": {
+          "raw": "http://localhost:3000/materials",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["materials"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Vinil",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Authorization","value":"Bearer {{token}}"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Vinil 18oz\",\n  \"description\": \"Rollo 60m x 1.50m costo 6000\"\n}",
+          "options": {"raw": {"language":"json"}}
+        },
+        "url": {
+          "raw": "http://localhost:3000/materials",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["materials"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Accessory",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Authorization","value":"Bearer {{token}}"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Accesorio ejemplo\",\n  \"description\": \"Pieza de tabla 30x40 cm, 20 tornillos y vinil 60x70 cm\"\n}",
+          "options": {"raw": {"language":"json"}}
+        },
+        "url": {
+          "raw": "http://localhost:3000/accessories",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["accessories"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Link Wood Board",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Authorization","value":"Bearer {{token}}"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accessoryId\": 1,\n  \"materialId\": 1,\n  \"quantity\": 1\n}",
+          "options": {"raw": {"language":"json"}}
+        },
+        "url": {
+          "raw": "http://localhost:3000/accessory-materials",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["accessory-materials"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Link Screws",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Authorization","value":"Bearer {{token}}"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accessoryId\": 1,\n  \"materialId\": 2,\n  \"quantity\": 20\n}",
+          "options": {"raw": {"language":"json"}}
+        },
+        "url": {
+          "raw": "http://localhost:3000/accessory-materials",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["accessory-materials"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Link Vinyl",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Authorization","value":"Bearer {{token}}"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accessoryId\": 1,\n  \"materialId\": 3,\n  \"quantity\": 1\n}",
+          "options": {"raw": {"language":"json"}}
+        },
+        "url": {
+          "raw": "http://localhost:3000/accessory-materials",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["accessory-materials"]
+        }
+      },
+      "response": []
+    }
+  ]
+}
