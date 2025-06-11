@@ -6,7 +6,19 @@ const router = express.Router();
 router.get('/playsets', async (req, res) => {
   try {
     const playsets = await Playsets.findAll();
-    res.json(playsets);
+    const detailed = await Promise.all(
+      playsets.map(async (p) => {
+        const costInfo = await PlaysetAccessories.calculatePlaysetCost(p.id);
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          accessories: costInfo ? costInfo.accessories : [],
+          total_cost: costInfo ? costInfo.total_cost : 0
+        };
+      })
+    );
+    res.json(detailed);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

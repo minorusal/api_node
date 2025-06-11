@@ -39,7 +39,10 @@ const findAll = () => {
 };
 
 const calculatePlaysetCost = async (playsetId) => {
-  const playsetRows = await query('SELECT id, name FROM playsets WHERE id = ?', [playsetId]);
+  const playsetRows = await query(
+    'SELECT id, name, description FROM playsets WHERE id = ?',
+    [playsetId]
+  );
   if (playsetRows.length === 0) return null;
   const accessoryRows = await query(
     `SELECT pa.accessory_id, pa.quantity, a.name
@@ -78,6 +81,7 @@ const calculatePlaysetCost = async (playsetId) => {
   return {
     playset_id: playsetRows[0].id,
     playset_name: playsetRows[0].name,
+    playset_description: playsetRows[0].description,
     total_cost,
     accessories
   };
