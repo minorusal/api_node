@@ -16,7 +16,13 @@ router.post('/accessory-materials', async (req, res) => {
       length,
       quantity
     );
-    res.status(201).json({ ...link, cost });
+    const segment = await AccessoryMaterials.calculateSegment(
+      materialId,
+      width,
+      length,
+      quantity
+    );
+    res.status(201).json({ ...link, cost, segment });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
