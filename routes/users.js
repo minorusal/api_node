@@ -3,6 +3,79 @@ const User = require('../models/usersModel');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 
+/**
+ * @openapi
+ * /users:
+ *   get:
+ *     summary: Obtener todos los usuarios
+ *     tags:
+ *       - Users
+ *     responses:
+ *       200:
+ *         description: Lista de usuarios
+ *   post:
+ *     summary: Crear un usuario
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Usuario creado
+ *
+ * /users/{id}:
+ *   get:
+ *     summary: Obtener un usuario por ID
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Usuario encontrado
+ *       404:
+ *         description: Usuario no existe
+ *   put:
+ *     summary: Actualizar un usuario
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Usuario actualizado
+ *       404:
+ *         description: Usuario no existe
+ *   delete:
+ *     summary: Eliminar un usuario
+ *     tags:
+ *       - Users
+ *     responses:
+ *       200:
+ *         description: Usuario eliminado
+ *       404:
+ *         description: Usuario no existe
+ */
+
 // Ruta para obtener todos los usuarios
 router.get('/users', async (req, res) => {
     try {

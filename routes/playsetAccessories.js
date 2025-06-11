@@ -2,6 +2,67 @@ const express = require('express');
 const PlaysetAccessories = require('../models/playsetAccessoriesModel');
 const router = express.Router();
 
+/**
+ * @openapi
+ * /playset-accessories:
+ *   get:
+ *     summary: Listar enlaces playset-accesorio
+ *     tags:
+ *       - PlaysetAccessories
+ *     responses:
+ *       200:
+ *         description: Lista de enlaces
+ *   post:
+ *     summary: Crear enlace
+ *     tags:
+ *       - PlaysetAccessories
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               playsetId:
+ *                 type: integer
+ *               accessoryId:
+ *                 type: integer
+ *               quantity:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Enlace creado
+ *
+ * /playset-accessories/{id}:
+ *   put:
+ *     summary: Actualizar enlace
+ *     tags:
+ *       - PlaysetAccessories
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               quantity:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Enlace actualizado
+ *       404:
+ *         description: Vinculo no encontrado
+ *   delete:
+ *     summary: Eliminar enlace
+ *     tags:
+ *       - PlaysetAccessories
+ *     responses:
+ *       200:
+ *         description: Enlace eliminado
+ *       404:
+ *         description: Vinculo no encontrado
+ */
+
 // Create link between playset and accessory
 router.post('/playset-accessories', async (req, res) => {
   try {

@@ -6,6 +6,8 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 require('./middlewares/passport');
 const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./swagger');
 
 const userRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
@@ -31,6 +33,9 @@ const port = process.env.PORT || 3000;
 app.use(cookieParser());
 
 app.use(bodyParser.json());
+
+// Documentación Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
 // Rutas de autentcacion

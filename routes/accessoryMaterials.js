@@ -2,6 +2,58 @@ const express = require('express');
 const AccessoryMaterials = require('../models/accessoryMaterialsModel');
 const router = express.Router();
 
+/**
+ * @openapi
+ * /accessory-materials:
+ *   get:
+ *     summary: Listar enlaces accesorio-material
+ *     tags:
+ *       - AccessoryMaterials
+ *     responses:
+ *       200:
+ *         description: Lista de enlaces
+ *   post:
+ *     summary: Vincular material a accesorio
+ *     tags:
+ *       - AccessoryMaterials
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               accessoryId:
+ *                 type: integer
+ *               materialId:
+ *                 type: integer
+ *               quantity:
+ *                 type: number
+ *               width:
+ *                 type: number
+ *               length:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Vinculo creado
+ *
+ * /accessories/{id}/materials-cost:
+ *   get:
+ *     summary: Obtener costo de materiales de un accesorio
+ *     tags:
+ *       - AccessoryMaterials
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Costos calculados
+ *       404:
+ *         description: Accesorio no encontrado
+ */
+
 router.post('/accessory-materials', async (req, res) => {
   try {
     const { accessoryId, materialId, quantity, width, length } = req.body;
