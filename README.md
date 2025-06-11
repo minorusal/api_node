@@ -2,7 +2,7 @@
 Pequeña API en Node.js con autenticación por JWT, rutas protegidas,
 subida de archivos y consumo de APIs públicas.
 
-API_NODE.postman_collection.json es es la culeccion para hacer uso de la API
+API_NODE_New.postman_collection.json es la colección actualizada para usar la API, incluyendo materiales, accesorios y playsets.
 
 y el examen teorico es el archivo word cuestionarioNode.dox
 
