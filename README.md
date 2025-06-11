@@ -4,7 +4,7 @@ subida de archivos y consumo de APIs públicas.
 
 API_NODE_New.postman_collection.json es la colección actualizada para usar la API, incluyendo materiales, accesorios y playsets. Para el escenario de ejemplo se agregó el archivo `API_NODE_Scenario.postman_collection.json` que muestra cómo registrar materiales y vincularlos a un accesorio.
 
-y el examen teorico es el archivo word cuestionarioNode.dox
+y el examen teorico es el archivo word cuestinarioNode.docx
 
 ## Variables de entorno
 
