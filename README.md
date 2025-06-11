@@ -38,6 +38,10 @@ DB_NAME=demodb
 - `GET /accessories` Lista accesorios (protegido).
 - `GET /playsets` Lista playsets (protegido).
 - `GET /playsets/:id/cost` Calcula el costo total de un playset.
+- `POST /playset-accessories` Crea vínculo de accesorio a playset (protegido).
+- `GET /playset-accessories` Lista vínculos playset-accesorio (protegido).
+- `PUT /playset-accessories/:id` Actualiza la cantidad del vínculo (protegido).
+- `DELETE /playset-accessories/:id` Elimina un vínculo (protegido).
 
 ## Configuración de CORS
 

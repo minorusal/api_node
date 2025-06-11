@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const materialsRouter = require('../routes/materials');
 const accessoriesRouter = require('../routes/accessories');
 const playsetsRouter = require('../routes/playsets');
+const playsetAccessoriesRouter = require('../routes/playsetAccessories');
 const materialAttributesRouter = require('../routes/materialAttributes');
 const accessoryMaterialsRouter = require('../routes/accessoryMaterials');
 const playsetAccessoriesRouter = require('../routes/playsetAccessories');

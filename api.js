@@ -15,6 +15,7 @@ const operaciones = require('./routes/operaciones')
 const materialsRouter = require('./routes/materials');
 const accessoriesRouter = require('./routes/accessories');
 const playsetsRouter = require('./routes/playsets');
+const playsetAccessoriesRouter = require('./routes/playsetAccessories');
 const materialAttributesRouter = require('./routes/materialAttributes');
 const accessoryMaterialsRouter = require('./routes/accessoryMaterials');
 
@@ -73,6 +74,7 @@ app.use('/', authenticateJWT, materialsRouter);
 app.use('/', authenticateJWT, accessoryMaterialsRouter);
 app.use('/', authenticateJWT, accessoriesRouter);
 app.use('/', authenticateJWT, playsetsRouter);
+app.use('/', authenticateJWT, playsetAccessoriesRouter);
 app.use('/', authenticateJWT, materialAttributesRouter);
 
 // Middleware para manejar errores
