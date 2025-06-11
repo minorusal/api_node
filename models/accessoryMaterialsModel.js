@@ -1,5 +1,15 @@
 const db = require('../db');
 
+/**
+ * Relaciona un material con un accesorio.
+ * @param {number} accessoryId - ID del accesorio.
+ * @param {number} materialId - ID del material.
+ * @param {number} quantity - Cantidad de material.
+ * @param {number} width - Ancho de la pieza en metros.
+ * @param {number} length - Largo de la pieza en metros.
+ * @returns {Promise<object>} Registro creado con su ID.
+ * @throws {Error} Si ocurre un error en la inserción.
+ */
 const linkMaterial = (accessoryId, materialId, quantity, width, length) => {
   return new Promise((resolve, reject) => {
     const sql =
@@ -15,6 +25,15 @@ const linkMaterial = (accessoryId, materialId, quantity, width, length) => {
   });
 };
 
+/**
+ * Calcula el costo de utilizar una porción de material.
+ * @param {number} materialId - ID del material.
+ * @param {number} width - Ancho de la pieza en metros.
+ * @param {number} length - Largo de la pieza en metros.
+ * @param {number} [quantity=1] - Cantidad de piezas.
+ * @returns {Promise<number>} Costo total calculado.
+ * @throws {Error} Si el material no existe o falla la consulta.
+ */
 const calculateCost = (materialId, width, length, quantity = 1) => {
   return new Promise((resolve, reject) => {
     const sql =
@@ -31,6 +50,12 @@ const calculateCost = (materialId, width, length, quantity = 1) => {
   });
 };
 
+/**
+ * Obtiene un registro de vínculo por su ID.
+ * @param {number} id - Identificador del vínculo.
+ * @returns {Promise<object>} Registro encontrado o undefined.
+ * @throws {Error} Si ocurre un error en la consulta.
+ */
 const findById = (id) => {
   return new Promise((resolve, reject) => {
     db.query('SELECT * FROM accessory_materials WHERE id = ?', [id], (err, rows) => {
@@ -40,6 +65,11 @@ const findById = (id) => {
   });
 };
 
+/**
+ * Lista todos los vínculos entre accesorios y materiales.
+ * @returns {Promise<object[]>} Arreglo de registros de vínculos.
+ * @throws {Error} Si la consulta falla.
+ */
 const findAll = () => {
   return new Promise((resolve, reject) => {
     db.query('SELECT * FROM accessory_materials', (err, rows) => {
@@ -49,6 +79,11 @@ const findAll = () => {
   });
 };
 
+/**
+ * Devuelve los accesorios con el detalle de materiales y costos asociados.
+ * @returns {Promise<object[]>} Lista detallada de accesorios y costos.
+ * @throws {Error} Si la consulta a la base de datos falla.
+ */
 const findAccessoriesWithMaterialsCost = () => {
   return new Promise((resolve, reject) => {
     const sql = `
@@ -85,6 +120,12 @@ const findAccessoriesWithMaterialsCost = () => {
   });
 };
 
+/**
+ * Obtiene los costos de materiales para un accesorio específico.
+ * @param {number} accessoryId - ID del accesorio.
+ * @returns {Promise<object[]>} Detalle de materiales y costos.
+ * @throws {Error} Si ocurre un error en la consulta.
+ */
 const findMaterialsCostByAccessory = (accessoryId) => {
   return new Promise((resolve, reject) => {
     const sql = `
@@ -122,6 +163,13 @@ const findMaterialsCostByAccessory = (accessoryId) => {
   });
 };
 
+/**
+ * Actualiza la cantidad de un vínculo existente.
+ * @param {number} id - ID del vínculo.
+ * @param {number} quantity - Nueva cantidad.
+ * @returns {Promise<object>} Resultado de la actualización.
+ * @throws {Error} Si la consulta falla.
+ */
 const updateLink = (id, quantity) => {
   return new Promise((resolve, reject) => {
     const sql = 'UPDATE accessory_materials SET quantity = ? WHERE id = ?';
@@ -132,6 +180,12 @@ const updateLink = (id, quantity) => {
   });
 };
 
+/**
+ * Elimina un vínculo entre accesorio y material.
+ * @param {number} id - Identificador del vínculo.
+ * @returns {Promise<object>} Resultado de la operación.
+ * @throws {Error} Si la consulta falla.
+ */
 const deleteLink = (id) => {
   return new Promise((resolve, reject) => {
     db.query('DELETE FROM accessory_materials WHERE id = ?', [id], (err, result) => {

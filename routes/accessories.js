@@ -2,6 +2,10 @@ const express = require('express');
 const Accessories = require('../models/accessoriesModel');
 const router = express.Router();
 
+/**
+ * Lista todos los accesorios.
+ * @route GET /accessories
+ */
 router.get('/accessories', async (req, res) => {
   try {
     const accessories = await Accessories.findAll();
@@ -11,6 +15,10 @@ router.get('/accessories', async (req, res) => {
   }
 });
 
+/**
+ * Obtiene un accesorio por ID.
+ * @route GET /accessories/:id
+ */
 router.get('/accessories/:id', async (req, res) => {
   try {
     const accessory = await Accessories.findById(req.params.id);
@@ -21,6 +29,10 @@ router.get('/accessories/:id', async (req, res) => {
   }
 });
 
+/**
+ * Crea un accesorio.
+ * @route POST /accessories
+ */
 router.post('/accessories', async (req, res) => {
   try {
     const { name, description } = req.body;
@@ -31,6 +43,10 @@ router.post('/accessories', async (req, res) => {
   }
 });
 
+/**
+ * Actualiza un accesorio existente.
+ * @route PUT /accessories/:id
+ */
 router.put('/accessories/:id', async (req, res) => {
   try {
     const { name, description } = req.body;
@@ -43,6 +59,10 @@ router.put('/accessories/:id', async (req, res) => {
   }
 });
 
+/**
+ * Elimina un accesorio.
+ * @route DELETE /accessories/:id
+ */
 router.delete('/accessories/:id', async (req, res) => {
   try {
     const accessory = await Accessories.findById(req.params.id);

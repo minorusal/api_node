@@ -1,5 +1,12 @@
 const jwt = require('jsonwebtoken');
 
+/**
+ * Suma dos números y retorna el resultado.
+ * @param {number} numA - Primer número.
+ * @param {number} numB - Segundo número.
+ * @returns {Promise<number>} Resultado de la suma.
+ * @throws {Error} Si ocurre un problema durante la operación.
+ */
 const sumaDosNumeros = async (numA, numB) => {
     try {
         console.log(numA, numB);
@@ -9,6 +16,12 @@ const sumaDosNumeros = async (numA, numB) => {
     }
 }
 
+/**
+ * Valida un token JWT utilizando la clave definida en las variables de entorno.
+ * @param {string} token - Token JWT a verificar.
+ * @returns {Promise<object>} Información decodificada del token.
+ * @throws {Error} Si el token es inválido o no puede verificarse.
+ */
 const validaToken = async (token) => {
     try {
         const secretKey = process.env.OPERACIONES_SECRET;

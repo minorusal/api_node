@@ -1,5 +1,12 @@
 const db = require('../db');
 
+/**
+ * Crea un nuevo playset.
+ * @param {string} name - Nombre del playset.
+ * @param {string} description - Descripción del playset.
+ * @returns {Promise<object>} Playset creado con su ID.
+ * @throws {Error} Si la inserción falla.
+ */
 const createPlayset = (name, description) => {
   return new Promise((resolve, reject) => {
     const sql = 'INSERT INTO playsets (name, description) VALUES (?, ?)';
@@ -10,6 +17,12 @@ const createPlayset = (name, description) => {
   });
 };
 
+/**
+ * Busca un playset por su ID.
+ * @param {number} id - Identificador del playset.
+ * @returns {Promise<object>} Playset encontrado o undefined.
+ * @throws {Error} Si ocurre un error en la consulta.
+ */
 const findById = (id) => {
   return new Promise((resolve, reject) => {
     db.query('SELECT * FROM playsets WHERE id = ?', [id], (err, rows) => {
@@ -19,6 +32,11 @@ const findById = (id) => {
   });
 };
 
+/**
+ * Lista todos los playsets registrados.
+ * @returns {Promise<object[]>} Arreglo de playsets.
+ * @throws {Error} Si la consulta falla.
+ */
 const findAll = () => {
   return new Promise((resolve, reject) => {
     db.query('SELECT * FROM playsets', (err, rows) => {
@@ -28,6 +46,14 @@ const findAll = () => {
   });
 };
 
+/**
+ * Actualiza la información de un playset.
+ * @param {number} id - ID del playset.
+ * @param {string} name - Nombre del playset.
+ * @param {string} description - Descripción del playset.
+ * @returns {Promise<object>} Resultado de la actualización.
+ * @throws {Error} Si ocurre un error al actualizar.
+ */
 const updatePlayset = (id, name, description) => {
   return new Promise((resolve, reject) => {
     const sql = 'UPDATE playsets SET name = ?, description = ? WHERE id = ?';
@@ -38,6 +64,12 @@ const updatePlayset = (id, name, description) => {
   });
 };
 
+/**
+ * Elimina un playset por su ID.
+ * @param {number} id - Identificador del playset.
+ * @returns {Promise<object>} Resultado de la operación.
+ * @throws {Error} Si la consulta falla.
+ */
 const deletePlayset = (id) => {
   return new Promise((resolve, reject) => {
     db.query('DELETE FROM playsets WHERE id = ?', [id], (err, result) => {

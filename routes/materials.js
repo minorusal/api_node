@@ -2,6 +2,10 @@ const express = require('express');
 const Materials = require('../models/materialsModel');
 const router = express.Router();
 
+/**
+ * Lista todos los materiales.
+ * @route GET /materials
+ */
 router.get('/materials', async (req, res) => {
   try {
     const materials = await Materials.findAll();
@@ -11,6 +15,10 @@ router.get('/materials', async (req, res) => {
   }
 });
 
+/**
+ * Obtiene un material por ID.
+ * @route GET /materials/:id
+ */
 router.get('/materials/:id', async (req, res) => {
   try {
     const material = await Materials.findById(req.params.id);
@@ -21,6 +29,10 @@ router.get('/materials/:id', async (req, res) => {
   }
 });
 
+/**
+ * Crea un nuevo material.
+ * @route POST /materials
+ */
 router.post('/materials', async (req, res) => {
   try {
     const {
@@ -45,6 +57,10 @@ router.post('/materials', async (req, res) => {
   }
 });
 
+/**
+ * Actualiza un material existente.
+ * @route PUT /materials/:id
+ */
 router.put('/materials/:id', async (req, res) => {
   try {
     const {
@@ -73,6 +89,10 @@ router.put('/materials/:id', async (req, res) => {
   }
 });
 
+/**
+ * Elimina un material.
+ * @route DELETE /materials/:id
+ */
 router.delete('/materials/:id', async (req, res) => {
   try {
     const material = await Materials.findById(req.params.id);

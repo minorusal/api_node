@@ -39,7 +39,10 @@ const upload = multer({
     }
 });
 
-// Ruta para subir un archivo
+/**
+ * Sube un archivo al servidor.
+ * @route POST /upload
+ */
 router.post('/upload', upload.single('file'), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ message: 'No se proporcionó ningún archivo' });
@@ -49,7 +52,10 @@ router.post('/upload', upload.single('file'), (req, res) => {
 });
 
 
-// Ruta para leer y mostrar el contenido del archivo JSON
+/**
+ * Lee el archivo JSON subido y devuelve su contenido.
+ * @route GET /read-json
+ */
 router.get('/read-json', async (req, res) => {
     try {
         console.log('Si se consume');

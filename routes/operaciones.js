@@ -4,7 +4,10 @@ const operaciones = require('../Modules/operacionesModule');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 
-// Ruta para obtener la informacion que se obtiene de la api publica
+/**
+ * Suma dos números y guarda el resultado en la base de datos.
+ * @route POST /suma-numeros
+ */
 router.post('/suma-numeros', async (req, res) => {
     const { numA, numB } = req.body;
     if (!numA || !numB) {
@@ -37,6 +40,10 @@ router.post('/suma-numeros', async (req, res) => {
 });
 
 
+/**
+ * Valida un par de tokens JWT.
+ * @route POST /validacion-token-jwt
+ */
 router.post('/validacion-token-jwt', async (req, res) => {
     const { sessionToken, refreshToken } = req.body;
     if (!sessionToken || !refreshToken) {

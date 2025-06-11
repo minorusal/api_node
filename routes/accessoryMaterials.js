@@ -2,6 +2,10 @@ const express = require('express');
 const AccessoryMaterials = require('../models/accessoryMaterialsModel');
 const router = express.Router();
 
+/**
+ * Crea la relación entre un accesorio y un material.
+ * @route POST /accessory-materials
+ */
 router.post('/accessory-materials', async (req, res) => {
   try {
     const { accessoryId, materialId, quantity, width, length } = req.body;
@@ -24,6 +28,10 @@ router.post('/accessory-materials', async (req, res) => {
   }
 });
 
+/**
+ * Lista todas las relaciones accesorio-material.
+ * @route GET /accessory-materials
+ */
 router.get('/accessory-materials', async (req, res) => {
   try {
     const links = await AccessoryMaterials.findAll();
@@ -33,6 +41,10 @@ router.get('/accessory-materials', async (req, res) => {
   }
 });
 
+/**
+ * Obtiene el costo de materiales para un accesorio.
+ * @route GET /accessories/:id/materials-cost
+ */
 router.get('/accessories/:id/materials-cost', async (req, res) => {
   try {
     const rows = await AccessoryMaterials.findMaterialsCostByAccessory(
