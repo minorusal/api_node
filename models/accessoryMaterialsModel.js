@@ -85,6 +85,43 @@ const findAccessoriesWithMaterialsCost = () => {
   });
 };
 
+const findMaterialsCostByAccessory = (accessoryId) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT a.id AS accessory_id, a.name AS accessory_name,
+             am.quantity, am.width_m AS piece_width, am.length_m AS piece_length,
+             rm.id AS material_id, rm.name AS material_name,
+             rm.price, rm.width_m AS material_width, rm.length_m AS material_length
+      FROM accessories a
+      JOIN accessory_materials am ON a.id = am.accessory_id
+      JOIN raw_materials rm ON rm.id = am.material_id
+      WHERE a.id = ?`;
+    db.query(sql, [accessoryId], (err, rows) => {
+      if (err) return reject(err);
+      const detailed = rows.map((row) => {
+        let cost = row.price * row.quantity;
+        if (row.piece_width && row.piece_length) {
+          const fullArea = row.material_width * row.material_length;
+          const pieceArea = row.piece_width * row.piece_length;
+          const unitCost = (row.price / fullArea) * pieceArea;
+          cost = unitCost * row.quantity;
+        }
+        return {
+          accessory_id: row.accessory_id,
+          accessory_name: row.accessory_name,
+          material_id: row.material_id,
+          material_name: row.material_name,
+          quantity: row.quantity,
+          width_m: row.piece_width,
+          length_m: row.piece_length,
+          cost
+        };
+      });
+      resolve(detailed);
+    });
+  });
+};
+
 const updateLink = (id, quantity) => {
   return new Promise((resolve, reject) => {
     const sql = 'UPDATE accessory_materials SET quantity = ? WHERE id = ?';
@@ -109,6 +146,7 @@ module.exports = {
   findById,
   findAll,
   findAccessoriesWithMaterialsCost,
+  findMaterialsCostByAccessory,
   updateLink,
   deleteLink,
   calculateCost

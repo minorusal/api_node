@@ -182,11 +182,12 @@
         "method": "GET",
         "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
         "url": {
-          "raw": "http://localhost:3000/accessories/materials-cost",
+          "raw": "http://localhost:3000/accessories/1/materials-cost",
           "protocol": "http",
           "host": ["localhost"],
           "port": "3000",
-          "path": ["accessories", "materials-cost"]
+          "path": ["accessories", "1", "materials-cost"]
+
         }
       },
       "response": []
