@@ -23,8 +23,22 @@ router.get('/materials/:id', async (req, res) => {
 
 router.post('/materials', async (req, res) => {
   try {
-    const { name, description } = req.body;
-    const material = await Materials.createMaterial(name, description);
+    const {
+      name,
+      description,
+      thickness_mm,
+      width_m,
+      length_m,
+      price
+    } = req.body;
+    const material = await Materials.createMaterial(
+      name,
+      description,
+      thickness_mm,
+      width_m,
+      length_m,
+      price
+    );
     res.status(201).json(material);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -33,10 +47,26 @@ router.post('/materials', async (req, res) => {
 
 router.put('/materials/:id', async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const {
+      name,
+      description,
+      thickness_mm,
+      width_m,
+      length_m,
+      price
+    } = req.body;
     const material = await Materials.findById(req.params.id);
-    if (!material) return res.status(404).json({ message: 'Material no encontrado' });
-    await Materials.updateMaterial(req.params.id, name, description);
+    if (!material)
+      return res.status(404).json({ message: 'Material no encontrado' });
+    await Materials.updateMaterial(
+      req.params.id,
+      name,
+      description,
+      thickness_mm,
+      width_m,
+      length_m,
+      price
+    );
     res.json({ message: 'Material actualizado' });
   } catch (error) {
     res.status(500).json({ message: error.message });
