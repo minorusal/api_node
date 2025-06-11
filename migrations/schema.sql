@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS accessory_materials (
     accessory_id INT NOT NULL,
     material_id INT NOT NULL,
     quantity INT,
+    width_m DECIMAL(10,2),
+    length_m DECIMAL(10,2),
     FOREIGN KEY (accessory_id) REFERENCES accessories(id),
     FOREIGN KEY (material_id) REFERENCES raw_materials(id)
 );
