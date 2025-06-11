@@ -98,7 +98,8 @@ const calculatePlaysetCost = async (playsetId) => {
       accessory_id: row.accessory_id,
       accessory_name: row.name,
       quantity: row.quantity,
-      cost
+      cost,
+      materials: mats
     });
   }
 
