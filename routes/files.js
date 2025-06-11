@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { readJSONFile } = require('../Modules/filesInformation');
+const { log } = require('../Modules/logger');
 
 // Ruta de la carpeta donde se guardaran los archivos
 const uploadDirectory = './uploads';
@@ -52,9 +53,9 @@ router.post('/upload', upload.single('file'), (req, res) => {
 // Ruta para leer y mostrar el contenido del archivo JSON
 router.get('/read-json', async (req, res) => {
     try {
-        console.log('Si se consume');
+        log('Si se consume');
         const jsonData = await readJSONFile('./uploads/data.json');
-        console.log(jsonData);
+        log(jsonData);
         res.json(jsonData);
     } catch (error) {
         res.status(500).json({ message: error.message });
