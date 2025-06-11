@@ -12,14 +12,23 @@
         "body": {
           "mode": "raw",
           "raw": "{\n  \"username\": \"{{user}}\",\n  \"password\": \"{{password}}\"\n}",
-          "options": {"raw": {"language": "json"}}
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
         },
         "url": {
           "raw": "http://localhost:3000/auth/login",
           "protocol": "http",
-          "host": ["localhost"],
+          "host": [
+            "localhost"
+          ],
           "port": "3000",
-          "path": ["auth","login"]
+          "path": [
+            "auth",
+            "login"
+          ]
         }
       },
       "response": []
@@ -31,13 +40,22 @@
           "name": "List Materials",
           "request": {
             "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "http://localhost:3000/materials",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["materials"]
+              "path": [
+                "materials"
+              ]
             }
           },
           "response": []
@@ -46,13 +64,23 @@
           "name": "Get Material",
           "request": {
             "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "http://localhost:3000/materials/1",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["materials","1"]
+              "path": [
+                "materials",
+                "1"
+              ]
             }
           },
           "response": []
@@ -61,18 +89,31 @@
           "name": "Create Material",
           "request": {
             "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Plastico\",\n  \"description\": \"Material de ejemplo\"\n}",
-              "options": {"raw": {"language": "json"}}
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "http://localhost:3000/materials",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["materials"]
+              "path": [
+                "materials"
+              ]
             }
           },
           "response": []
@@ -81,18 +122,32 @@
           "name": "Update Material",
           "request": {
             "method": "PUT",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Plastico editado\",\n  \"description\": \"Actualizacion\"\n}",
-              "options": {"raw": {"language": "json"}}
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "http://localhost:3000/materials/1",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["materials","1"]
+              "path": [
+                "materials",
+                "1"
+              ]
             }
           },
           "response": []
@@ -101,13 +156,115 @@
           "name": "Delete Material",
           "request": {
             "method": "DELETE",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "http://localhost:3000/materials/1",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["materials","1"]
+              "path": [
+                "materials",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Playset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mi playset\",\n  \"description\": \"Con varios accesorios\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/playsets",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "playsets"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Playset",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mi playset editado\",\n  \"description\": \"Actualizado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/playsets/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "playsets",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Playset",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/playsets/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "playsets",
+                "1"
+              ]
             }
           },
           "response": []
@@ -121,29 +278,48 @@
           "name": "List Accessories",
           "request": {
             "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "http://localhost:3000/accessories",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["accessories"]
+              "path": [
+                "accessories"
+              ]
             }
           },
           "response": []
         },
         {
-
           "name": "Accessory Materials Cost",
           "request": {
             "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "http://localhost:3000/accessories/1/materials-cost",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["accessories", "1", "materials-cost"]
+              "path": [
+                "accessories",
+                "1",
+                "materials-cost"
+              ]
             }
           },
           "response": []
@@ -152,23 +328,36 @@
           "name": "Create Accessory",
           "request": {
             "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Accesorio1\",\n  \"description\": \"Desc\"\n}",
-              "options": {"raw": {"language": "json"}}
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "http://localhost:3000/accessories",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["accessories"]
+              "path": [
+                "accessories"
+              ]
             }
           },
-        "response": []
-      }
-    ]
+          "response": []
+        }
+      ]
     },
     {
       "name": "Accessory Materials",
@@ -177,18 +366,31 @@
           "name": "Link Wood Board",
           "request": {
             "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"accessoryId\": 1,\n  \"materialId\": 1,\n  \"quantity\": 1,\n  \"width\": 0.3,\n  \"length\": 0.4\n}",
-              "options": {"raw": {"language": "json"}}
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "http://localhost:3000/accessory-materials",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["accessory-materials"]
+              "path": [
+                "accessory-materials"
+              ]
             }
           },
           "response": [
@@ -201,18 +403,31 @@
           "name": "Link Screws",
           "request": {
             "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"accessoryId\": 1,\n  \"materialId\": 2,\n  \"quantity\": 20\n}",
-              "options": {"raw": {"language": "json"}}
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "http://localhost:3000/accessory-materials",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["accessory-materials"]
+              "path": [
+                "accessory-materials"
+              ]
             }
           },
           "response": [
@@ -225,18 +440,31 @@
           "name": "Link Vinyl",
           "request": {
             "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"accessoryId\": 1,\n  \"materialId\": 3,\n  \"quantity\": 1,\n  \"width\": 0.6,\n  \"length\": 0.7\n}",
-              "options": {"raw": {"language": "json"}}
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "http://localhost:3000/accessory-materials",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["accessory-materials"]
+              "path": [
+                "accessory-materials"
+              ]
             }
           },
           "response": [
@@ -254,13 +482,114 @@
           "name": "List Playsets",
           "request": {
             "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "http://localhost:3000/playsets",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["playsets"]
+              "path": [
+                "playsets"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Playset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mi playset\",\n  \"description\": \"Con varios accesorios\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/playsets",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "playsets"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Playset",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mi playset editado\",\n  \"description\": \"Actualizado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/playsets/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "playsets",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Playset",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/playsets/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "playsets",
+                "1"
+              ]
             }
           },
           "response": []
@@ -274,13 +603,114 @@
           "name": "List Playset Accessories",
           "request": {
             "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "http://localhost:3000/playset-accessories",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["playset-accessories"]
+              "path": [
+                "playset-accessories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Playset Accessory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"playsetId\": 1,\n  \"accessoryId\": 1,\n  \"quantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/playset-accessories",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "playset-accessories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Playset Accessory",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/playset-accessories/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "playset-accessories",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Playset Accessory",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/playset-accessories/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "playset-accessories",
+                "1"
+              ]
             }
           },
           "response": []
@@ -289,4 +719,3 @@
     }
   ]
 }
-
