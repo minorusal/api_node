@@ -1,0 +1,179 @@
+{
+  "info": {
+    "name": "API_NODE_NEW",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{user}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {"raw": {"language": "json"}}
+        },
+        "url": {
+          "raw": "http://localhost:3000/auth/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["auth","login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Materials",
+      "item": [
+        {
+          "name": "List Materials",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "http://localhost:3000/materials",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["materials"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Material",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "http://localhost:3000/materials/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["materials","1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Material",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Plastico\",\n  \"description\": \"Material de ejemplo\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:3000/materials",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["materials"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Material",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Plastico editado\",\n  \"description\": \"Actualizacion\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:3000/materials/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["materials","1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Material",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "http://localhost:3000/materials/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["materials","1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Accessories",
+      "item": [
+        {
+          "name": "List Accessories",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "http://localhost:3000/accessories",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["accessories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Accessory",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Accesorio1\",\n  \"description\": \"Desc\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:3000/accessories",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["accessories"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Playsets",
+      "item": [
+        {
+          "name": "List Playsets",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "http://localhost:3000/playsets",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["playsets"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+

@@ -2,7 +2,7 @@
 Pequeña API en Node.js con autenticación por JWT, rutas protegidas,
 subida de archivos y consumo de APIs públicas.
 
-API_NODE.postman_collection.json es es la culeccion para hacer uso de la API
+API_NODE_New.postman_collection.json es la colección actualizada para usar la API, incluyendo materiales, accesorios y playsets.
 
 y el examen teorico es el archivo word cuestionarioNode.dox
 
@@ -34,6 +34,9 @@ DB_NAME=demodb
 - `POST /files/upload` Sube una imagen.
 - `POST /operaciones/suma-numeros` Retorna la suma de dos números y almacena el resultado en MySQL.
 - `GET /public-apis/get-api` Consume una API pública.
+- `GET /materials` Lista materiales (protegido).
+- `GET /accessories` Lista accesorios (protegido).
+- `GET /playsets` Lista playsets (protegido).
 
 ## Configuración de CORS
 
