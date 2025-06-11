@@ -6,6 +6,37 @@ const fs = require('fs');
 const { readJSONFile } = require('../Modules/filesInformation');
 const { log } = require('../Modules/logger');
 
+/**
+ * @openapi
+ * /files/upload:
+ *   post:
+ *     summary: Subir archivo de imagen
+ *     tags:
+ *       - Files
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Archivo subido
+ *
+ * /files/read-json:
+ *   get:
+ *     summary: Leer archivo JSON de la carpeta uploads
+ *     tags:
+ *       - Files
+ *     responses:
+ *       200:
+ *         description: Contenido del archivo JSON
+ */
+
 // Ruta de la carpeta donde se guardaran los archivos
 const uploadDirectory = './uploads';
 

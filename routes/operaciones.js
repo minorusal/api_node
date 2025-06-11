@@ -4,6 +4,49 @@ const operaciones = require('../Modules/operacionesModule');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 
+/**
+ * @openapi
+ * /operaciones/suma-numeros:
+ *   post:
+ *     summary: Sumar dos números y guardar en base de datos
+ *     tags:
+ *       - Operaciones
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               numA:
+ *                 type: number
+ *               numB:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Resultado de la suma
+ *
+ * /operaciones/validacion-token-jwt:
+ *   post:
+ *     summary: Validar tokens JWT
+ *     tags:
+ *       - Operaciones
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               sessionToken:
+ *                 type: string
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Resultado de la validación
+ */
+
 // Ruta para obtener la informacion que se obtiene de la api publica
 router.post('/suma-numeros', async (req, res) => {
     const { numA, numB } = req.body;
