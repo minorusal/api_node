@@ -150,7 +150,84 @@
               "path": ["accessories"]
             }
           },
-          "response": []
+        "response": []
+      }
+    ]
+    },
+    {
+      "name": "Accessory Materials",
+      "item": [
+        {
+          "name": "Link Wood Board",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accessoryId\": 1,\n  \"materialId\": 1,\n  \"quantity\": 1,\n  \"width\": 0.3,\n  \"length\": 0.4\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:3000/accessory-materials",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["accessory-materials"]
+            }
+          },
+          "response": [
+            {
+              "body": "{\n  \"id\": 1,\n  \"accessoryId\": 1,\n  \"materialId\": 1,\n  \"quantity\": 1,\n  \"cost\": 40.3,\n  \"segment\": {\n    \"width\": 0.3,\n    \"length\": 0.4\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Link Screws",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accessoryId\": 1,\n  \"materialId\": 2,\n  \"quantity\": 20\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:3000/accessory-materials",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["accessory-materials"]
+            }
+          },
+          "response": [
+            {
+              "body": "{\n  \"id\": 2,\n  \"accessoryId\": 1,\n  \"materialId\": 2,\n  \"quantity\": 20,\n  \"cost\": 100,\n  \"segment\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "Link Vinyl",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accessoryId\": 1,\n  \"materialId\": 3,\n  \"quantity\": 1,\n  \"width\": 0.6,\n  \"length\": 0.7\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "http://localhost:3000/accessory-materials",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["accessory-materials"]
+            }
+          },
+          "response": [
+            {
+              "body": "{\n  \"id\": 3,\n  \"accessoryId\": 1,\n  \"materialId\": 3,\n  \"quantity\": 1,\n  \"cost\": 28,\n  \"segment\": {\n    \"width\": 0.6,\n    \"length\": 0.7\n  }\n}"
+            }
+          ]
         }
       ]
     },
