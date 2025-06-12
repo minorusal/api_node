@@ -116,3 +116,17 @@ Si ya tienes datos y sólo quieres aplicar el cambio ejecuta:
 ```sql
 ALTER TABLE remissions ADD COLUMN recipient_type ENUM('owner','client') DEFAULT 'owner';
 ```
+
+## Personalización de colores en remisiones
+
+Puedes modificar el color de fondo y el color de texto de las cabeceras en las remisiones mediante el endpoint:
+
+```http
+PUT /remission-style
+```
+
+En el cuerpo envía los campos `headerBackgroundColor` y/o `headerTextColor` en formato hexadecimal. Para obtener los valores actuales utiliza:
+
+```http
+GET /remission-style
+```
