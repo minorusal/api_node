@@ -46,6 +46,9 @@ DB_NAME=demodb
 - `POST /clients` Crea un cliente (protegido).
 - `GET /projects` Lista proyectos (protegido). Incluye el nombre y descripción del playset asociado.
 - `POST /projects` Crea un proyecto con cliente y playset (protegido).
+- `POST /installation-costs` Registra los costos de instalación de un proyecto.
+- `GET /installation-costs?project_id=<id>` Obtiene los costos de instalación por proyecto.
+- `PUT /installation-costs/:project_id` Actualiza los costos de instalación.
 
 ## Ejemplo de construcción de un playset
 
@@ -64,6 +67,13 @@ curl -X POST http://localhost:3000/playset-accessories \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
   -d '{"playsetId":1,"accessoryId":2,"quantity":1}'
+```
+
+```bash
+curl -X POST http://localhost:3000/installation-costs \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"project_id":1,"workers":2,"days":5,"meal_per_person":100,"hotel_per_day":200,"labor_cost":300,"personal_transport":50,"local_transport":80,"extra_expenses":120}'
 ```
 
 Puedes usar `API_NODE_Scenario.postman_collection.json` como referencia para

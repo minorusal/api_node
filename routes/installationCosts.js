@@ -36,6 +36,16 @@ const router = express.Router();
  *                 type: number
  *               extra_expenses:
  *                 type: number
+ *           example:
+ *             project_id: 1
+ *             workers: 2
+ *             days: 5
+ *             meal_per_person: 100
+ *             hotel_per_day: 200
+ *             labor_cost: 300
+ *             personal_transport: 50
+ *             local_transport: 80
+ *             extra_expenses: 120
  *   get:
  *     summary: Obtener costos de instalación por proyecto
  *     tags:
