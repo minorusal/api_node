@@ -140,3 +140,30 @@ Para obtener todas las remisiones asociadas a un propietario utiliza:
 ```http
 GET /remissions/by-owner/{owner_id}
 ```
+
+## Menús por propietario
+
+El endpoint `GET /menus` permite filtrar los menús pertenecientes a una empresa
+(**owner**) utilizando el parámetro de consulta `owner_id`. Si no se indica, se
+asume el valor `1`.
+
+```http
+GET /menus?owner_id=<id>
+```
+
+Para crear un menú asociado a un propietario también se puede enviar el campo
+`owner_id` en el cuerpo de la petición:
+
+```http
+POST /menus
+Content-Type: application/json
+
+{
+  "name": "Nombre del menú",
+  "path": null,
+  "parent_id": null,
+  "owner_id": <id>
+}
+```
+
+De esta manera cada empresa puede contar con su propio conjunto de menús.
