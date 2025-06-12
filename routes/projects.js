@@ -96,7 +96,6 @@ router.get('/projects', async (req, res) => {
           accessories,
           profit_margin,
           profit_percentage: owner ? +owner.profit_percentage : 0,
-
           total_investment_cost,
           total_cost_with_margin
         };
