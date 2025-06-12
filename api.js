@@ -46,14 +46,14 @@ if (process.env.CORS_ORIGIN) {
             return callback(new Error('Not allowed by CORS'));
         },
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'token'],
         credentials: true
     };
 } else {
     corsOptions = {
         origin: true, // reflect origin header
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'token'],
         credentials: true
     };
 }
