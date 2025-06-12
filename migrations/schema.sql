@@ -186,6 +186,18 @@ CREATE TABLE IF NOT EXISTS installation_costs (
     FOREIGN KEY (owner_id) REFERENCES owner_companies(id)
 );
 
+CREATE TABLE IF NOT EXISTS menus (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    path VARCHAR(255),
+    parent_id INT,
+    owner_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_id) REFERENCES menus(id),
+    FOREIGN KEY (owner_id) REFERENCES owner_companies(id)
+);
+
 /* ──────────── Asociaciones con owner ──────────── */
 ALTER TABLE raw_materials
   ADD COLUMN owner_id INT,

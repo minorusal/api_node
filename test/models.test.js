@@ -7,6 +7,7 @@ const clients = require('../models/clientsModel');
 const projects = require('../models/projectsModel');
 const installationCosts = require('../models/installationCostsModel');
 const ownerCompanies = require('../models/ownerCompaniesModel');
+const menus = require('../models/menusModel');
 
 describe('Model exports', () => {
   it('materials model exposes CRUD functions', () => {
@@ -50,6 +51,11 @@ describe('Model exports', () => {
 
   it('ownerCompanies model exposes update logo function', () => {
     expect(ownerCompanies.updateLogoPath).to.be.a('function');
+  });
+
+  it('menus model exposes CRUD functions', () => {
+    expect(menus.createMenu).to.be.a('function');
+    expect(menus.getMenuTree).to.be.a('function');
   });
 });
 

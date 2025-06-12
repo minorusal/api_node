@@ -26,6 +26,7 @@ const installationCostsRouter = require('./routes/installationCosts');
 const ownerCompaniesRouter = require('./routes/ownerCompanies');
 const remissionStyleRouter = require('./routes/remissionStyle');
 const remissionsRouter = require('./routes/remissions');
+const menusRouter = require('./routes/menus');
 
 const app = express();
 app.use(passport.initialize());
@@ -105,6 +106,7 @@ app.use('/', authenticateJWT, installationCostsRouter);
 app.use('/', authenticateJWT, ownerCompaniesRouter);
 app.use('/', authenticateJWT, remissionStyleRouter);
 app.use('/', authenticateJWT, remissionsRouter);
+app.use('/', authenticateJWT, menusRouter);
 
 // Middleware para manejar errores
 app.use((err, req, res, next) => {
