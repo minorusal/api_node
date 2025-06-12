@@ -103,7 +103,7 @@ async function generateRemission(projectId) {
     folio: project.id,
     fechaEmision: formattedDate,
     lugarExpedicion: owner ? owner.address : 'N/A',
-    logoSrc: '',
+    logoSrc: owner && owner.logo_path ? owner.logo_path : '',
     emisor: { razonSocial: owner ? owner.name : '' },
     receptor: {
       nombreCliente: client ? client.company_name : 'Cliente no registrado',
@@ -123,7 +123,7 @@ async function generateRemission(projectId) {
     folio: project.id,
     fechaEmision: formattedDate,
     lugarExpedicion: owner ? owner.address : 'N/A',
-    logoSrc: '',
+    logoSrc: owner && owner.logo_path ? owner.logo_path : '',
     emisor: { razonSocial: owner ? owner.name : '' },
     receptor: {
       nombreCliente: client ? client.company_name : 'Cliente no registrado',

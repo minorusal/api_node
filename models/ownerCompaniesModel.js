@@ -1,12 +1,12 @@
 const db = require('../db');
 
-const createOwnerCompany = (name, address, profitPercentage = 0) => {
+const createOwnerCompany = (name, address, profitPercentage = 0, logoPath = null) => {
   return new Promise((resolve, reject) => {
     const sql =
-      `INSERT INTO owner_companies (name, address, profit_percentage) VALUES (?, ?, ?)`;
-    db.query(sql, [name, address, profitPercentage], (err, result) => {
+      `INSERT INTO owner_companies (name, address, profit_percentage, logo_path) VALUES (?, ?, ?, ?)`;
+    db.query(sql, [name, address, profitPercentage, logoPath], (err, result) => {
       if (err) return reject(err);
-      resolve({ id: result.insertId, name, address, profit_percentage: profitPercentage });
+      resolve({ id: result.insertId, name, address, profit_percentage: profitPercentage, logo_path: logoPath });
     });
   });
 };
@@ -29,11 +29,21 @@ const findAll = () => {
   });
 };
 
-const updateOwnerCompany = (id, name, address, profitPercentage) => {
+const updateOwnerCompany = (id, name, address, profitPercentage, logoPath = null) => {
   return new Promise((resolve, reject) => {
     const sql =
-      `UPDATE owner_companies SET name = ?, address = ?, profit_percentage = ? WHERE id = ?`;
-    db.query(sql, [name, address, profitPercentage, id], (err, result) => {
+      `UPDATE owner_companies SET name = ?, address = ?, profit_percentage = ?, logo_path = ? WHERE id = ?`;
+    db.query(sql, [name, address, profitPercentage, logoPath, id], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+};
+
+const updateLogoPath = (id, logoPath) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'UPDATE owner_companies SET logo_path = ? WHERE id = ?';
+    db.query(sql, [logoPath, id], (err, result) => {
       if (err) return reject(err);
       resolve(result);
     });
@@ -63,6 +73,7 @@ module.exports = {
   findById,
   findAll,
   updateOwnerCompany,
+  updateLogoPath,
   deleteOwnerCompany,
   getFirst
 };
