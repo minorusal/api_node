@@ -30,21 +30,35 @@ const menusRouter = require('./routes/menus');
 
 const app = express();
 app.use(passport.initialize());
-let allowedOrigins;
+
+let corsOptions;
 if (process.env.CORS_ORIGIN) {
-    allowedOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
+    const allowedOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
     if (!allowedOrigins.includes('http://localhost:4200')) {
         allowedOrigins.push('http://localhost:4200');
     }
+    corsOptions = {
+        origin: (origin, callback) => {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error('Not allowed by CORS'));
+        },
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true
+    };
 } else {
-    allowedOrigins = '*';
+    corsOptions = {
+        origin: true, // reflect origin header
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true
+    };
 }
-app.use(cors({
-    origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-}));
+
+app.use(cors(corsOptions));
 const port = process.env.PORT || 3000;
 
 app.use(cookieParser());
