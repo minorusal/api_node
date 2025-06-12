@@ -58,6 +58,35 @@ router.get('/menus', async (req, res) => {
   }
 });
 
+/**
+ * @openapi
+ * /menus/all:
+ *   get:
+ *     summary: Listar todos los menús
+ *     tags:
+ *       - Menus
+ *     parameters:
+ *       - in: query
+ *         name: owner_id
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: ID del owner para filtrar (por defecto 1)
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Lista de menús
+ */
+router.get('/menus/all', async (req, res) => {
+  try {
+    const ownerId = parseInt(req.query.owner_id || '1', 10);
+    const menus = await Menus.findAll(ownerId);
+    res.json(menus);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.post('/menus', async (req, res) => {
   try {
     const { name, path = null, parent_id = null, owner_id = 1 } = req.body;
