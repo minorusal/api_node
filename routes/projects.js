@@ -334,7 +334,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
       folio: project.id,
       fechaEmision: formattedDate,
       lugarExpedicion: owner ? owner.address : 'N/A',
-      logoSrc: '',
+      logoSrc: owner && owner.logo_path ? owner.logo_path : '',
       emisor: { razonSocial: owner ? owner.name : '' },
       receptor: {
         nombreCliente: client ? client.company_name : 'Cliente no registrado',
@@ -354,7 +354,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
       folio: project.id,
       fechaEmision: formattedDate,
       lugarExpedicion: owner ? owner.address : 'N/A',
-      logoSrc: '',
+      logoSrc: owner && owner.logo_path ? owner.logo_path : '',
       emisor: { razonSocial: owner ? owner.name : '' },
       receptor: {
         nombreCliente: client ? client.company_name : 'Cliente no registrado',
