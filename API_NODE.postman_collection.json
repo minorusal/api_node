@@ -679,6 +679,37 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Remissions",
+      "item": [
+        {
+          "name": "Get Remissions by Owner",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/remissions/by-owner/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "remissions",
+                "by-owner",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }

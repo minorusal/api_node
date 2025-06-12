@@ -45,9 +45,20 @@ const findByProjectId = (projectId) => {
   });
 };
 
+const findByOwnerId = (ownerId) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'SELECT * FROM remissions WHERE owner_id = ?';
+    db.query(sql, [ownerId], (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows);
+    });
+  });
+};
+
 module.exports = {
   createRemission,
   findById,
   findAll,
-  findByProjectId
+  findByProjectId,
+  findByOwnerId
 };
