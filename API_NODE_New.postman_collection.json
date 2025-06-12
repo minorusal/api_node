@@ -1228,6 +1228,37 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "List All Menus",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/menus/all?owner_id=1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "menus",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "owner_id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     }
