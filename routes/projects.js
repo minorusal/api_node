@@ -2,7 +2,8 @@ const express = require('express');
 const Clients = require('../models/clientsModel');
 const Projects = require('../models/projectsModel');
 const PlaysetAccessories = require('../models/playsetAccessoriesModel');
-const PDFDocument = require('pdfkit');
+const Mustache = require('mustache');
+const pdf = require('html-pdf');
 const Remissions = require('../models/remissionsModel');
 const fs = require('fs');
 const path = require('path');
@@ -244,88 +245,58 @@ router.get('/projects/:id/pdf', async (req, res) => {
       console.error('Error saving remission:', err);
     }
 
-    const doc = new PDFDocument({ margin: 50 });
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
-    doc.pipe(fs.createWriteStream(filePath));
-    doc.pipe(res);
-
     const issueDate = new Date();
     const formattedDate = issueDate.toISOString().slice(0, 10);
 
-    doc.fontSize(18).text('REMISIÓN / CFDI 4.0', { align: 'center' });
-    doc.moveDown(0.5);
-    doc.fontSize(10);
-    doc.text(`Folio Interno: ${project.id}`);
-    doc.text(`Fecha de emisión: ${formattedDate}`);
-    doc.text(`Lugar de expedición: ${client ? client.address : 'N/A'}`);
-    doc.moveDown();
-    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-    doc.moveDown();
-
-    doc.fontSize(12).text('Datos del Emisor');
-    doc.fontSize(10);
-    doc.text('Razón Social: Playset Company');
-    doc.text('RFC: XAXX010101000');
-    doc.text('Régimen Fiscal: General');
-    doc.moveDown();
-
-    doc.fontSize(12).text('Datos del Receptor');
-    doc.fontSize(10);
-    if (client) {
-      doc.text(`Razón Social: ${client.company_name}`);
-      doc.text(`RFC: ${client.billing_info || ''}`);
-      doc.text(`Dirección: ${client.address}`);
-    } else {
-      doc.text('Cliente no registrado');
-    }
-    doc.moveDown();
-
-    if (costInfo) {
-      doc.fontSize(12).text('Playset');
-      doc.fontSize(10);
-      doc.text(`Nombre: ${costInfo.playset_name}`);
-      doc.text(`Descripción: ${costInfo.playset_description}`);
-      doc.moveDown();
-    }
-
-    // Table header
-    const startX = 50;
-    let y = doc.y;
-    doc.text('Accesorio', startX, y);
-    doc.text('Cant', startX + 100, y);
-    doc.text('Costo U.', startX + 140, y);
-    doc.text('Precio U.', startX + 220, y);
-    doc.text('Subt. Costo', startX + 300, y);
-    doc.text('Subt. Venta', startX + 400, y);
-    y += 20;
-
-    accessories.forEach(acc => {
-      const unitCost = acc.quantity ? (acc.investment_cost / acc.quantity) : 0;
-      const unitPrice = acc.quantity ? (acc.cost_with_margin / acc.quantity) : 0;
-      doc.text(acc.accessory_name, startX, y);
-      doc.text(acc.quantity, startX + 100, y);
-      doc.text(unitCost.toFixed(2), startX + 140, y);
-      doc.text(unitPrice.toFixed(2), startX + 220, y);
-      doc.text(acc.investment_cost.toFixed(2), startX + 300, y);
-      doc.text(acc.cost_with_margin.toFixed(2), startX + 400, y);
-      y += 20;
-    });
-
-    doc.moveDown();
     const subtotal = total_cost_with_margin;
-    const iva = subtotal * 0.16;
-    const total = subtotal + iva;
-    doc.text(`Subtotal: ${subtotal.toFixed(2)}`, { align: 'right' });
-    doc.text(`IVA (16%): ${iva.toFixed(2)}`, { align: 'right' });
-    doc.text(`Total: ${total.toFixed(2)}`, { align: 'right' });
-    doc.moveDown();
-    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-    doc.moveDown();
-    doc.fontSize(10).text('Nota: Estos precios solo están disponibles durante 30 días a partir de la fecha de emisión de esta remisión.', {
-      align: 'center'
+    const iva = +(subtotal * 0.16).toFixed(2);
+    const total = +(subtotal + iva).toFixed(2);
+
+    const conceptos = accessories.map(acc => ({
+      cantidad: acc.quantity,
+      claveProdServ: acc.accessory_id,
+      descripcion: acc.accessory_name,
+      valorUnitario: (acc.cost_with_margin / (acc.quantity || 1)).toFixed(2),
+      importe: acc.cost_with_margin.toFixed(2)
+    }));
+
+    const templatePath = path.join(__dirname, '..', 'templates', 'remission.html');
+    const template = fs.readFileSync(templatePath, 'utf8');
+
+    const html = Mustache.render(template, {
+      folio: project.id,
+      fechaEmision: formattedDate,
+      lugarExpedicion: client ? client.address : 'N/A',
+      logoSrc: '',
+      emisor: { razonSocial: 'Playset Company', rfc: 'XAXX010101000', regimen: 'General' },
+      receptor: {
+        razonSocial: client ? client.company_name : 'Cliente no registrado',
+        rfc: client ? (client.billing_info || '') : '',
+        usoCfdi: '',
+        cp: client ? client.address : '',
+        regimen: ''
+      },
+      conceptos,
+      totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: '' },
+      uuid: '',
+      folioFiscal: '',
+      selloSat: '',
+      selloEmisor: '',
+      cadenaOriginal: ''
     });
-    doc.end();
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+
+    pdf.create(html).toStream((err, stream) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Error creando PDF' });
+      }
+      const fileStream = fs.createWriteStream(filePath);
+      stream.pipe(fileStream);
+      stream.pipe(res);
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
