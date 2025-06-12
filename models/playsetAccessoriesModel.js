@@ -18,12 +18,12 @@ const query = (sql, params = []) => {
  * @returns {Promise<object>} Registro creado con su ID.
  * @throws {Error} Si la inserción falla.
  */
-const linkAccessory = (playsetId, accessoryId, quantity) => {
+const linkAccessory = (playsetId, accessoryId, quantity, ownerId = 1) => {
   return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO playset_accessories (playset_id, accessory_id, quantity) VALUES (?, ?, ?)';
-    db.query(sql, [playsetId, accessoryId, quantity], (err, result) => {
+    const sql = 'INSERT INTO playset_accessories (playset_id, accessory_id, quantity, owner_id) VALUES (?, ?, ?, ?)';
+    db.query(sql, [playsetId, accessoryId, quantity, ownerId], (err, result) => {
       if (err) return reject(err);
-      resolve({ id: result.insertId, playsetId, accessoryId, quantity });
+      resolve({ id: result.insertId, playsetId, accessoryId, quantity, owner_id: ownerId });
     });
   });
 };

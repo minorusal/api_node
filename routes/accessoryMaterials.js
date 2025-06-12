@@ -61,7 +61,8 @@ router.post('/accessory-materials', async (req, res) => {
       materialId,
       quantity,
       width,
-      length
+      length,
+      1
     );
     const cost = await AccessoryMaterials.calculateCost(
       materialId,

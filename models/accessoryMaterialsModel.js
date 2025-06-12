@@ -10,16 +10,16 @@ const db = require('../db');
  * @returns {Promise<object>} Registro creado con su ID.
  * @throws {Error} Si ocurre un error en la inserción.
  */
-const linkMaterial = (accessoryId, materialId, quantity, width, length) => {
+const linkMaterial = (accessoryId, materialId, quantity, width, length, ownerId = 1) => {
   return new Promise((resolve, reject) => {
     const sql =
-      'INSERT INTO accessory_materials (accessory_id, material_id, quantity, width_m, length_m) VALUES (?, ?, ?, ?, ?)';
+      'INSERT INTO accessory_materials (accessory_id, material_id, quantity, width_m, length_m, owner_id) VALUES (?, ?, ?, ?, ?, ?)';
     db.query(
       sql,
-      [accessoryId, materialId, quantity, width, length],
+      [accessoryId, materialId, quantity, width, length, ownerId],
       (err, result) => {
         if (err) return reject(err);
-        resolve({ id: result.insertId, accessoryId, materialId, quantity, width, length });
+        resolve({ id: result.insertId, accessoryId, materialId, quantity, width, length, owner_id: ownerId });
       }
     );
   });
