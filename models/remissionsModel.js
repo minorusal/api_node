@@ -35,8 +35,19 @@ const findAll = () => {
   });
 };
 
+const findByProjectId = (projectId) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'SELECT * FROM remissions WHERE project_id = ?';
+    db.query(sql, [projectId], (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows);
+    });
+  });
+};
+
 module.exports = {
   createRemission,
   findById,
-  findAll
+  findAll,
+  findByProjectId
 };

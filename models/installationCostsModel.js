@@ -44,7 +44,29 @@ const findByProjectId = (projectId) => {
   });
 };
 
+const updateInstallationCosts = (
+  projectId,
+  workers,
+  days,
+  mealPerPerson,
+  hotelPerDay,
+  laborCost,
+  personalTransport,
+  localTransport,
+  extraExpenses
+) => {
+  return new Promise((resolve, reject) => {
+    const sql = `UPDATE installation_costs SET workers = ?, days = ?, meal_per_person = ?, hotel_per_day = ?, labor_cost = ?, personal_transport = ?, local_transport = ?, extra_expenses = ? WHERE project_id = ?`;
+    const params = [workers, days, mealPerPerson, hotelPerDay, laborCost, personalTransport, localTransport, extraExpenses, projectId];
+    db.query(sql, params, (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+};
+
 module.exports = {
   createInstallationCosts,
-  findByProjectId
+  findByProjectId,
+  updateInstallationCosts
 };
