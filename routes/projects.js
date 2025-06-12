@@ -2,7 +2,8 @@ const express = require('express');
 const Clients = require('../models/clientsModel');
 const Projects = require('../models/projectsModel');
 const PlaysetAccessories = require('../models/playsetAccessoriesModel');
-const PDFDocument = require('pdfkit');
+const Mustache = require('mustache');
+const pdf = require('html-pdf');
 const Remissions = require('../models/remissionsModel');
 const fs = require('fs');
 const path = require('path');
@@ -244,72 +245,58 @@ router.get('/projects/:id/pdf', async (req, res) => {
       console.error('Error saving remission:', err);
     }
 
-    const doc = new PDFDocument();
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
-    doc.pipe(fs.createWriteStream(filePath));
-    doc.pipe(res);
-
     const issueDate = new Date();
     const formattedDate = issueDate.toISOString().slice(0, 10);
 
-    doc.fontSize(16).text('Nota de Remisión', { align: 'center', underline: true });
-    doc.moveDown(0.5);
-    doc.fontSize(10).text(`Fecha de emisión: ${formattedDate}`, { align: 'right' });
-    doc.moveDown();
-    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-    doc.moveDown();
-    doc.fontSize(12).text(`ID: ${project.id}`);
-    if (project.contact_email) {
-      doc.text(`Correo de contacto: ${project.contact_email}`);
-    }
-    if (client) {
-      doc.text(`Cliente: ${client.contact_name} - ${client.company_name}`);
-      doc.text(`Direccion: ${client.address}`);
-    } else {
-      doc.text(`Client ID: ${project.client_id}`);
-    }
-    if (costInfo) {
-      doc.text(`Playset: ${costInfo.playset_name}`);
-      doc.text(`Descripcion Playset: ${costInfo.playset_description}`);
-    }
-    doc.text(`Precio de Venta Total: ${project.sale_price}`);
-    doc.text(`Margen de Ganancia: ${profit_margin}`);
-    doc.moveDown();
+    const subtotal = total_cost_with_margin;
+    const iva = +(subtotal * 0.16).toFixed(2);
+    const total = +(subtotal + iva).toFixed(2);
 
-    // Table header
-    const startX = 50;
-    let y = doc.y;
-    doc.text('Accesorio', startX, y);
-    doc.text('Cant', startX + 100, y);
-    doc.text('Costo U.', startX + 140, y);
-    doc.text('Precio U.', startX + 220, y);
-    doc.text('Subt. Costo', startX + 300, y);
-    doc.text('Subt. Venta', startX + 400, y);
-    y += 20;
+    const conceptos = accessories.map(acc => ({
+      cantidad: acc.quantity,
+      claveProdServ: acc.accessory_id,
+      descripcion: acc.accessory_name,
+      valorUnitario: (acc.cost_with_margin / (acc.quantity || 1)).toFixed(2),
+      importe: acc.cost_with_margin.toFixed(2)
+    }));
 
-    accessories.forEach(acc => {
-      const unitCost = acc.quantity ? (acc.investment_cost / acc.quantity) : 0;
-      const unitPrice = acc.quantity ? (acc.cost_with_margin / acc.quantity) : 0;
-      doc.text(acc.accessory_name, startX, y);
-      doc.text(acc.quantity, startX + 100, y);
-      doc.text(unitCost.toFixed(2), startX + 140, y);
-      doc.text(unitPrice.toFixed(2), startX + 220, y);
-      doc.text(acc.investment_cost.toFixed(2), startX + 300, y);
-      doc.text(acc.cost_with_margin.toFixed(2), startX + 400, y);
-      y += 20;
+    const templatePath = path.join(__dirname, '..', 'templates', 'remission.html');
+    const template = fs.readFileSync(templatePath, 'utf8');
+
+    const html = Mustache.render(template, {
+      folio: project.id,
+      fechaEmision: formattedDate,
+      lugarExpedicion: client ? client.address : 'N/A',
+      logoSrc: '',
+      emisor: { razonSocial: 'Playset Company', rfc: 'XAXX010101000', regimen: 'General' },
+      receptor: {
+        razonSocial: client ? client.company_name : 'Cliente no registrado',
+        rfc: client ? (client.billing_info || '') : '',
+        usoCfdi: '',
+        cp: client ? client.address : '',
+        regimen: ''
+      },
+      conceptos,
+      totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: '' },
+      uuid: '',
+      folioFiscal: '',
+      selloSat: '',
+      selloEmisor: '',
+      cadenaOriginal: ''
     });
 
-    doc.moveDown();
-    doc.text(`Costo de inversion total: ${total_investment_cost.toFixed(2)}`);
-    doc.text(`Costo de venta total: ${total_cost_with_margin.toFixed(2)}`);
-    doc.moveDown();
-    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-    doc.moveDown();
-    doc.fontSize(10).text('Nota: Estos precios solo están disponibles durante 30 días a partir de la fecha de emisión de esta remisión.', {
-      align: 'center'
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+
+    pdf.create(html).toStream((err, stream) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Error creando PDF' });
+      }
+      const fileStream = fs.createWriteStream(filePath);
+      stream.pipe(fileStream);
+      stream.pipe(res);
     });
-    doc.end();
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
