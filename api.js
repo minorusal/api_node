@@ -38,6 +38,9 @@ app.use(cookieParser());
 
 app.use(bodyParser.json());
 
+// Serve uploaded files so templates can access logos
+app.use('/uploads', express.static('uploads'));
+
 // Documentación Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
