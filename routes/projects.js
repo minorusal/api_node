@@ -260,6 +260,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
       importe: acc.cost_with_margin.toFixed(2)
     }));
 
+
     const templatePath = path.join(__dirname, '..', 'templates', 'remission.html');
     const template = fs.readFileSync(templatePath, 'utf8');
 
@@ -296,6 +297,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
       const fileStream = fs.createWriteStream(filePath);
       stream.pipe(fileStream);
       stream.pipe(res);
+
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
