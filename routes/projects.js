@@ -2,6 +2,7 @@ const express = require('express');
 const Clients = require('../models/clientsModel');
 const Projects = require('../models/projectsModel');
 const PlaysetAccessories = require('../models/playsetAccessoriesModel');
+const InstallationCosts = require('../models/installationCostsModel');
 const Mustache = require('mustache');
 const pdf = require('html-pdf');
 const Remissions = require('../models/remissionsModel');
@@ -87,13 +88,30 @@ router.get('/projects', async (req, res) => {
             cost_with_margin: costWithMargin
           };
         });
-        const total_investment_cost = accessories.reduce((sum, acc) => sum + acc.investment_cost, 0);
-        const total_cost_with_margin = accessories.reduce((sum, acc) => sum + acc.cost_with_margin, 0);
+
+        const install = await InstallationCosts.findByProjectId(p.id);
+        const installItems = [];
+        if (install) {
+          const meals = (install.meal_per_person || 0) * (install.workers || 0) * (install.days || 0);
+          const hotel = (install.hotel_per_day || 0) * (install.days || 0);
+          installItems.push(
+            { accessory_name: 'Comidas', quantity: 1, materials: [], investment_cost: meals, cost_with_margin: +(meals * marginFactor).toFixed(2) },
+            { accessory_name: 'Hotel', quantity: 1, materials: [], investment_cost: hotel, cost_with_margin: +(hotel * marginFactor).toFixed(2) },
+            { accessory_name: 'Mano de obra', quantity: 1, materials: [], investment_cost: install.labor_cost || 0, cost_with_margin: +((install.labor_cost || 0) * marginFactor).toFixed(2) },
+            { accessory_name: 'Transporte personal', quantity: 1, materials: [], investment_cost: install.personal_transport || 0, cost_with_margin: +((install.personal_transport || 0) * marginFactor).toFixed(2) },
+            { accessory_name: 'Transporte local', quantity: 1, materials: [], investment_cost: install.local_transport || 0, cost_with_margin: +((install.local_transport || 0) * marginFactor).toFixed(2) },
+            { accessory_name: 'Gastos extras', quantity: 1, materials: [], investment_cost: install.extra_expenses || 0, cost_with_margin: +((install.extra_expenses || 0) * marginFactor).toFixed(2) }
+          );
+        }
+
+        const allItems = accessories.concat(installItems);
+        const total_investment_cost = allItems.reduce((sum, acc) => sum + acc.investment_cost, 0);
+        const total_cost_with_margin = allItems.reduce((sum, acc) => sum + acc.cost_with_margin, 0);
         return {
           ...p,
           playset_name: costInfo.playset_name,
           playset_description: costInfo.playset_description,
-          accessories,
+          accessories: allItems,
           profit_margin,
           profit_percentage: owner ? +owner.profit_percentage : 0,
           total_investment_cost,
@@ -159,14 +177,31 @@ router.get('/projects/:id', async (req, res) => {
         cost_with_margin: costWithMargin
       };
     });
-    const total_investment_cost = accessories.reduce((sum, acc) => sum + acc.investment_cost, 0);
-    const total_cost_with_margin = accessories.reduce((sum, acc) => sum + acc.cost_with_margin, 0);
+
+    const install = await InstallationCosts.findByProjectId(project.id);
+    const installItems = [];
+    if (install) {
+      const meals = (install.meal_per_person || 0) * (install.workers || 0) * (install.days || 0);
+      const hotel = (install.hotel_per_day || 0) * (install.days || 0);
+      installItems.push(
+        { accessory_name: 'Comidas', quantity: 1, materials: [], investment_cost: meals, cost_with_margin: +(meals * marginFactor).toFixed(2) },
+        { accessory_name: 'Hotel', quantity: 1, materials: [], investment_cost: hotel, cost_with_margin: +(hotel * marginFactor).toFixed(2) },
+        { accessory_name: 'Mano de obra', quantity: 1, materials: [], investment_cost: install.labor_cost || 0, cost_with_margin: +((install.labor_cost || 0) * marginFactor).toFixed(2) },
+        { accessory_name: 'Transporte personal', quantity: 1, materials: [], investment_cost: install.personal_transport || 0, cost_with_margin: +((install.personal_transport || 0) * marginFactor).toFixed(2) },
+        { accessory_name: 'Transporte local', quantity: 1, materials: [], investment_cost: install.local_transport || 0, cost_with_margin: +((install.local_transport || 0) * marginFactor).toFixed(2) },
+        { accessory_name: 'Gastos extras', quantity: 1, materials: [], investment_cost: install.extra_expenses || 0, cost_with_margin: +((install.extra_expenses || 0) * marginFactor).toFixed(2) }
+      );
+    }
+
+    const allItems = accessories.concat(installItems);
+    const total_investment_cost = allItems.reduce((sum, acc) => sum + acc.investment_cost, 0);
+    const total_cost_with_margin = allItems.reduce((sum, acc) => sum + acc.cost_with_margin, 0);
     res.json({
       ...project,
       client,
       playset_name: costInfo.playset_name,
       playset_description: costInfo.playset_description,
-      accessories,
+      accessories: allItems,
       profit_margin,
       profit_percentage: owner ? +owner.profit_percentage : 0,
       total_investment_cost,
@@ -221,8 +256,25 @@ router.get('/projects/:id/pdf', async (req, res) => {
         cost_with_margin: costWithMargin
       };
     });
-    const total_investment_cost = accessories.reduce((sum, acc) => sum + acc.investment_cost, 0);
-    const total_cost_with_margin = accessories.reduce((sum, acc) => sum + acc.cost_with_margin, 0);
+
+    const install = await InstallationCosts.findByProjectId(project.id);
+    const installItems = [];
+    if (install) {
+      const meals = (install.meal_per_person || 0) * (install.workers || 0) * (install.days || 0);
+      const hotel = (install.hotel_per_day || 0) * (install.days || 0);
+      installItems.push(
+        { accessory_name: 'Comidas', quantity: 1, materials: [], investment_cost: meals, cost_with_margin: +(meals * marginFactor).toFixed(2) },
+        { accessory_name: 'Hotel', quantity: 1, materials: [], investment_cost: hotel, cost_with_margin: +(hotel * marginFactor).toFixed(2) },
+        { accessory_name: 'Mano de obra', quantity: 1, materials: [], investment_cost: install.labor_cost || 0, cost_with_margin: +((install.labor_cost || 0) * marginFactor).toFixed(2) },
+        { accessory_name: 'Transporte personal', quantity: 1, materials: [], investment_cost: install.personal_transport || 0, cost_with_margin: +((install.personal_transport || 0) * marginFactor).toFixed(2) },
+        { accessory_name: 'Transporte local', quantity: 1, materials: [], investment_cost: install.local_transport || 0, cost_with_margin: +((install.local_transport || 0) * marginFactor).toFixed(2) },
+        { accessory_name: 'Gastos extras', quantity: 1, materials: [], investment_cost: install.extra_expenses || 0, cost_with_margin: +((install.extra_expenses || 0) * marginFactor).toFixed(2) }
+      );
+    }
+
+    const allItems = accessories.concat(installItems);
+    const total_investment_cost = allItems.reduce((sum, acc) => sum + acc.investment_cost, 0);
+    const total_cost_with_margin = allItems.reduce((sum, acc) => sum + acc.cost_with_margin, 0);
 
     const remissionDir = path.join(__dirname, '..', 'remissions');
     if (!fs.existsSync(remissionDir)) {
@@ -237,7 +289,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
     const snapshot = JSON.stringify({
       project,
       client,
-      accessories,
+      accessories: allItems,
       profit_margin,
       total_investment_cost,
       total_cost_with_margin
@@ -256,13 +308,21 @@ router.get('/projects/:id/pdf', async (req, res) => {
     const iva = +(subtotal * 0.16).toFixed(2);
     const total = +(subtotal + iva).toFixed(2);
 
-    const conceptos = accessories.map(acc => ({
+    const conceptos = allItems.map(acc => ({
       cantidad: acc.quantity,
       descripcion: acc.accessory_name,
       costoInversion: acc.investment_cost.toFixed(2),
       costoVenta: acc.cost_with_margin.toFixed(2),
       porcentaje: owner ? owner.profit_percentage.toFixed(2) + '%' : '0%'
     }));
+
+    const conceptosCliente = [
+      {
+        cantidad: 1,
+        descripcion: costInfo ? costInfo.playset_name : '',
+        costoVenta: total_cost_with_margin.toFixed(2)
+      }
+    ];
 
 
     const ownerTemplatePath = path.join(__dirname, '..', 'templates', 'remission.html');
@@ -301,7 +361,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
         nombreContacto: client ? client.contact_name : '',
         domicilio: client ? client.address : ''
       },
-      conceptos,
+      conceptos: conceptosCliente,
       totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: '' },
       uuid: '',
       folioFiscal: '',
