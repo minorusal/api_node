@@ -515,36 +515,36 @@
               ]
             }
           },
-        "response": []
-      },
-      {
-        "name": "Get Project PDF",
-        "request": {
-          "method": "GET",
-          "header": [
-            {
-              "key": "Authorization",
-              "value": "Bearer {{token}}"
-            }
-          ],
-          "url": {
-            "raw": "http://localhost:3000/projects/1/pdf",
-            "protocol": "http",
-            "host": [
-              "localhost"
-            ],
-            "port": "3000",
-            "path": [
-              "projects",
-              "1",
-              "pdf"
-            ]
-          }
+          "response": []
         },
-        "response": []
-      },
-      {
-        "name": "Create Project",
+        {
+          "name": "Get Project PDF",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/projects/1/pdf",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "projects",
+                "1",
+                "pdf"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Project",
           "request": {
             "method": "POST",
             "header": [
@@ -589,15 +589,91 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "file", "type": "file", "src": "" }
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
               ]
             },
             "url": {
               "raw": "http://localhost:3000/owner-companies/1/logo",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "3000",
-              "path": ["owner-companies", "1", "logo"]
+              "path": [
+                "owner-companies",
+                "1",
+                "logo"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Remission Style",
+      "item": [
+        {
+          "name": "Get Remission Style",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/remission-style",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "remission-style"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Remission Style",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"headerBackgroundColor\": \"#ffffff\",\n  \"headerTextColor\": \"#000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/remission-style",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "remission-style"
+              ]
             }
           },
           "response": []

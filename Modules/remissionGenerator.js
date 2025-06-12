@@ -10,6 +10,7 @@ const OwnerCompanies = require('../models/ownerCompaniesModel');
 const PlaysetAccessories = require('../models/playsetAccessoriesModel');
 const InstallationCosts = require('../models/installationCostsModel');
 const Remissions = require('../models/remissionsModel');
+const { getStyle } = require('./styleConfig');
 
 async function generateRemission(projectId) {
   const project = await Projects.findById(projectId);
@@ -99,6 +100,7 @@ async function generateRemission(projectId) {
   const ownerTemplate = fs.readFileSync(ownerTemplatePath, 'utf8');
   const clientTemplatePath = path.join(__dirname, '..', 'templates', 'remission_client.html');
   const clientTemplate = fs.readFileSync(clientTemplatePath, 'utf8');
+  const { headerBackgroundColor, headerTextColor } = getStyle();
 
   const ownerHtml = Mustache.render(ownerTemplate, {
     folio: project.id,
@@ -117,7 +119,9 @@ async function generateRemission(projectId) {
     folioFiscal: '',
     selloSat: '',
     selloEmisor: '',
-    cadenaOriginal: ''
+    cadenaOriginal: '',
+    headerBackgroundColor,
+    headerTextColor
   });
 
   const clientHtml = Mustache.render(clientTemplate, {
@@ -137,7 +141,9 @@ async function generateRemission(projectId) {
     folioFiscal: '',
     selloSat: '',
     selloEmisor: '',
-    cadenaOriginal: ''
+    cadenaOriginal: '',
+    headerBackgroundColor,
+    headerTextColor
   });
 
   await new Promise((resolve, reject) => {
