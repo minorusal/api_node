@@ -105,10 +105,8 @@
         "method": "POST",
         "header": [
           {
-            "key": "",
-            "value": "",
-            "type": "text",
-            "disabled": true
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
           }
         ],
         "body": {
