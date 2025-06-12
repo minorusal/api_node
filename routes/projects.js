@@ -122,11 +122,13 @@ router.get('/projects/:id', async (req, res) => {
   try {
     const project = await Projects.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Proyecto no encontrado' });
+    const client = await Clients.findById(project.client_id);
 
     const costInfo = await PlaysetAccessories.calculatePlaysetCost(project.playset_id);
     if (!costInfo) {
       return res.json({
         ...project,
+        client,
         playset_name: undefined,
         playset_description: undefined,
         accessories: [],
@@ -155,6 +157,7 @@ router.get('/projects/:id', async (req, res) => {
     const total_cost_with_margin = accessories.reduce((sum, acc) => sum + acc.cost_with_margin, 0);
     res.json({
       ...project,
+      client,
       playset_name: costInfo.playset_name,
       playset_description: costInfo.playset_description,
       accessories,
@@ -194,6 +197,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
   try {
     const project = await Projects.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Proyecto no encontrado' });
+    const client = await Clients.findById(project.client_id);
 
     const costInfo = await PlaysetAccessories.calculatePlaysetCost(project.playset_id);
     const profit_margin = project.sale_price && costInfo && costInfo.total_cost > 0
@@ -218,23 +222,50 @@ router.get('/projects/:id/pdf', async (req, res) => {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=project_${project.id}.pdf`);
     doc.pipe(res);
-    doc.fontSize(16).text('Project Details', { align: 'center' });
+
+    doc.fontSize(16).text('Nota de Remision', { align: 'center' });
     doc.moveDown();
     doc.fontSize(12).text(`ID: ${project.id}`);
-    doc.text(`Client ID: ${project.client_id}`);
+    if (client) {
+      doc.text(`Cliente: ${client.contact_name} - ${client.company_name}`);
+      doc.text(`Direccion: ${client.address}`);
+    } else {
+      doc.text(`Client ID: ${project.client_id}`);
+    }
     if (costInfo) {
       doc.text(`Playset: ${costInfo.playset_name}`);
-      doc.text(`Playset Description: ${costInfo.playset_description}`);
+      doc.text(`Descripcion Playset: ${costInfo.playset_description}`);
     }
-    doc.text(`Sale Price: ${project.sale_price}`);
-    doc.text(`Profit Margin: ${profit_margin}`);
-    doc.text(`Total Investment Cost: ${total_investment_cost}`);
-    doc.text(`Total Cost with Margin: ${total_cost_with_margin}`);
+    doc.text(`Precio de Venta Total: ${project.sale_price}`);
+    doc.text(`Margen de Ganancia: ${profit_margin}`);
     doc.moveDown();
-    doc.text('Accessories:');
+
+    // Table header
+    const startX = 50;
+    let y = doc.y;
+    doc.text('Accesorio', startX, y);
+    doc.text('Cant', startX + 100, y);
+    doc.text('Costo U.', startX + 140, y);
+    doc.text('Precio U.', startX + 220, y);
+    doc.text('Subt. Costo', startX + 300, y);
+    doc.text('Subt. Venta', startX + 400, y);
+    y += 20;
+
     accessories.forEach(acc => {
-      doc.text(`- ${acc.accessory_name} x${acc.quantity} cost ${acc.cost_with_margin}`);
+      const unitCost = acc.quantity ? (acc.investment_cost / acc.quantity) : 0;
+      const unitPrice = acc.quantity ? (acc.cost_with_margin / acc.quantity) : 0;
+      doc.text(acc.accessory_name, startX, y);
+      doc.text(acc.quantity, startX + 100, y);
+      doc.text(unitCost.toFixed(2), startX + 140, y);
+      doc.text(unitPrice.toFixed(2), startX + 220, y);
+      doc.text(acc.investment_cost.toFixed(2), startX + 300, y);
+      doc.text(acc.cost_with_margin.toFixed(2), startX + 400, y);
+      y += 20;
     });
+
+    doc.moveDown();
+    doc.text(`Costo de inversion total: ${total_investment_cost.toFixed(2)}`);
+    doc.text(`Costo de venta total: ${total_cost_with_margin.toFixed(2)}`);
     doc.end();
   } catch (error) {
     res.status(500).json({ message: error.message });
