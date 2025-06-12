@@ -99,6 +99,73 @@ router.get('/projects', async (req, res) => {
   }
 });
 
+/**
+ * @openapi
+ * /projects/{id}:
+ *   get:
+ *     summary: Obtener proyecto por ID
+ *     tags:
+ *       - Projects
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Proyecto encontrado
+ *       404:
+ *         description: Proyecto no encontrado
+ */
+router.get('/projects/:id', async (req, res) => {
+  try {
+    const project = await Projects.findById(req.params.id);
+    if (!project) return res.status(404).json({ message: 'Proyecto no encontrado' });
+
+    const costInfo = await PlaysetAccessories.calculatePlaysetCost(project.playset_id);
+    if (!costInfo) {
+      return res.json({
+        ...project,
+        playset_name: undefined,
+        playset_description: undefined,
+        accessories: [],
+        profit_margin: 0,
+        total_investment_cost: 0,
+        total_cost_with_margin: 0
+      });
+    }
+
+    const profit_margin = project.sale_price && costInfo.total_cost > 0
+      ? +(project.sale_price / costInfo.total_cost - 1).toFixed(2)
+      : 0;
+    const marginFactor = 1 + profit_margin;
+    const accessories = costInfo.accessories.map((a) => {
+      const costWithMargin = +(a.cost * marginFactor).toFixed(2);
+      return {
+        accessory_id: a.accessory_id,
+        accessory_name: a.accessory_name,
+        quantity: a.quantity,
+        materials: a.materials,
+        investment_cost: a.cost,
+        cost_with_margin: costWithMargin
+      };
+    });
+    const total_investment_cost = accessories.reduce((sum, acc) => sum + acc.investment_cost, 0);
+    const total_cost_with_margin = accessories.reduce((sum, acc) => sum + acc.cost_with_margin, 0);
+    res.json({
+      ...project,
+      playset_name: costInfo.playset_name,
+      playset_description: costInfo.playset_description,
+      accessories,
+      profit_margin,
+      total_investment_cost,
+      total_cost_with_margin
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.post('/projects', async (req, res) => {
   try {
     const { playset_id, profit_margin = 0, client } = req.body;
