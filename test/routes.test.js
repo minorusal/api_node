@@ -47,4 +47,11 @@ describe('Route definitions', () => {
   it('projects router has routes configured', () => {
     expect(projectsRouter.stack).to.be.an('array').that.is.not.empty;
   });
+
+  it('projects router registers pdf route', () => {
+    const hasRoute = projectsRouter.stack.some(
+      layer => layer.route && layer.route.path === '/projects/:id/pdf' && layer.route.methods.get
+    );
+    expect(hasRoute).to.be.true;
+  });
 });

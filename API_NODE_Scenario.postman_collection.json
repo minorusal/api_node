@@ -646,10 +646,36 @@
               ]
             }
           },
-          "response": []
+        "response": []
+      },
+      {
+        "name": "Get Project PDF",
+        "request": {
+          "method": "GET",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token}}"
+            }
+          ],
+          "url": {
+            "raw": "http://localhost:3000/projects/1/pdf",
+            "protocol": "http",
+            "host": [
+              "localhost"
+            ],
+            "port": "3000",
+            "path": [
+              "projects",
+              "1",
+              "pdf"
+            ]
+          }
         },
-       {
-         "name": "Create Project",
+        "response": []
+      },
+      {
+        "name": "Create Project",
           "request": {
             "method": "POST",
             "header": [
