@@ -67,7 +67,7 @@ const router = express.Router();
 router.post('/playset-accessories', async (req, res) => {
   try {
     const { playsetId, accessoryId, quantity } = req.body;
-    const link = await PlaysetAccessories.linkAccessory(playsetId, accessoryId, quantity);
+    const link = await PlaysetAccessories.linkAccessory(playsetId, accessoryId, quantity, 1);
     res.status(201).json(link);
   } catch (error) {
     res.status(500).json({ message: error.message });

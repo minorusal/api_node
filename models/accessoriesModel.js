@@ -7,12 +7,12 @@ const db = require('../db');
  * @returns {Promise<object>} Accesorio creado con su ID.
  * @throws {Error} Si ocurre un error en la base de datos.
  */
-const createAccessory = (name, description) => {
+const createAccessory = (name, description, ownerId = 1) => {
   return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO accessories (name, description) VALUES (?, ?)';
-    db.query(sql, [name, description], (err, result) => {
+    const sql = 'INSERT INTO accessories (name, description, owner_id) VALUES (?, ?, ?)';
+    db.query(sql, [name, description, ownerId], (err, result) => {
       if (err) return reject(err);
-      resolve({ id: result.insertId, name, description });
+      resolve({ id: result.insertId, name, description, owner_id: ownerId });
     });
   });
 };

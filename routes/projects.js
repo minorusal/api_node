@@ -96,6 +96,7 @@ router.get('/projects', async (req, res) => {
           playset_description: costInfo.playset_description,
           accessories,
           profit_margin,
+          profit_percentage: +(profit_margin * 100).toFixed(2),
           total_investment_cost,
           total_cost_with_margin
         };
@@ -170,6 +171,7 @@ router.get('/projects/:id', async (req, res) => {
       playset_description: costInfo.playset_description,
       accessories,
       profit_margin,
+      profit_percentage: +(profit_margin * 100).toFixed(2),
       total_investment_cost,
       total_cost_with_margin
     });
@@ -243,7 +245,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
       total_cost_with_margin
     });
     try {
-      await Remissions.createRemission(project.id, snapshot, filePath);
+      await Remissions.createRemission(project.id, snapshot, filePath, 1);
     } catch (err) {
       console.error('Error saving remission:', err);
     }
@@ -259,7 +261,8 @@ router.get('/projects/:id/pdf', async (req, res) => {
       cantidad: acc.quantity,
       descripcion: acc.accessory_name,
       costoInversion: acc.investment_cost.toFixed(2),
-      costoVenta: acc.cost_with_margin.toFixed(2)
+      costoVenta: acc.cost_with_margin.toFixed(2),
+      porcentaje: (profit_margin * 100).toFixed(2) + '%'
     }));
 
 
@@ -325,7 +328,8 @@ router.post('/projects', async (req, res) => {
       clientRecord.id,
       playset_id,
       salePrice,
-      contact_email
+      contact_email,
+      1
     );
     res.status(201).json({ ...project, cost: costInfo.total_cost });
   } catch (error) {
