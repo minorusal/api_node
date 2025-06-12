@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const pdf = require('html-pdf');
 const Mustache = require('mustache');
+const numeroALetras = require('./numeroALetras');
 
 const Projects = require('../models/projectsModel');
 const Clients = require('../models/clientsModel');
@@ -111,7 +112,7 @@ async function generateRemission(projectId) {
       domicilio: client ? client.address : ''
     },
     conceptos,
-    totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: '' },
+    totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: numeroALetras(total) },
     uuid: '',
     folioFiscal: '',
     selloSat: '',
@@ -131,7 +132,7 @@ async function generateRemission(projectId) {
       domicilio: client ? client.address : ''
     },
     conceptos: conceptosCliente,
-    totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: '' },
+    totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: numeroALetras(total) },
     uuid: '',
     folioFiscal: '',
     selloSat: '',

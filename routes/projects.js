@@ -9,6 +9,7 @@ const Remissions = require('../models/remissionsModel');
 const fs = require('fs');
 const path = require('path');
 const OwnerCompanies = require('../models/ownerCompaniesModel');
+const numeroALetras = require('../Modules/numeroALetras');
 const router = express.Router();
 
 /**
@@ -340,7 +341,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
         domicilio: client ? client.address : ''
       },
       conceptos,
-      totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: '' },
+      totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: numeroALetras(total) },
       uuid: '',
       folioFiscal: '',
       selloSat: '',
@@ -360,7 +361,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
         domicilio: client ? client.address : ''
       },
       conceptos: conceptosCliente,
-      totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: '' },
+      totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: numeroALetras(total) },
       uuid: '',
       folioFiscal: '',
       selloSat: '',
