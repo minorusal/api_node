@@ -9,6 +9,8 @@ const Remissions = require('../models/remissionsModel');
 const fs = require('fs');
 const path = require('path');
 const OwnerCompanies = require('../models/ownerCompaniesModel');
+const numeroALetras = require('../Modules/numeroALetras');
+const { getStyle } = require('../Modules/styleConfig');
 const router = express.Router();
 
 /**
@@ -327,6 +329,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
     const ownerTemplate = fs.readFileSync(ownerTemplatePath, 'utf8');
     const clientTemplatePath = path.join(__dirname, '..', 'templates', 'remission_client.html');
     const clientTemplate = fs.readFileSync(clientTemplatePath, 'utf8');
+    const { headerBackgroundColor, headerTextColor } = getStyle();
 
     const ownerHtml = Mustache.render(ownerTemplate, {
       folio: project.id,
@@ -340,12 +343,14 @@ router.get('/projects/:id/pdf', async (req, res) => {
         domicilio: client ? client.address : ''
       },
       conceptos,
-      totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: '' },
+      totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: numeroALetras(total) },
       uuid: '',
       folioFiscal: '',
       selloSat: '',
       selloEmisor: '',
-      cadenaOriginal: ''
+      cadenaOriginal: '',
+      headerBackgroundColor,
+      headerTextColor
     });
 
     const clientHtml = Mustache.render(clientTemplate, {
@@ -360,12 +365,14 @@ router.get('/projects/:id/pdf', async (req, res) => {
         domicilio: client ? client.address : ''
       },
       conceptos: conceptosCliente,
-      totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: '' },
+      totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: numeroALetras(total) },
       uuid: '',
       folioFiscal: '',
       selloSat: '',
       selloEmisor: '',
-      cadenaOriginal: ''
+      cadenaOriginal: '',
+      headerBackgroundColor,
+      headerTextColor
     });
 
     res.setHeader('Content-Type', 'application/pdf');
