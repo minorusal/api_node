@@ -3,6 +3,9 @@ const Clients = require('../models/clientsModel');
 const Projects = require('../models/projectsModel');
 const PlaysetAccessories = require('../models/playsetAccessoriesModel');
 const PDFDocument = require('pdfkit');
+const Remissions = require('../models/remissionsModel');
+const fs = require('fs');
+const path = require('path');
 const router = express.Router();
 
 /**
@@ -220,9 +223,31 @@ router.get('/projects/:id/pdf', async (req, res) => {
     const total_investment_cost = accessories.reduce((sum, acc) => sum + acc.investment_cost, 0);
     const total_cost_with_margin = accessories.reduce((sum, acc) => sum + acc.cost_with_margin, 0);
 
+    const remissionDir = path.join(__dirname, '..', 'remissions');
+    if (!fs.existsSync(remissionDir)) {
+      fs.mkdirSync(remissionDir);
+    }
+    const fileName = `project_${project.id}_${Date.now()}.pdf`;
+    const filePath = path.join(remissionDir, fileName);
+
+    const snapshot = JSON.stringify({
+      project,
+      client,
+      accessories,
+      profit_margin,
+      total_investment_cost,
+      total_cost_with_margin
+    });
+    try {
+      await Remissions.createRemission(project.id, snapshot, filePath);
+    } catch (err) {
+      console.error('Error saving remission:', err);
+    }
+
     const doc = new PDFDocument();
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=project_${project.id}.pdf`);
+    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+    doc.pipe(fs.createWriteStream(filePath));
     doc.pipe(res);
 
     const issueDate = new Date();
