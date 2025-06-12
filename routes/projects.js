@@ -54,7 +54,16 @@ router.get('/projects', async (req, res) => {
     const detailed = await Promise.all(
       projects.map(async (p) => {
         const costInfo = await PlaysetAccessories.calculatePlaysetCost(p.playset_id);
-        if (!costInfo) return { ...p, accessories: [], total_investment_cost: 0, total_cost_with_margin: 0 };
+        if (!costInfo) {
+          return {
+            ...p,
+            playset_name: undefined,
+            playset_description: undefined,
+            accessories: [],
+            total_investment_cost: 0,
+            total_cost_with_margin: 0
+          };
+        }
 
         const profit_margin = p.sale_price && costInfo.total_cost > 0
           ? +(p.sale_price / costInfo.total_cost - 1).toFixed(2)
@@ -73,7 +82,15 @@ router.get('/projects', async (req, res) => {
         });
         const total_investment_cost = accessories.reduce((sum, acc) => sum + acc.investment_cost, 0);
         const total_cost_with_margin = accessories.reduce((sum, acc) => sum + acc.cost_with_margin, 0);
-        return { ...p, accessories, profit_margin, total_investment_cost, total_cost_with_margin };
+        return {
+          ...p,
+          playset_name: costInfo.playset_name,
+          playset_description: costInfo.playset_description,
+          accessories,
+          profit_margin,
+          total_investment_cost,
+          total_cost_with_margin
+        };
       })
     );
     res.json(detailed);
