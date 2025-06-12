@@ -5,6 +5,7 @@ const playsets = require('../models/playsetsModel');
 const playsetAccessories = require('../models/playsetAccessoriesModel');
 const clients = require('../models/clientsModel');
 const projects = require('../models/projectsModel');
+const installationCosts = require('../models/installationCostsModel');
 
 describe('Model exports', () => {
   it('materials model exposes CRUD functions', () => {
@@ -39,6 +40,11 @@ describe('Model exports', () => {
     expect(projects.createProject).to.be.a('function');
     expect(projects.findById).to.be.a('function');
     expect(projects.findAll).to.be.a('function');
+  });
+
+  it('installationCosts model exposes basic functions', () => {
+    expect(installationCosts.createInstallationCosts).to.be.a('function');
+    expect(installationCosts.findByProjectId).to.be.a('function');
   });
 });
 

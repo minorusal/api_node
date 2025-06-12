@@ -168,6 +168,24 @@ CREATE TABLE IF NOT EXISTS owner_companies (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS installation_costs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    workers INT,
+    days INT,
+    meal_per_person DECIMAL(10,2),
+    hotel_per_day DECIMAL(10,2),
+    labor_cost DECIMAL(10,2),
+    personal_transport DECIMAL(10,2),
+    local_transport DECIMAL(10,2),
+    extra_expenses DECIMAL(10,2),
+    owner_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id),
+    FOREIGN KEY (owner_id) REFERENCES owner_companies(id)
+);
+
 /* ──────────── Asociaciones con owner ──────────── */
 ALTER TABLE raw_materials
   ADD COLUMN owner_id INT,

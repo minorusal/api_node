@@ -7,6 +7,7 @@ const accessoryMaterialsRouter = require('../routes/accessoryMaterials');
 const playsetAccessoriesRouter = require('../routes/playsetAccessories');
 const clientsRouter = require('../routes/clients');
 const projectsRouter = require('../routes/projects');
+const installationCostsRouter = require('../routes/installationCosts');
 
 describe('Route definitions', () => {
   it('materials router has routes configured', () => {
@@ -53,5 +54,9 @@ describe('Route definitions', () => {
       layer => layer.route && layer.route.path === '/projects/:id/pdf' && layer.route.methods.get
     );
     expect(hasRoute).to.be.true;
+  });
+
+  it('installation costs router has routes configured', () => {
+    expect(installationCostsRouter.stack).to.be.an('array').that.is.not.empty;
   });
 });
