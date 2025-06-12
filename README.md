@@ -96,3 +96,13 @@ http://localhost:3000/api-docs
 ```
 
 Cambia el puerto si usas un valor distinto en la variable `PORT`.
+
+## Actualización de remisiones
+
+Para identificar si una remisión es para el propietario de la empresa o para el cliente, se añadió la columna `recipient_type` a la tabla `remissions`.
+
+Si ya tienes datos y sólo quieres aplicar el cambio ejecuta:
+
+```sql
+ALTER TABLE remissions ADD COLUMN recipient_type ENUM('owner','client') DEFAULT 'owner';
+```

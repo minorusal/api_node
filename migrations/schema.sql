@@ -154,6 +154,7 @@ CREATE TABLE IF NOT EXISTS remissions (
     project_id INT NOT NULL,
     data JSON NOT NULL,
     pdf_path VARCHAR(255) NOT NULL,
+    recipient_type ENUM('owner','client') DEFAULT 'owner',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id)
 );
@@ -207,6 +208,9 @@ ALTER TABLE projects
 ALTER TABLE remissions
   ADD COLUMN owner_id INT,
   ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
+
+ALTER TABLE remissions
+  ADD COLUMN recipient_type ENUM('owner','client') DEFAULT 'owner';
 
 ALTER TABLE owner_companies
   ADD COLUMN profit_percentage DECIMAL(10,2) DEFAULT 0;
