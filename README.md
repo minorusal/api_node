@@ -130,3 +130,11 @@ En el cuerpo envía los campos `headerBackgroundColor` y/o `headerTextColor` en 
 ```http
 GET /remission-style
 ```
+
+## Consultar remisiones por owner
+
+Para obtener todas las remisiones asociadas a un propietario utiliza:
+
+```http
+GET /remissions/by-owner/{owner_id}
+```
