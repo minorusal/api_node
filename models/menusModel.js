@@ -45,4 +45,19 @@ const getMenuTree = (ownerId = 1) => {
   });
 };
 
-module.exports = { createMenu, getMenuTree };
+/**
+ * Obtiene todos los menús registrados para un owner.
+ * @param {number} ownerId - ID del owner.
+ * @returns {Promise<object[]>} Listado de menús.
+ */
+const findAll = (ownerId = 1) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'SELECT * FROM menus WHERE owner_id = ? ORDER BY id';
+    db.query(sql, [ownerId], (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows);
+    });
+  });
+};
+
+module.exports = { createMenu, getMenuTree, findAll };
