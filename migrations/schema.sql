@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS projects (
     FOREIGN KEY (playset_id) REFERENCES playsets(id)
 );
 
--- Alter tables for existing databases
+
 /* ──────────── raw_materials ──────────── */
 ALTER TABLE raw_materials
   ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -148,4 +148,5 @@ ALTER TABLE projects
   ADD COLUMN created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   ADD COLUMN updated_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                                     ON UPDATE CURRENT_TIMESTAMP;
+
 
