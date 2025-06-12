@@ -34,8 +34,6 @@ const router = express.Router();
  *             properties:
  *               playset_id:
  *                 type: integer
- *               profit_margin:
- *                 type: number
  *               contact_email:
  *                 type: string
  *               client:

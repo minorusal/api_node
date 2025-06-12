@@ -824,7 +824,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"playset_id\": 1,\n  \"profit_margin\": 0.2,\n  \"client\": {\n    \"id\": 1\n  }\n}",
+              "raw": "{\n  \"playset_id\": 1,\n  \"client\": {\n    \"id\": 1\n  }\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
