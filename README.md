@@ -15,7 +15,7 @@ siguientes variables:
 PORT=3000
 JWT_SECRET=keySecret
 OPERACIONES_SECRET=4RC542024L3v4n74m13n70
-CORS_ORIGIN=http://localhost:3000
+CORS_ORIGIN=http://localhost:4200
 DB_HOST=localhost
 DB_USER=user
 DB_PASSWORD=password
@@ -81,8 +81,10 @@ probar estas solicitudes y construir un playset completo.
 
 ## Configuración de CORS
 
-El dominio permitido se define con la variable de entorno `CORS_ORIGIN`. Si no se
-especifica se permite cualquier origen.
+El dominio permitido se define con la variable de entorno `CORS_ORIGIN`. Puedes
+proporcionar varios orígenes separados por comas. De forma predeterminada la
+aplicación siempre permitirá `http://localhost:4200` para facilitar el trabajo
+en local. Si no se especifica la variable, se permite cualquier origen.
 
 ## Pruebas
 
