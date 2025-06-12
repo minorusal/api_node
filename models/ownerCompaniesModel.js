@@ -1,11 +1,12 @@
 const db = require('../db');
 
-const createOwnerCompany = (name, address) => {
+const createOwnerCompany = (name, address, profitPercentage = 0) => {
   return new Promise((resolve, reject) => {
-    const sql = `INSERT INTO owner_companies (name, address) VALUES (?, ?)`;
-    db.query(sql, [name, address], (err, result) => {
+    const sql =
+      `INSERT INTO owner_companies (name, address, profit_percentage) VALUES (?, ?, ?)`;
+    db.query(sql, [name, address, profitPercentage], (err, result) => {
       if (err) return reject(err);
-      resolve({ id: result.insertId, name, address });
+      resolve({ id: result.insertId, name, address, profit_percentage: profitPercentage });
     });
   });
 };
@@ -28,10 +29,11 @@ const findAll = () => {
   });
 };
 
-const updateOwnerCompany = (id, name, address) => {
+const updateOwnerCompany = (id, name, address, profitPercentage) => {
   return new Promise((resolve, reject) => {
-    const sql = `UPDATE owner_companies SET name = ?, address = ? WHERE id = ?`;
-    db.query(sql, [name, address, id], (err, result) => {
+    const sql =
+      `UPDATE owner_companies SET name = ?, address = ?, profit_percentage = ? WHERE id = ?`;
+    db.query(sql, [name, address, profitPercentage, id], (err, result) => {
       if (err) return reject(err);
       resolve(result);
     });
