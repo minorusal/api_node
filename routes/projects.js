@@ -30,6 +30,8 @@ const router = express.Router();
  *                 type: integer
  *               profit_margin:
  *                 type: number
+ *               contact_email:
+ *                 type: string
  *               client:
  *                 type: object
  *                 properties:
@@ -226,6 +228,9 @@ router.get('/projects/:id/pdf', async (req, res) => {
     doc.fontSize(16).text('Nota de Remision', { align: 'center' });
     doc.moveDown();
     doc.fontSize(12).text(`ID: ${project.id}`);
+    if (project.contact_email) {
+      doc.text(`Correo de contacto: ${project.contact_email}`);
+    }
     if (client) {
       doc.text(`Cliente: ${client.contact_name} - ${client.company_name}`);
       doc.text(`Direccion: ${client.address}`);
@@ -274,7 +279,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
 
 router.post('/projects', async (req, res) => {
   try {
-    const { playset_id, profit_margin = 0, client } = req.body;
+    const { playset_id, profit_margin = 0, contact_email, client } = req.body;
     if (!client) return res.status(400).json({ message: 'Cliente requerido' });
 
     let clientRecord;
@@ -289,7 +294,12 @@ router.post('/projects', async (req, res) => {
     const costInfo = await PlaysetAccessories.calculatePlaysetCost(playset_id);
     if (!costInfo) return res.status(404).json({ message: 'Playset no encontrado' });
     const salePrice = +(costInfo.total_cost * (1 + profit_margin)).toFixed(2);
-    const project = await Projects.createProject(clientRecord.id, playset_id, salePrice);
+    const project = await Projects.createProject(
+      clientRecord.id,
+      playset_id,
+      salePrice,
+      contact_email
+    );
     res.status(201).json({ ...project, cost: costInfo.total_cost });
   } catch (error) {
     res.status(500).json({ message: error.message });

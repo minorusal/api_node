@@ -1,11 +1,17 @@
 const db = require('../db');
 
-const createProject = (clientId, playsetId, salePrice) => {
+const createProject = (clientId, playsetId, salePrice, contactEmail) => {
   return new Promise((resolve, reject) => {
-    const sql = `INSERT INTO projects (client_id, playset_id, sale_price) VALUES (?, ?, ?)`;
-    db.query(sql, [clientId, playsetId, salePrice], (err, result) => {
+    const sql = `INSERT INTO projects (client_id, playset_id, sale_price, contact_email) VALUES (?, ?, ?, ?)`;
+    db.query(sql, [clientId, playsetId, salePrice, contactEmail], (err, result) => {
       if (err) return reject(err);
-      resolve({ id: result.insertId, client_id: clientId, playset_id: playsetId, sale_price: salePrice });
+      resolve({
+        id: result.insertId,
+        client_id: clientId,
+        playset_id: playsetId,
+        sale_price: salePrice,
+        contact_email: contactEmail
+      });
     });
   });
 };
@@ -28,10 +34,10 @@ const findAll = () => {
   });
 };
 
-const updateProject = (id, clientId, playsetId, salePrice) => {
+const updateProject = (id, clientId, playsetId, salePrice, contactEmail) => {
   return new Promise((resolve, reject) => {
-    const sql = `UPDATE projects SET client_id = ?, playset_id = ?, sale_price = ? WHERE id = ?`;
-    db.query(sql, [clientId, playsetId, salePrice, id], (err, result) => {
+    const sql = `UPDATE projects SET client_id = ?, playset_id = ?, sale_price = ?, contact_email = ? WHERE id = ?`;
+    db.query(sql, [clientId, playsetId, salePrice, contactEmail, id], (err, result) => {
       if (err) return reject(err);
       resolve(result);
     });
