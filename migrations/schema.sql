@@ -209,3 +209,6 @@ ALTER TABLE remissions
   ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
 
 
+
+ALTER TABLE owner_companies
+  ADD COLUMN profit_percentage DECIMAL(10,2) DEFAULT 0;
