@@ -80,10 +80,14 @@ const calculatePlaysetCost = async (playsetId) => {
   const accessories = [];
   for (const row of accessoryRows) {
     const mats = await query(
-      'SELECT material_id, quantity, width_m, length_m FROM accessory_materials WHERE accessory_id = ?',
+      `SELECT am.material_id, rm.name AS material_name, am.quantity, am.width_m, am.length_m
+       FROM accessory_materials am
+       JOIN raw_materials rm ON am.material_id = rm.id
+       WHERE am.accessory_id = ?`,
       [row.accessory_id]
     );
-    let unitCost = 0;
+    let unitCostPerAccessory = 0;
+    const matDetails = [];
     for (const m of mats) {
       const c = await AccessoryMaterials.calculateCost(
         m.material_id,
@@ -91,15 +95,23 @@ const calculatePlaysetCost = async (playsetId) => {
         m.length_m,
         m.quantity
       );
-      unitCost += c;
+      unitCostPerAccessory += c;
+      matDetails.push({
+        material_id: m.material_id,
+        material_name: m.material_name,
+        quantity: m.quantity,
+        width_m: m.width_m,
+        length_m: m.length_m,
+        investment_cost: +(c * row.quantity).toFixed(2)
+      });
     }
-    const cost = unitCost * row.quantity;
+    const cost = +(unitCostPerAccessory * row.quantity).toFixed(2);
     accessories.push({
       accessory_id: row.accessory_id,
       accessory_name: row.name,
       quantity: row.quantity,
       cost,
-      materials: mats
+      materials: matDetails
     });
   }
 
