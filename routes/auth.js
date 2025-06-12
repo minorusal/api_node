@@ -70,9 +70,18 @@ const jwtSecret = process.env.JWT_SECRET;
  *     summary: Cerrar sesión
  *     tags:
  *       - Auth
+ *     parameters:
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token JWT con el prefijo Bearer
  *     responses:
  *       200:
  *         description: Logout exitoso
+ *       401:
+ *         description: No hay sesión activa
  */
 
 // Ruta de registro de usuarios
@@ -132,9 +141,22 @@ router.post('/login', async (req, res, next) => {
  * @route POST /logout
  */
 router.post('/logout', (req, res) => {
-    if (!req.cookies.jwt) {
+    const cookieToken = req.cookies.jwt;
+    const headerToken = req.headers.authorization;
+
+    if (!cookieToken) {
         return res.status(401).json({ message: 'No hay sesión activa' });
     }
+
+    if (!headerToken || !headerToken.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Token no proporcionado' });
+    }
+
+    const token = headerToken.split(' ')[1];
+    if (token !== cookieToken) {
+        return res.status(401).json({ message: 'Tokens JWT no coinciden' });
+    }
+
     res.clearCookie('jwt');
     res.status(200).json({ message: 'Logout exitoso' });
 });
