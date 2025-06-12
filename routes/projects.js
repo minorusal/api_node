@@ -225,7 +225,14 @@ router.get('/projects/:id/pdf', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename=project_${project.id}.pdf`);
     doc.pipe(res);
 
-    doc.fontSize(16).text('Nota de Remision', { align: 'center' });
+    const issueDate = new Date();
+    const formattedDate = issueDate.toISOString().slice(0, 10);
+
+    doc.fontSize(16).text('Nota de Remisión', { align: 'center', underline: true });
+    doc.moveDown(0.5);
+    doc.fontSize(10).text(`Fecha de emisión: ${formattedDate}`, { align: 'right' });
+    doc.moveDown();
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
     doc.moveDown();
     doc.fontSize(12).text(`ID: ${project.id}`);
     if (project.contact_email) {
@@ -271,6 +278,12 @@ router.get('/projects/:id/pdf', async (req, res) => {
     doc.moveDown();
     doc.text(`Costo de inversion total: ${total_investment_cost.toFixed(2)}`);
     doc.text(`Costo de venta total: ${total_cost_with_margin.toFixed(2)}`);
+    doc.moveDown();
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+    doc.moveDown();
+    doc.fontSize(10).text('Nota: Estos precios solo están disponibles durante 30 días a partir de la fecha de emisión de esta remisión.', {
+      align: 'center'
+    });
     doc.end();
   } catch (error) {
     res.status(500).json({ message: error.message });
