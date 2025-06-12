@@ -66,7 +66,8 @@ describe('Model logic', () => {
       5,
       2,
       3,
-      20
+      20,
+      1
     );
 
     expect(result).to.deep.equal({
@@ -76,7 +77,8 @@ describe('Model logic', () => {
       thickness_mm: 5,
       width_m: 2,
       length_m: 3,
-      price: 20
+      price: 20,
+      owner_id: 1
     });
   });
 

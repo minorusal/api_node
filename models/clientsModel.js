@@ -1,9 +1,16 @@
 const db = require('../db');
 
-const createClient = (contactName, companyName, address, requiresInvoice, billingInfo) => {
+const createClient = (
+  contactName,
+  companyName,
+  address,
+  requiresInvoice,
+  billingInfo,
+  ownerId = 1
+) => {
   return new Promise((resolve, reject) => {
-    const sql = `INSERT INTO clients (contact_name, company_name, address, requires_invoice, billing_info) VALUES (?, ?, ?, ?, ?)`;
-    db.query(sql, [contactName, companyName, address, requiresInvoice, billingInfo], (err, result) => {
+    const sql = `INSERT INTO clients (contact_name, company_name, address, requires_invoice, billing_info, owner_id) VALUES (?, ?, ?, ?, ?, ?)`;
+    db.query(sql, [contactName, companyName, address, requiresInvoice, billingInfo, ownerId], (err, result) => {
       if (err) return reject(err);
       resolve({
         id: result.insertId,
@@ -11,7 +18,8 @@ const createClient = (contactName, companyName, address, requiresInvoice, billin
         company_name: companyName,
         address,
         requires_invoice: requiresInvoice,
-        billing_info: billingInfo
+        billing_info: billingInfo,
+        owner_id: ownerId
       });
     });
   });

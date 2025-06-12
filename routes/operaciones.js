@@ -55,7 +55,7 @@ router.post('/suma-numeros', async (req, res) => {
     }
     const result = await operaciones.sumaDosNumeros(numA, numB);
 
-    const sqlInsert = 'INSERT INTO demo_table (numA, numB, resultado) VALUES (?, ?, ?)';
+    const sqlInsert = 'INSERT INTO demo_table (numA, numB, resultado, owner_id) VALUES (?, ?, ?, 1)';
     const queryValues = [numA, numB, result];
 
     // Ejecutar la consulta de inserción en la base de datos

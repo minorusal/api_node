@@ -106,7 +106,7 @@ router.get('/accessories/:id', async (req, res) => {
 router.post('/accessories', async (req, res) => {
   try {
     const { name, description } = req.body;
-    const accessory = await Accessories.createAccessory(name, description);
+    const accessory = await Accessories.createAccessory(name, description, 1);
     res.status(201).json(accessory);
   } catch (error) {
     res.status(500).json({ message: error.message });

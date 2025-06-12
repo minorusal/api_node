@@ -149,7 +149,7 @@ router.get('/playsets/:id/cost', async (req, res) => {
 router.post('/playsets', async (req, res) => {
   try {
     const { name, description } = req.body;
-    const playset = await Playsets.createPlayset(name, description);
+    const playset = await Playsets.createPlayset(name, description, 1);
     res.status(201).json(playset);
   } catch (error) {
     res.status(500).json({ message: error.message });

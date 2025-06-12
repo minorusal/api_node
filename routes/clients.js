@@ -110,7 +110,7 @@ router.get('/clients/:id', async (req, res) => {
 router.post('/clients', async (req, res) => {
   try {
     const { contact_name, company_name, address, requires_invoice, billing_info } = req.body;
-    const client = await Clients.createClient(contact_name, company_name, address, requires_invoice, billing_info);
+    const client = await Clients.createClient(contact_name, company_name, address, requires_invoice, billing_info, 1);
     res.status(201).json(client);
   } catch (error) {
     res.status(500).json({ message: error.message });

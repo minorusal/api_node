@@ -1,16 +1,23 @@
 const db = require('../db');
 
-const createProject = (clientId, playsetId, salePrice, contactEmail) => {
+const createProject = (
+  clientId,
+  playsetId,
+  salePrice,
+  contactEmail,
+  ownerId = 1
+) => {
   return new Promise((resolve, reject) => {
-    const sql = `INSERT INTO projects (client_id, playset_id, sale_price, contact_email) VALUES (?, ?, ?, ?)`;
-    db.query(sql, [clientId, playsetId, salePrice, contactEmail], (err, result) => {
+    const sql = `INSERT INTO projects (client_id, playset_id, sale_price, contact_email, owner_id) VALUES (?, ?, ?, ?, ?)`;
+    db.query(sql, [clientId, playsetId, salePrice, contactEmail, ownerId], (err, result) => {
       if (err) return reject(err);
       resolve({
         id: result.insertId,
         client_id: clientId,
         playset_id: playsetId,
         sale_price: salePrice,
-        contact_email: contactEmail
+        contact_email: contactEmail,
+        owner_id: ownerId
       });
     });
   });
