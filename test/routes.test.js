@@ -9,6 +9,7 @@ const clientsRouter = require('../routes/clients');
 const projectsRouter = require('../routes/projects');
 const installationCostsRouter = require('../routes/installationCosts');
 const ownerCompaniesRouter = require('../routes/ownerCompanies');
+const remissionStyleRouter = require('../routes/remissionStyle');
 
 describe('Route definitions', () => {
   it('materials router has routes configured', () => {
@@ -63,5 +64,9 @@ describe('Route definitions', () => {
 
   it('owner companies router has routes configured', () => {
     expect(ownerCompaniesRouter.stack).to.be.an('array').that.is.not.empty;
+  });
+
+  it('remission style router has routes configured', () => {
+    expect(remissionStyleRouter.stack).to.be.an('array').that.is.not.empty;
   });
 });

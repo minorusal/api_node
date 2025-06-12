@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const OwnerCompanies = require('../models/ownerCompaniesModel');
 const numeroALetras = require('../Modules/numeroALetras');
+const { getStyle } = require('../Modules/styleConfig');
 const router = express.Router();
 
 /**
@@ -328,6 +329,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
     const ownerTemplate = fs.readFileSync(ownerTemplatePath, 'utf8');
     const clientTemplatePath = path.join(__dirname, '..', 'templates', 'remission_client.html');
     const clientTemplate = fs.readFileSync(clientTemplatePath, 'utf8');
+    const { headerBackgroundColor, headerTextColor } = getStyle();
 
     const ownerHtml = Mustache.render(ownerTemplate, {
       folio: project.id,
@@ -346,7 +348,9 @@ router.get('/projects/:id/pdf', async (req, res) => {
       folioFiscal: '',
       selloSat: '',
       selloEmisor: '',
-      cadenaOriginal: ''
+      cadenaOriginal: '',
+      headerBackgroundColor,
+      headerTextColor
     });
 
     const clientHtml = Mustache.render(clientTemplate, {
@@ -366,7 +370,9 @@ router.get('/projects/:id/pdf', async (req, res) => {
       folioFiscal: '',
       selloSat: '',
       selloEmisor: '',
-      cadenaOriginal: ''
+      cadenaOriginal: '',
+      headerBackgroundColor,
+      headerTextColor
     });
 
     res.setHeader('Content-Type', 'application/pdf');
