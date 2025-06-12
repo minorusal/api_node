@@ -2,6 +2,7 @@ const express = require('express');
 const Clients = require('../models/clientsModel');
 const Projects = require('../models/projectsModel');
 const PlaysetAccessories = require('../models/playsetAccessoriesModel');
+const PDFDocument = require('pdfkit');
 const router = express.Router();
 
 /**
@@ -161,6 +162,80 @@ router.get('/projects/:id', async (req, res) => {
       total_investment_cost,
       total_cost_with_margin
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * @openapi
+ * /projects/{id}/pdf:
+ *   get:
+ *     summary: Descargar proyecto en PDF
+ *     tags:
+ *       - Projects
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: PDF con informacion del proyecto
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: Proyecto no encontrado
+ */
+router.get('/projects/:id/pdf', async (req, res) => {
+  try {
+    const project = await Projects.findById(req.params.id);
+    if (!project) return res.status(404).json({ message: 'Proyecto no encontrado' });
+
+    const costInfo = await PlaysetAccessories.calculatePlaysetCost(project.playset_id);
+    const profit_margin = project.sale_price && costInfo && costInfo.total_cost > 0
+      ? +(project.sale_price / costInfo.total_cost - 1).toFixed(2)
+      : 0;
+    const marginFactor = 1 + profit_margin;
+    const accessories = (costInfo ? costInfo.accessories : []).map((a) => {
+      const costWithMargin = +(a.cost * marginFactor).toFixed(2);
+      return {
+        accessory_id: a.accessory_id,
+        accessory_name: a.accessory_name,
+        quantity: a.quantity,
+        materials: a.materials,
+        investment_cost: a.cost,
+        cost_with_margin: costWithMargin
+      };
+    });
+    const total_investment_cost = accessories.reduce((sum, acc) => sum + acc.investment_cost, 0);
+    const total_cost_with_margin = accessories.reduce((sum, acc) => sum + acc.cost_with_margin, 0);
+
+    const doc = new PDFDocument();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=project_${project.id}.pdf`);
+    doc.pipe(res);
+    doc.fontSize(16).text('Project Details', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(12).text(`ID: ${project.id}`);
+    doc.text(`Client ID: ${project.client_id}`);
+    if (costInfo) {
+      doc.text(`Playset: ${costInfo.playset_name}`);
+      doc.text(`Playset Description: ${costInfo.playset_description}`);
+    }
+    doc.text(`Sale Price: ${project.sale_price}`);
+    doc.text(`Profit Margin: ${profit_margin}`);
+    doc.text(`Total Investment Cost: ${total_investment_cost}`);
+    doc.text(`Total Cost with Margin: ${total_cost_with_margin}`);
+    doc.moveDown();
+    doc.text('Accessories:');
+    accessories.forEach(acc => {
+      doc.text(`- ${acc.accessory_name} x${acc.quantity} cost ${acc.cost_with_margin}`);
+    });
+    doc.end();
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
