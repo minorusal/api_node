@@ -244,7 +244,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
       console.error('Error saving remission:', err);
     }
 
-    const doc = new PDFDocument();
+    const doc = new PDFDocument({ margin: 50 });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
     doc.pipe(fs.createWriteStream(filePath));
@@ -253,29 +253,41 @@ router.get('/projects/:id/pdf', async (req, res) => {
     const issueDate = new Date();
     const formattedDate = issueDate.toISOString().slice(0, 10);
 
-    doc.fontSize(16).text('Nota de Remisión', { align: 'center', underline: true });
+    doc.fontSize(18).text('REMISIÓN / CFDI 4.0', { align: 'center' });
     doc.moveDown(0.5);
-    doc.fontSize(10).text(`Fecha de emisión: ${formattedDate}`, { align: 'right' });
+    doc.fontSize(10);
+    doc.text(`Folio Interno: ${project.id}`);
+    doc.text(`Fecha de emisión: ${formattedDate}`);
+    doc.text(`Lugar de expedición: ${client ? client.address : 'N/A'}`);
     doc.moveDown();
     doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
     doc.moveDown();
-    doc.fontSize(12).text(`ID: ${project.id}`);
-    if (project.contact_email) {
-      doc.text(`Correo de contacto: ${project.contact_email}`);
-    }
-    if (client) {
-      doc.text(`Cliente: ${client.contact_name} - ${client.company_name}`);
-      doc.text(`Direccion: ${client.address}`);
-    } else {
-      doc.text(`Client ID: ${project.client_id}`);
-    }
-    if (costInfo) {
-      doc.text(`Playset: ${costInfo.playset_name}`);
-      doc.text(`Descripcion Playset: ${costInfo.playset_description}`);
-    }
-    doc.text(`Precio de Venta Total: ${project.sale_price}`);
-    doc.text(`Margen de Ganancia: ${profit_margin}`);
+
+    doc.fontSize(12).text('Datos del Emisor');
+    doc.fontSize(10);
+    doc.text('Razón Social: Playset Company');
+    doc.text('RFC: XAXX010101000');
+    doc.text('Régimen Fiscal: General');
     doc.moveDown();
+
+    doc.fontSize(12).text('Datos del Receptor');
+    doc.fontSize(10);
+    if (client) {
+      doc.text(`Razón Social: ${client.company_name}`);
+      doc.text(`RFC: ${client.billing_info || ''}`);
+      doc.text(`Dirección: ${client.address}`);
+    } else {
+      doc.text('Cliente no registrado');
+    }
+    doc.moveDown();
+
+    if (costInfo) {
+      doc.fontSize(12).text('Playset');
+      doc.fontSize(10);
+      doc.text(`Nombre: ${costInfo.playset_name}`);
+      doc.text(`Descripción: ${costInfo.playset_description}`);
+      doc.moveDown();
+    }
 
     // Table header
     const startX = 50;
@@ -301,8 +313,12 @@ router.get('/projects/:id/pdf', async (req, res) => {
     });
 
     doc.moveDown();
-    doc.text(`Costo de inversion total: ${total_investment_cost.toFixed(2)}`);
-    doc.text(`Costo de venta total: ${total_cost_with_margin.toFixed(2)}`);
+    const subtotal = total_cost_with_margin;
+    const iva = subtotal * 0.16;
+    const total = subtotal + iva;
+    doc.text(`Subtotal: ${subtotal.toFixed(2)}`, { align: 'right' });
+    doc.text(`IVA (16%): ${iva.toFixed(2)}`, { align: 'right' });
+    doc.text(`Total: ${total.toFixed(2)}`, { align: 'right' });
     doc.moveDown();
     doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
     doc.moveDown();
