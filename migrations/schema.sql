@@ -232,3 +232,6 @@ ALTER TABLE remissions
 
 ALTER TABLE owner_companies
   ADD COLUMN profit_percentage DECIMAL(10,2) DEFAULT 0;
+
+ALTER TABLE owner_companies
+  ADD COLUMN logo_path VARCHAR(255);

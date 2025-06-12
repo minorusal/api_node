@@ -905,6 +905,34 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Owner Companies",
+      "item": [
+        {
+          "name": "Upload Logo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:3000/owner-companies/1/logo",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["owner-companies", "1", "logo"]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }

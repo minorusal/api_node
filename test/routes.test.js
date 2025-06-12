@@ -8,6 +8,7 @@ const playsetAccessoriesRouter = require('../routes/playsetAccessories');
 const clientsRouter = require('../routes/clients');
 const projectsRouter = require('../routes/projects');
 const installationCostsRouter = require('../routes/installationCosts');
+const ownerCompaniesRouter = require('../routes/ownerCompanies');
 
 describe('Route definitions', () => {
   it('materials router has routes configured', () => {
@@ -58,5 +59,9 @@ describe('Route definitions', () => {
 
   it('installation costs router has routes configured', () => {
     expect(installationCostsRouter.stack).to.be.an('array').that.is.not.empty;
+  });
+
+  it('owner companies router has routes configured', () => {
+    expect(ownerCompaniesRouter.stack).to.be.an('array').that.is.not.empty;
   });
 });

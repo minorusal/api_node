@@ -6,6 +6,7 @@ const playsetAccessories = require('../models/playsetAccessoriesModel');
 const clients = require('../models/clientsModel');
 const projects = require('../models/projectsModel');
 const installationCosts = require('../models/installationCostsModel');
+const ownerCompanies = require('../models/ownerCompaniesModel');
 
 describe('Model exports', () => {
   it('materials model exposes CRUD functions', () => {
@@ -45,6 +46,10 @@ describe('Model exports', () => {
   it('installationCosts model exposes basic functions', () => {
     expect(installationCosts.createInstallationCosts).to.be.a('function');
     expect(installationCosts.findByProjectId).to.be.a('function');
+  });
+
+  it('ownerCompanies model exposes update logo function', () => {
+    expect(ownerCompanies.updateLogoPath).to.be.a('function');
   });
 });
 
