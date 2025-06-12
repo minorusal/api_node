@@ -7,12 +7,12 @@ const db = require('../db');
  * @returns {Promise<object>} Playset creado con su ID.
  * @throws {Error} Si la inserción falla.
  */
-const createPlayset = (name, description) => {
+const createPlayset = (name, description, ownerId = 1) => {
   return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO playsets (name, description) VALUES (?, ?)';
-    db.query(sql, [name, description], (err, result) => {
+    const sql = 'INSERT INTO playsets (name, description, owner_id) VALUES (?, ?, ?)';
+    db.query(sql, [name, description, ownerId], (err, result) => {
       if (err) return reject(err);
-      resolve({ id: result.insertId, name, description });
+      resolve({ id: result.insertId, name, description, owner_id: ownerId });
     });
   });
 };

@@ -11,13 +11,21 @@ const db = require('../db');
  * @returns {Promise<object>} Material creado con su ID.
  * @throws {Error} Si ocurre un error en la base de datos.
  */
-const createMaterial = (name, description, thickness, width, length, price) => {
+const createMaterial = (
+  name,
+  description,
+  thickness,
+  width,
+  length,
+  price,
+  ownerId = 1
+) => {
   return new Promise((resolve, reject) => {
     const sql =
-      'INSERT INTO raw_materials (name, description, thickness_mm, width_m, length_m, price) VALUES (?, ?, ?, ?, ?, ?)';
+      'INSERT INTO raw_materials (name, description, thickness_mm, width_m, length_m, price, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
     db.query(
       sql,
-      [name, description, thickness, width, length, price],
+      [name, description, thickness, width, length, price, ownerId],
       (err, result) => {
         if (err) return reject(err);
         resolve({
@@ -27,7 +35,8 @@ const createMaterial = (name, description, thickness, width, length, price) => {
           thickness_mm: thickness,
           width_m: width,
           length_m: length,
-          price
+          price,
+          owner_id: ownerId
         });
       }
     );

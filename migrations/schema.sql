@@ -162,8 +162,53 @@ CREATE TABLE IF NOT EXISTS owner_companies (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     address TEXT,
+    profit_percentage DECIMAL(10,2) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+/* ──────────── Asociaciones con owner ──────────── */
+ALTER TABLE raw_materials
+  ADD COLUMN owner_id INT,
+  ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
 
+ALTER TABLE material_attributes
+  ADD COLUMN owner_id INT,
+  ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
+
+ALTER TABLE accessories
+  ADD COLUMN owner_id INT,
+  ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
+
+ALTER TABLE accessory_materials
+  ADD COLUMN owner_id INT,
+  ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
+
+ALTER TABLE playsets
+  ADD COLUMN owner_id INT,
+  ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
+
+ALTER TABLE playset_accessories
+  ADD COLUMN owner_id INT,
+  ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
+
+ALTER TABLE demo_table
+  ADD COLUMN owner_id INT,
+  ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
+
+ALTER TABLE clients
+  ADD COLUMN owner_id INT,
+  ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
+
+ALTER TABLE projects
+  ADD COLUMN owner_id INT,
+  ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
+
+ALTER TABLE remissions
+  ADD COLUMN owner_id INT,
+  ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
+
+
+
+ALTER TABLE owner_companies
+  ADD COLUMN profit_percentage DECIMAL(10,2) DEFAULT 0;

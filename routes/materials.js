@@ -135,7 +135,8 @@ router.post('/materials', async (req, res) => {
       thickness_mm,
       width_m,
       length_m,
-      price
+      price,
+      1
     );
     res.status(201).json(material);
   } catch (error) {

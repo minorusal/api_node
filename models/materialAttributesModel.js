@@ -8,12 +8,12 @@ const db = require('../db');
  * @returns {Promise<object>} Atributo creado con su ID.
  * @throws {Error} Si ocurre un error al insertar el registro.
  */
-const createAttribute = (materialId, attributeName, attributeValue) => {
+const createAttribute = (materialId, attributeName, attributeValue, ownerId = 1) => {
   return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO material_attributes (material_id, attribute_name, attribute_value) VALUES (?, ?, ?)';
-    db.query(sql, [materialId, attributeName, attributeValue], (err, result) => {
+    const sql = 'INSERT INTO material_attributes (material_id, attribute_name, attribute_value, owner_id) VALUES (?, ?, ?, ?)';
+    db.query(sql, [materialId, attributeName, attributeValue, ownerId], (err, result) => {
       if (err) return reject(err);
-      resolve({ id: result.insertId, materialId, attributeName, attributeValue });
+      resolve({ id: result.insertId, materialId, attributeName, attributeValue, owner_id: ownerId });
     });
   });
 };
