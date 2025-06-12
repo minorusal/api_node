@@ -56,7 +56,10 @@ router.get('/projects', async (req, res) => {
         const costInfo = await PlaysetAccessories.calculatePlaysetCost(p.playset_id);
         if (!costInfo) return { ...p, accessories: [], total_investment_cost: 0, total_cost_with_margin: 0 };
 
-        const marginFactor = p.sale_price && costInfo.total_cost > 0 ? p.sale_price / costInfo.total_cost : 1;
+        const profit_margin = p.sale_price && costInfo.total_cost > 0
+          ? +(p.sale_price / costInfo.total_cost - 1).toFixed(2)
+          : 0;
+        const marginFactor = 1 + profit_margin;
         const accessories = costInfo.accessories.map((a) => {
           const costWithMargin = +(a.cost * marginFactor).toFixed(2);
           return {
@@ -70,7 +73,7 @@ router.get('/projects', async (req, res) => {
         });
         const total_investment_cost = accessories.reduce((sum, acc) => sum + acc.investment_cost, 0);
         const total_cost_with_margin = accessories.reduce((sum, acc) => sum + acc.cost_with_margin, 0);
-        return { ...p, accessories, total_investment_cost, total_cost_with_margin };
+        return { ...p, accessories, profit_margin, total_investment_cost, total_cost_with_margin };
       })
     );
     res.json(detailed);
