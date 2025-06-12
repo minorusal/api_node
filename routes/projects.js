@@ -7,6 +7,7 @@ const pdf = require('html-pdf');
 const Remissions = require('../models/remissionsModel');
 const fs = require('fs');
 const path = require('path');
+const OwnerCompanies = require('../models/ownerCompaniesModel');
 const router = express.Router();
 
 /**
@@ -129,6 +130,7 @@ router.get('/projects/:id', async (req, res) => {
     const project = await Projects.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Proyecto no encontrado' });
     const client = await Clients.findById(project.client_id);
+    const owner = await OwnerCompanies.getFirst();
 
     const costInfo = await PlaysetAccessories.calculatePlaysetCost(project.playset_id);
     if (!costInfo) {
@@ -204,6 +206,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
     const project = await Projects.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Proyecto no encontrado' });
     const client = await Clients.findById(project.client_id);
+    const owner = await OwnerCompanies.getFirst();
 
     const costInfo = await PlaysetAccessories.calculatePlaysetCost(project.playset_id);
     const profit_margin = project.sale_price && costInfo && costInfo.total_cost > 0
@@ -254,10 +257,9 @@ router.get('/projects/:id/pdf', async (req, res) => {
 
     const conceptos = accessories.map(acc => ({
       cantidad: acc.quantity,
-      claveProdServ: acc.accessory_id,
       descripcion: acc.accessory_name,
-      valorUnitario: (acc.cost_with_margin / (acc.quantity || 1)).toFixed(2),
-      importe: acc.cost_with_margin.toFixed(2)
+      costoInversion: acc.investment_cost.toFixed(2),
+      costoVenta: acc.cost_with_margin.toFixed(2)
     }));
 
 
@@ -267,15 +269,13 @@ router.get('/projects/:id/pdf', async (req, res) => {
     const html = Mustache.render(template, {
       folio: project.id,
       fechaEmision: formattedDate,
-      lugarExpedicion: client ? client.address : 'N/A',
+      lugarExpedicion: owner ? owner.address : 'N/A',
       logoSrc: '',
-      emisor: { razonSocial: 'Playset Company', rfc: 'XAXX010101000', regimen: 'General' },
+      emisor: { razonSocial: owner ? owner.name : '' },
       receptor: {
-        razonSocial: client ? client.company_name : 'Cliente no registrado',
-        rfc: client ? (client.billing_info || '') : '',
-        usoCfdi: '',
-        cp: client ? client.address : '',
-        regimen: ''
+        nombreCliente: client ? client.company_name : 'Cliente no registrado',
+        nombreContacto: client ? client.contact_name : '',
+        domicilio: client ? client.address : ''
       },
       conceptos,
       totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: '' },
