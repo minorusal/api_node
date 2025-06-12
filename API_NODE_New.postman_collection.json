@@ -838,6 +838,73 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Installation Costs",
+      "item": [
+        {
+          "name": "Create Installation Cost",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"project_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "http://localhost:3000/installation-costs",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["installation-costs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Installation Cost",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/installation-costs?project_id=1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["installation-costs"],
+              "query": [ { "key": "project_id", "value": "1" } ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Installation Cost",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workers\": 2\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "http://localhost:3000/installation-costs/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["installation-costs", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
