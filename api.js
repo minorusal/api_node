@@ -87,23 +87,25 @@ app.use('/operaciones', operaciones);
 // Middleware para la autenticacion de passport
 const authenticateJWT = (req, res, next) => {
     const cookieToken = req.cookies.jwt;
-    const headerToken = req.headers.authorization;
-    if (!cookieToken) {
-        return res.status(401).json({ message: 'Token no proporcionado en la cookie' });
+    const headerToken = req.headers.authorization && req.headers.authorization.startsWith('Bearer ')
+        ? req.headers.authorization.split(' ')[1]
+        : null;
+
+    const token = headerToken || cookieToken;
+
+    if (!token) {
+        return res.status(401).json({ message: 'Token no proporcionado' });
     }
-    if (!headerToken || !headerToken.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Token no proporcionado en los headers de la solicitud' });
-    }
-    const token = headerToken.split(' ')[1];
-    if (token !== cookieToken) {
+
+    if (headerToken && cookieToken && headerToken !== cookieToken) {
         return res.status(401).json({ message: 'Tokens JWT no coinciden' });
     }
-    jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+
+    jwt.verify(token, process.env.JWT_SECRET, (err) => {
         if (err) {
             return res.status(401).json({ message: 'Token inválido' });
-        } else {
-            next();
         }
+        next();
     });
 };
 

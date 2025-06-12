@@ -142,18 +142,15 @@ router.post('/login', async (req, res, next) => {
  */
 router.post('/logout', (req, res) => {
     const cookieToken = req.cookies.jwt;
-    const headerToken = req.headers.authorization;
+    const headerToken = req.headers.authorization && req.headers.authorization.startsWith('Bearer ')
+        ? req.headers.authorization.split(' ')[1]
+        : null;
 
-    if (!cookieToken) {
+    if (!cookieToken && !headerToken) {
         return res.status(401).json({ message: 'No hay sesión activa' });
     }
 
-    if (!headerToken || !headerToken.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Token no proporcionado' });
-    }
-
-    const token = headerToken.split(' ')[1];
-    if (token !== cookieToken) {
+    if (cookieToken && headerToken && cookieToken !== headerToken) {
         return res.status(401).json({ message: 'Tokens JWT no coinciden' });
     }
 

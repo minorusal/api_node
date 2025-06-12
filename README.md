@@ -89,9 +89,10 @@ configuración incluye `credentials: true` para permitir el envío de cookies en
 solicitudes cross-origin, por lo que asegúrate de definir `CORS_ORIGIN` cuando
 uses autenticación basada en cookies.
 
-Cuando consumas los endpoints protegidos desde Angular, incluye el token JWT en
-el encabezado `Authorization` y establece `withCredentials: true` para que el
-navegador envíe la cookie con el token.
+Al consumir los endpoints protegidos debes enviar el token JWT. Puedes
+hacerlo en el encabezado `Authorization` (recomendado) o confiar en la cookie
+`jwt`. Si utilizas cookies, establece `withCredentials: true` para que el
+navegador la envíe en cada solicitud.
 
 ## Pruebas
 
