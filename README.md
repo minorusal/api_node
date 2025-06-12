@@ -84,7 +84,10 @@ probar estas solicitudes y construir un playset completo.
 El dominio permitido se define con la variable de entorno `CORS_ORIGIN`. Puedes
 proporcionar varios orígenes separados por comas. De forma predeterminada la
 aplicación siempre permitirá `http://localhost:4200` para facilitar el trabajo
-en local. Si no se especifica la variable, se permite cualquier origen.
+en local. Si no se especifica la variable, se permite cualquier origen. La
+configuración incluye `credentials: true` para permitir el envío de cookies en
+solicitudes cross-origin, por lo que asegúrate de definir `CORS_ORIGIN` cuando
+uses autenticación basada en cookies.
 
 ## Pruebas
 

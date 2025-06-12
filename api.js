@@ -42,7 +42,8 @@ if (process.env.CORS_ORIGIN) {
 app.use(cors({
     origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
 const port = process.env.PORT || 3000;
 
