@@ -851,7 +851,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"project_id\": 1\n}",
+              "raw": "{\n  \"project_id\": 1,\n  \"workers\": 2,\n  \"days\": 5,\n  \"meal_per_person\": 100,\n  \"hotel_per_day\": 200,\n  \"labor_cost\": 300,\n  \"personal_transport\": 50,\n  \"local_transport\": 80,\n  \"extra_expenses\": 120\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
