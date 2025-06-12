@@ -3,6 +3,7 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/usersModel');
+const OwnerCompanies = require('../models/ownerCompaniesModel');
 const router = express.Router();
 require('dotenv').config();
 const jwtSecret = process.env.JWT_SECRET;
@@ -48,6 +49,19 @@ const jwtSecret = process.env.JWT_SECRET;
  *     responses:
  *       200:
  *         description: Autenticación exitosa
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                 ownerCompany:
+ *                   type: object
  *       401:
  *         description: Credenciales inválidas
  *
@@ -89,7 +103,23 @@ router.post('/login', async (req, res, next) => {
                 }
                 const token = jwt.sign({ sub: user.id }, jwtSecret);
                 res.cookie('jwt', token, { httpOnly: true });
-                return res.status(200).json({ message: 'Autenticación exitosa', token });
+                let ownerCompany = null;
+                try {
+                    if (user.owner_id) {
+                        ownerCompany = await OwnerCompanies.findById(user.owner_id);
+                    } else if (OwnerCompanies.getFirst) {
+                        ownerCompany = await OwnerCompanies.getFirst();
+                    }
+                } catch (e) {
+                    ownerCompany = null;
+                }
+                const { password, ...userData } = user;
+                return res.status(200).json({
+                    message: 'Autenticación exitosa',
+                    token,
+                    user: userData,
+                    ownerCompany
+                });
             });
         } catch (error) {
             return next(error);
