@@ -228,8 +228,11 @@ router.get('/projects/:id/pdf', async (req, res) => {
     if (!fs.existsSync(remissionDir)) {
       fs.mkdirSync(remissionDir);
     }
-    const fileName = `project_${project.id}_${Date.now()}.pdf`;
-    const filePath = path.join(remissionDir, fileName);
+    const timestamp = Date.now();
+    const ownerFileName = `project_${project.id}_${timestamp}_owner.pdf`;
+    const ownerFilePath = path.join(remissionDir, ownerFileName);
+    const clientFileName = `project_${project.id}_${timestamp}_client.pdf`;
+    const clientFilePath = path.join(remissionDir, clientFileName);
 
     const snapshot = JSON.stringify({
       project,
@@ -240,7 +243,8 @@ router.get('/projects/:id/pdf', async (req, res) => {
       total_cost_with_margin
     });
     try {
-      await Remissions.createRemission(project.id, snapshot, filePath, 1);
+      await Remissions.createRemission(project.id, snapshot, ownerFilePath, 'owner', 1);
+      await Remissions.createRemission(project.id, snapshot, clientFilePath, 'client', 1);
     } catch (err) {
       console.error('Error saving remission:', err);
     }
@@ -261,10 +265,32 @@ router.get('/projects/:id/pdf', async (req, res) => {
     }));
 
 
-    const templatePath = path.join(__dirname, '..', 'templates', 'remission.html');
-    const template = fs.readFileSync(templatePath, 'utf8');
+    const ownerTemplatePath = path.join(__dirname, '..', 'templates', 'remission.html');
+    const ownerTemplate = fs.readFileSync(ownerTemplatePath, 'utf8');
+    const clientTemplatePath = path.join(__dirname, '..', 'templates', 'remission_client.html');
+    const clientTemplate = fs.readFileSync(clientTemplatePath, 'utf8');
 
-    const html = Mustache.render(template, {
+    const ownerHtml = Mustache.render(ownerTemplate, {
+      folio: project.id,
+      fechaEmision: formattedDate,
+      lugarExpedicion: owner ? owner.address : 'N/A',
+      logoSrc: '',
+      emisor: { razonSocial: owner ? owner.name : '' },
+      receptor: {
+        nombreCliente: client ? client.company_name : 'Cliente no registrado',
+        nombreContacto: client ? client.contact_name : '',
+        domicilio: client ? client.address : ''
+      },
+      conceptos,
+      totales: { subtotal: subtotal.toFixed(2), tasaIva: '16%', iva: iva.toFixed(2), total: total.toFixed(2), totalLetra: '' },
+      uuid: '',
+      folioFiscal: '',
+      selloSat: '',
+      selloEmisor: '',
+      cadenaOriginal: ''
+    });
+
+    const clientHtml = Mustache.render(clientTemplate, {
       folio: project.id,
       fechaEmision: formattedDate,
       lugarExpedicion: owner ? owner.address : 'N/A',
@@ -285,17 +311,25 @@ router.get('/projects/:id/pdf', async (req, res) => {
     });
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+    res.setHeader('Content-Disposition', `attachment; filename=${ownerFileName}`);
 
-    pdf.create(html).toStream((err, stream) => {
+    pdf.create(ownerHtml).toStream((err, stream) => {
       if (err) {
         console.error(err);
         return res.status(500).json({ message: 'Error creando PDF' });
       }
-      const fileStream = fs.createWriteStream(filePath);
-      stream.pipe(fileStream);
+      const fileStreamOwner = fs.createWriteStream(ownerFilePath);
+      stream.pipe(fileStreamOwner);
       stream.pipe(res);
+    });
 
+    pdf.create(clientHtml).toStream((err, stream) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      const fileStreamClient = fs.createWriteStream(clientFilePath);
+      stream.pipe(fileStreamClient);
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

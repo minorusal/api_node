@@ -1,15 +1,16 @@
 const db = require('../db');
 
-const createRemission = (projectId, data, pdfPath, ownerId = 1) => {
+const createRemission = (projectId, data, pdfPath, recipientType = 'owner', ownerId = 1) => {
   return new Promise((resolve, reject) => {
-    const sql = `INSERT INTO remissions (project_id, data, pdf_path, owner_id) VALUES (?, ?, ?, ?)`;
-    db.query(sql, [projectId, data, pdfPath, ownerId], (err, result) => {
+    const sql = `INSERT INTO remissions (project_id, data, pdf_path, recipient_type, owner_id) VALUES (?, ?, ?, ?, ?)`;
+    db.query(sql, [projectId, data, pdfPath, recipientType, ownerId], (err, result) => {
       if (err) return reject(err);
       resolve({
         id: result.insertId,
         project_id: projectId,
         data: JSON.parse(data),
         pdf_path: pdfPath,
+        recipient_type: recipientType,
         owner_id: ownerId
       });
     });
