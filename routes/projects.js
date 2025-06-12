@@ -73,9 +73,8 @@ router.get('/projects', async (req, res) => {
           };
         }
 
-        const profit_margin = p.sale_price && costInfo.total_cost > 0
-          ? +(p.sale_price / costInfo.total_cost - 1).toFixed(2)
-          : 0;
+        const owner = await OwnerCompanies.findById(p.owner_id);
+        const profit_margin = owner ? +(owner.profit_percentage / 100) : 0;
         const marginFactor = 1 + profit_margin;
         const accessories = costInfo.accessories.map((a) => {
           const costWithMargin = +(a.cost * marginFactor).toFixed(2);
@@ -96,7 +95,8 @@ router.get('/projects', async (req, res) => {
           playset_description: costInfo.playset_description,
           accessories,
           profit_margin,
-          profit_percentage: +(profit_margin * 100).toFixed(2),
+          profit_percentage: owner ? +owner.profit_percentage : 0,
+
           total_investment_cost,
           total_cost_with_margin
         };
@@ -131,7 +131,7 @@ router.get('/projects/:id', async (req, res) => {
     const project = await Projects.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Proyecto no encontrado' });
     const client = await Clients.findById(project.client_id);
-    const owner = await OwnerCompanies.getFirst();
+    const owner = await OwnerCompanies.findById(project.owner_id);
 
     const costInfo = await PlaysetAccessories.calculatePlaysetCost(project.playset_id);
     if (!costInfo) {
@@ -147,9 +147,7 @@ router.get('/projects/:id', async (req, res) => {
       });
     }
 
-    const profit_margin = project.sale_price && costInfo.total_cost > 0
-      ? +(project.sale_price / costInfo.total_cost - 1).toFixed(2)
-      : 0;
+    const profit_margin = owner ? +(owner.profit_percentage / 100) : 0;
     const marginFactor = 1 + profit_margin;
     const accessories = costInfo.accessories.map((a) => {
       const costWithMargin = +(a.cost * marginFactor).toFixed(2);
@@ -171,7 +169,7 @@ router.get('/projects/:id', async (req, res) => {
       playset_description: costInfo.playset_description,
       accessories,
       profit_margin,
-      profit_percentage: +(profit_margin * 100).toFixed(2),
+      profit_percentage: owner ? +owner.profit_percentage : 0,
       total_investment_cost,
       total_cost_with_margin
     });
@@ -208,12 +206,10 @@ router.get('/projects/:id/pdf', async (req, res) => {
     const project = await Projects.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Proyecto no encontrado' });
     const client = await Clients.findById(project.client_id);
-    const owner = await OwnerCompanies.getFirst();
+    const owner = await OwnerCompanies.findById(project.owner_id);
 
     const costInfo = await PlaysetAccessories.calculatePlaysetCost(project.playset_id);
-    const profit_margin = project.sale_price && costInfo && costInfo.total_cost > 0
-      ? +(project.sale_price / costInfo.total_cost - 1).toFixed(2)
-      : 0;
+    const profit_margin = owner ? +(owner.profit_percentage / 100) : 0;
     const marginFactor = 1 + profit_margin;
     const accessories = (costInfo ? costInfo.accessories : []).map((a) => {
       const costWithMargin = +(a.cost * marginFactor).toFixed(2);
@@ -262,7 +258,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
       descripcion: acc.accessory_name,
       costoInversion: acc.investment_cost.toFixed(2),
       costoVenta: acc.cost_with_margin.toFixed(2),
-      porcentaje: (profit_margin * 100).toFixed(2) + '%'
+      porcentaje: owner ? owner.profit_percentage.toFixed(2) + '%' : '0%'
     }));
 
 
@@ -309,7 +305,7 @@ router.get('/projects/:id/pdf', async (req, res) => {
 
 router.post('/projects', async (req, res) => {
   try {
-    const { playset_id, profit_margin = 0, contact_email, client } = req.body;
+    const { playset_id, contact_email, client } = req.body;
     if (!client) return res.status(400).json({ message: 'Cliente requerido' });
 
     let clientRecord;
@@ -323,7 +319,9 @@ router.post('/projects', async (req, res) => {
 
     const costInfo = await PlaysetAccessories.calculatePlaysetCost(playset_id);
     if (!costInfo) return res.status(404).json({ message: 'Playset no encontrado' });
-    const salePrice = +(costInfo.total_cost * (1 + profit_margin)).toFixed(2);
+    const owner = await OwnerCompanies.findById(1);
+    const margin = owner ? +(owner.profit_percentage / 100) : 0;
+    const salePrice = +(costInfo.total_cost * (1 + margin)).toFixed(2);
     const project = await Projects.createProject(
       clientRecord.id,
       playset_id,
