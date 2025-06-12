@@ -29,8 +29,17 @@ const remissionsRouter = require('./routes/remissions');
 
 const app = express();
 app.use(passport.initialize());
+let allowedOrigins;
+if (process.env.CORS_ORIGIN) {
+    allowedOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
+    if (!allowedOrigins.includes('http://localhost:4200')) {
+        allowedOrigins.push('http://localhost:4200');
+    }
+} else {
+    allowedOrigins = '*';
+}
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
