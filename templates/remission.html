@@ -27,7 +27,7 @@
   <!-- ENCABEZADO PRINCIPAL -->
   <div class="row">
     <div class="col">
-      <h1>REMISIÓN / CFDI 4.0</h1>
+      <h1>REMISIÓN</h1>
       <p class="small">Folio Interno: <strong>{{folio}}</strong></p>
       <p class="small">Fecha de emisión: <strong>{{fechaEmision}}</strong></p>
       <p class="small">Lugar de expedición: <strong>{{lugarExpedicion}}</strong></p>
@@ -45,8 +45,6 @@
     <h2>Datos del Emisor</h2>
     <table>
       <tr><th>Razón Social</th><td>{{emisor.razonSocial}}</td></tr>
-      <tr><th>RFC</th><td>{{emisor.rfc}}</td></tr>
-      <tr><th>Régimen Fiscal</th><td>{{emisor.regimen}}</td></tr>
     </table>
   </div>
 
@@ -54,11 +52,9 @@
   <div class="section">
     <h2>Datos del Receptor</h2>
     <table>
-      <tr><th>Razón Social</th><td>{{receptor.razonSocial}}</td></tr>
-      <tr><th>RFC</th><td>{{receptor.rfc}}</td></tr>
-      <tr><th>Uso CFDI</th><td>{{receptor.usoCfdi}}</td></tr>
-      <tr><th>Domicilio Fiscal</th><td>{{receptor.cp}}</td></tr>
-      <tr><th>Régimen Fiscal</th><td>{{receptor.regimen}}</td></tr>
+      <tr><th>Nombre del cliente</th><td>{{receptor.nombreCliente}}</td></tr>
+      <tr><th>Nombre de contacto</th><td>{{receptor.nombreContacto}}</td></tr>
+      <tr><th>Domicilio</th><td>{{receptor.domicilio}}</td></tr>
     </table>
   </div>
 
@@ -69,20 +65,18 @@
       <thead>
         <tr>
           <th>Cantidad</th>
-          <th>ClaveProdServ</th>
           <th>Descripción</th>
-          <th>Valor Unitario</th>
-          <th>Importe</th>
+          <th>Costo de inversión</th>
+          <th>Costo para venta</th>
         </tr>
       </thead>
       <tbody>
         {{#conceptos}}
         <tr>
           <td class="center">{{cantidad}}</td>
-          <td>{{claveProdServ}}</td>
           <td>{{descripcion}}</td>
-          <td class="right">{{valorUnitario}}</td>
-          <td class="right">{{importe}}</td>
+          <td class="right">{{costoInversion}}</td>
+          <td class="right">{{costoVenta}}</td>
         </tr>
         {{/conceptos}}
       </tbody>
