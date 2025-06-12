@@ -1172,7 +1172,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Menu name\",\n  \"path\": null,\n  \"parent_id\": null\n}",
+              "raw": "{\n  \"name\": \"Menu name\",\n  \"path\": null,\n  \"parent_id\": null,\n  \"owner_id\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1180,7 +1180,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:3000/menus",
+              "raw": "http://localhost:3000/menus?owner_id=1",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1188,6 +1188,12 @@
               "port": "3000",
               "path": [
                 "menus"
+              ],
+              "query": [
+                {
+                  "key": "owner_id",
+                  "value": "1"
+                }
               ]
             }
           },

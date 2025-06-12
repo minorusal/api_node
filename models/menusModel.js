@@ -21,10 +21,10 @@ const createMenu = (name, path = null, parentId = null, ownerId = 1) => {
  * Obtiene el árbol completo de menús con submenús.
  * @returns {Promise<object[]>} Árbol de menús.
  */
-const getMenuTree = () => {
+const getMenuTree = (ownerId = 1) => {
   return new Promise((resolve, reject) => {
-    const sql = 'SELECT id, name, path, parent_id FROM menus ORDER BY id';
-    db.query(sql, (err, rows) => {
+    const sql = 'SELECT id, name, path, parent_id FROM menus WHERE owner_id = ? ORDER BY id';
+    db.query(sql, [ownerId], (err, rows) => {
       if (err) return reject(err);
       const map = {};
       rows.forEach((row) => {
