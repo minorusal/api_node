@@ -15,7 +15,8 @@ const router = express.Router();
  *         schema:
  *           type: integer
  *         required: false
- *         description: ID del owner para filtrar
+ *         description: ID del owner para filtrar (por defecto 1)
+ *         example: 1
  *     responses:
  *       200:
  *         description: Árbol de menús
@@ -41,6 +42,8 @@ const router = express.Router();
  *               owner_id:
  *                 type: integer
  *                 nullable: true
+ *                 description: ID del owner (por defecto 1)
+ *                 example: 1
  *     responses:
  *       201:
  *         description: Menú creado
