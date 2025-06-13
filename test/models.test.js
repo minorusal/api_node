@@ -14,6 +14,7 @@ describe('Model exports', () => {
     expect(materials.createMaterial).to.be.a('function');
     expect(materials.findById).to.be.a('function');
     expect(materials.findAll).to.be.a('function');
+    expect(materials.findPaginated).to.be.a('function');
   });
 
   it('accessories model exposes CRUD functions', () => {
@@ -97,6 +98,21 @@ describe('Model logic', () => {
       price: 20,
       owner_id: 1
     });
+  });
+
+  it('findPaginated builds search query when term provided', async () => {
+    let capturedSql = '';
+    let capturedParams = [];
+    db.query = (sql, params, callback) => {
+      capturedSql = sql;
+      capturedParams = params;
+      callback(null, []);
+    };
+
+    await materials.findPaginated(1, 5, 'wood');
+
+    expect(capturedSql).to.contain('LIKE');
+    expect(capturedParams[0]).to.equal('%wood%');
   });
 
   it('calculateCost computes correct cost based on material dimensions', async () => {

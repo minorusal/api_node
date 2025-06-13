@@ -79,17 +79,23 @@ const findAll = () => {
  * @returns {Promise<object[]>} Listado de materiales paginado.
  * @throws {Error} Si ocurre un error al consultar la base de datos.
  */
-const findPaginated = (page = 1, limit = 10) => {
+const buildSearchQuery = (search) => {
+  if (!search) return { clause: '', params: [] };
+  const pattern = `%${search}%`;
+  const clause =
+    'WHERE CONCAT_WS(" ", id, name, description, thickness_mm, width_m, length_m, price, created_at, updated_at, owner_id) LIKE ?';
+  return { clause, params: [pattern] };
+};
+
+const findPaginated = (page = 1, limit = 10, search = '') => {
   const offset = (page - 1) * limit;
   return new Promise((resolve, reject) => {
-    db.query(
-      'SELECT * FROM raw_materials LIMIT ? OFFSET ?',
-      [parseInt(limit, 10), offset],
-      (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows);
-      }
-    );
+    const { clause, params } = buildSearchQuery(search);
+    const sql = `SELECT * FROM raw_materials ${clause} LIMIT ? OFFSET ?`;
+    db.query(sql, [...params, parseInt(limit, 10), offset], (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows);
+    });
   });
 };
 
@@ -98,9 +104,11 @@ const findPaginated = (page = 1, limit = 10) => {
  * @returns {Promise<number>} Cantidad de materiales.
  * @throws {Error} Si ocurre un error al consultar la base de datos.
  */
-const countAll = () => {
+const countAll = (search = '') => {
   return new Promise((resolve, reject) => {
-    db.query('SELECT COUNT(*) AS count FROM raw_materials', (err, rows) => {
+    const { clause, params } = buildSearchQuery(search);
+    const sql = `SELECT COUNT(*) AS count FROM raw_materials ${clause}`;
+    db.query(sql, params, (err, rows) => {
       if (err) return reject(err);
       resolve(rows[0].count);
     });
