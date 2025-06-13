@@ -24,6 +24,13 @@ const router = express.Router();
  *         required: false
  *         description: Cantidad de elementos por página (por defecto 10)
  *         example: 10
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Texto a buscar en cualquier campo
+ *         example: madera
  *     responses:
  *       200:
  *         description: Lista de materiales
@@ -128,9 +135,10 @@ router.get('/materials', async (req, res) => {
   try {
     const page = parseInt(req.query.page || '1', 10);
     const limit = parseInt(req.query.limit || '10', 10);
+    const search = req.query.search || '';
     const [materials, totalDocs] = await Promise.all([
-      Materials.findPaginated(page, limit),
-      Materials.countAll()
+      Materials.findPaginated(page, limit, search),
+      Materials.countAll(search)
     ]);
 
     const totalPages = Math.ceil(totalDocs / limit);
@@ -140,7 +148,8 @@ router.get('/materials', async (req, res) => {
       totalDocs,
       totalPages,
       page,
-      limit
+      limit,
+      search
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
