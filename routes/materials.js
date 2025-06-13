@@ -27,6 +27,23 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: Lista de materiales
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 docs:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 totalDocs:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
  *   post:
  *     summary: Crear material
  *     tags:
@@ -111,8 +128,20 @@ router.get('/materials', async (req, res) => {
   try {
     const page = parseInt(req.query.page || '1', 10);
     const limit = parseInt(req.query.limit || '10', 10);
-    const materials = await Materials.findPaginated(page, limit);
-    res.json(materials);
+    const [materials, totalDocs] = await Promise.all([
+      Materials.findPaginated(page, limit),
+      Materials.countAll()
+    ]);
+
+    const totalPages = Math.ceil(totalDocs / limit);
+
+    res.json({
+      docs: materials,
+      totalDocs,
+      totalPages,
+      page,
+      limit
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
