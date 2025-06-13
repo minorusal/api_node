@@ -94,6 +94,20 @@ const findPaginated = (page = 1, limit = 10) => {
 };
 
 /**
+ * Cuenta el total de materiales registrados.
+ * @returns {Promise<number>} Cantidad de materiales.
+ * @throws {Error} Si ocurre un error al consultar la base de datos.
+ */
+const countAll = () => {
+  return new Promise((resolve, reject) => {
+    db.query('SELECT COUNT(*) AS count FROM raw_materials', (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows[0].count);
+    });
+  });
+};
+
+/**
  * Actualiza los datos de un material.
  * @param {number} id - ID del material.
  * @param {string} name - Nombre del material.
@@ -148,6 +162,7 @@ module.exports = {
   findById,
   findAll,
   findPaginated,
+  countAll,
   updateMaterial,
   deleteMaterial
 };
