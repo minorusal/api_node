@@ -72,7 +72,7 @@
               }
             ],
             "url": {
-              "raw": "http://localhost:3000/materials?page=1&limit=10",
+              "raw": "http://localhost:3000/materials?page=1&limit=10&search=madera",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -89,6 +89,10 @@
                 {
                   "key": "limit",
                   "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "madera"
                 }
               ]
             }
