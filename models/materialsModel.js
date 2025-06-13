@@ -73,6 +73,27 @@ const findAll = () => {
 };
 
 /**
+ * Obtiene materiales con paginación.
+ * @param {number} page - Número de página.
+ * @param {number} limit - Cantidad de registros por página.
+ * @returns {Promise<object[]>} Listado de materiales paginado.
+ * @throws {Error} Si ocurre un error al consultar la base de datos.
+ */
+const findPaginated = (page = 1, limit = 10) => {
+  const offset = (page - 1) * limit;
+  return new Promise((resolve, reject) => {
+    db.query(
+      'SELECT * FROM raw_materials LIMIT ? OFFSET ?',
+      [parseInt(limit, 10), offset],
+      (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows);
+      }
+    );
+  });
+};
+
+/**
  * Actualiza los datos de un material.
  * @param {number} id - ID del material.
  * @param {string} name - Nombre del material.
@@ -126,6 +147,7 @@ module.exports = {
   createMaterial,
   findById,
   findAll,
+  findPaginated,
   updateMaterial,
   deleteMaterial
 };

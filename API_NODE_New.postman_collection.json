@@ -72,7 +72,7 @@
               }
             ],
             "url": {
-              "raw": "http://localhost:3000/materials",
+              "raw": "http://localhost:3000/materials?page=1&limit=10",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -80,6 +80,16 @@
               "port": "3000",
               "path": [
                 "materials"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
               ]
             }
           },

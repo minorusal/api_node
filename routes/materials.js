@@ -9,6 +9,21 @@ const router = express.Router();
  *     summary: Listar materiales
  *     tags:
  *       - Materials
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: Número de página (por defecto 1)
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: Cantidad de elementos por página (por defecto 10)
+ *         example: 10
  *     responses:
  *       200:
  *         description: Lista de materiales
@@ -94,7 +109,9 @@ const router = express.Router();
  */
 router.get('/materials', async (req, res) => {
   try {
-    const materials = await Materials.findAll();
+    const page = parseInt(req.query.page || '1', 10);
+    const limit = parseInt(req.query.limit || '10', 10);
+    const materials = await Materials.findPaginated(page, limit);
     res.json(materials);
   } catch (error) {
     res.status(500).json({ message: error.message });
