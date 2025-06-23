@@ -20,7 +20,7 @@ const router = express.Router();
  */
 router.get('/remissions/by-owner/:owner_id', async (req, res) => {
   try {
-    const remissions = await Remissions.findByOwnerId(req.params.owner_id);
+    const remissions = await Remissions.findByOwnerIdWithClient(req.params.owner_id);
     res.json(remissions);
   } catch (error) {
     res.status(500).json({ message: error.message });

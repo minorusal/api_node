@@ -55,10 +55,47 @@ const findByOwnerId = (ownerId) => {
   });
 };
 
+const findByOwnerIdWithClient = (ownerId) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT r.*, c.id AS client_id, c.contact_name, c.company_name, c.address,
+             c.requires_invoice, c.billing_info
+      FROM remissions r
+      JOIN projects p ON r.project_id = p.id
+      JOIN clients c ON p.client_id = c.id
+      WHERE r.owner_id = ?`;
+    db.query(sql, [ownerId], (err, rows) => {
+      if (err) return reject(err);
+      const result = rows.map(row => {
+        const data = row.data ? JSON.parse(row.data) : null;
+        return {
+          id: row.id,
+          project_id: row.project_id,
+          data,
+          pdf_path: row.pdf_path,
+          recipient_type: row.recipient_type,
+          owner_id: row.owner_id,
+          created_at: row.created_at,
+          client: {
+            id: row.client_id,
+            contact_name: row.contact_name,
+            company_name: row.company_name,
+            address: row.address,
+            requires_invoice: row.requires_invoice,
+            billing_info: row.billing_info
+          }
+        };
+      });
+      resolve(result);
+    });
+  });
+};
+
 module.exports = {
   createRemission,
   findById,
   findAll,
   findByProjectId,
-  findByOwnerId
+  findByOwnerId,
+  findByOwnerIdWithClient
 };
