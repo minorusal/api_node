@@ -63,7 +63,8 @@ const findByOwnerIdWithClient = (ownerId) => {
       FROM remissions r
       JOIN projects p ON r.project_id = p.id
       JOIN clients c ON p.client_id = c.id
-      WHERE r.owner_id = ?`;
+      WHERE r.owner_id = ?
+      ORDER BY r.created_at ASC`;
     db.query(sql, [ownerId], (err, rows) => {
       if (err) return reject(err);
       const result = rows.map(row => {
@@ -115,6 +116,7 @@ const findByOwnerIdWithClientPaginated = (
       JOIN projects p ON r.project_id = p.id
       JOIN clients c ON p.client_id = c.id
       WHERE r.owner_id = ? ${clause}
+      ORDER BY r.created_at ASC
       LIMIT ? OFFSET ?`;
     db.query(sql, [ownerId, ...params, parseInt(limit, 10), offset], (err, rows) => {
       if (err) return reject(err);
