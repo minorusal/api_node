@@ -67,6 +67,8 @@ app.use(bodyParser.json());
 
 // Serve uploaded files so templates can access logos
 app.use('/uploads', express.static('uploads'));
+// Serve generated remission PDFs
+app.use('/remissions', express.static('remissions'));
 
 // Documentación Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
