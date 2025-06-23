@@ -149,6 +149,8 @@ Para obtener todas las remisiones asociadas a un propietario utiliza:
 ```http
 GET /remissions/by-owner/{owner_id}
 ```
+Puedes añadir los parámetros de consulta `page`, `limit` y `search` para
+paginar y filtrar los resultados.
 
 ## Menús por propietario
 
