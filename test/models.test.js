@@ -90,6 +90,7 @@ describe('Model logic', () => {
       2,
       3,
       20,
+      2,
       1
     );
 
@@ -101,6 +102,7 @@ describe('Model logic', () => {
       width_m: 2,
       length_m: 3,
       price: 20,
+      material_type_id: 2,
       owner_id: 1
     });
   });

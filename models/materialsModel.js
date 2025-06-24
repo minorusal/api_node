@@ -18,14 +18,15 @@ const createMaterial = (
   width,
   length,
   price,
+  materialTypeId,
   ownerId = 1
 ) => {
   return new Promise((resolve, reject) => {
     const sql =
-      'INSERT INTO raw_materials (name, description, thickness_mm, width_m, length_m, price, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
+      'INSERT INTO raw_materials (name, description, thickness_mm, width_m, length_m, price, material_type_id, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
     db.query(
       sql,
-      [name, description, thickness, width, length, price, ownerId],
+      [name, description, thickness, width, length, price, materialTypeId, ownerId],
       (err, result) => {
         if (err) return reject(err);
         resolve({
@@ -36,6 +37,7 @@ const createMaterial = (
           width_m: width,
           length_m: length,
           price,
+          material_type_id: materialTypeId,
           owner_id: ownerId
         });
       }
@@ -134,14 +136,15 @@ const updateMaterial = (
   thickness,
   width,
   length,
-  price
+  price,
+  materialTypeId
 ) => {
   return new Promise((resolve, reject) => {
     const sql =
-      'UPDATE raw_materials SET name = ?, description = ?, thickness_mm = ?, width_m = ?, length_m = ?, price = ? WHERE id = ?';
+      'UPDATE raw_materials SET name = ?, description = ?, thickness_mm = ?, width_m = ?, length_m = ?, price = ?, material_type_id = ? WHERE id = ?';
     db.query(
       sql,
-      [name, description, thickness, width, length, price, id],
+      [name, description, thickness, width, length, price, materialTypeId, id],
       (err, result) => {
         if (err) return reject(err);
         resolve(result);

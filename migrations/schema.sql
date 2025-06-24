@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS raw_materials (
     width_m DECIMAL(10,2),
     length_m DECIMAL(10,2),
     price DECIMAL(10,2),
+    material_type_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -202,6 +203,9 @@ CREATE TABLE IF NOT EXISTS menus (
 ALTER TABLE raw_materials
   ADD COLUMN owner_id INT,
   ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
+ALTER TABLE raw_materials
+  ADD COLUMN material_type_id INT,
+  ADD CONSTRAINT FOREIGN KEY (material_type_id) REFERENCES material_types(id);
 
 ALTER TABLE material_attributes
   ADD COLUMN owner_id INT,
