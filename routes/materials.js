@@ -74,6 +74,8 @@ const router = express.Router();
  *                 type: number
  *               price:
  *                 type: number
+ *               material_type_id:
+ *                 type: integer
  *     responses:
  *       201:
  *         description: Material creado
@@ -116,6 +118,8 @@ const router = express.Router();
  *                 type: number
  *               price:
  *                 type: number
+ *               material_type_id:
+ *                 type: integer
  *     responses:
  *       200:
  *         description: Material actualizado
@@ -182,7 +186,8 @@ router.post('/materials', async (req, res) => {
       thickness_mm,
       width_m,
       length_m,
-      price
+      price,
+      material_type_id
     } = req.body;
     const material = await Materials.createMaterial(
       name,
@@ -191,6 +196,7 @@ router.post('/materials', async (req, res) => {
       width_m,
       length_m,
       price,
+      material_type_id,
       1
     );
     res.status(201).json(material);
@@ -211,7 +217,8 @@ router.put('/materials/:id', async (req, res) => {
       thickness_mm,
       width_m,
       length_m,
-      price
+      price,
+      material_type_id
     } = req.body;
     const material = await Materials.findById(req.params.id);
     if (!material)
@@ -223,7 +230,8 @@ router.put('/materials/:id', async (req, res) => {
       thickness_mm,
       width_m,
       length_m,
-      price
+      price,
+      material_type_id
     );
     res.json({ message: 'Material actualizado' });
   } catch (error) {
