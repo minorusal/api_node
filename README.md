@@ -15,7 +15,7 @@ siguientes variables:
 PORT=3000
 JWT_SECRET=keySecret
 OPERACIONES_SECRET=4RC542024L3v4n74m13n70
-CORS_ORIGIN=http://localhost:4200
+CORS_ORIGIN=http://localhost:3000,http://localhost:4200
 DB_HOST=localhost
 DB_USER=user
 DB_PASSWORD=password
@@ -88,7 +88,12 @@ aplicación siempre permitirá `http://localhost:4200` para facilitar el trabajo
 en local. Si no se especifica la variable, se permite cualquier origen. La
 configuración incluye `credentials: true` para permitir el envío de cookies en
 solicitudes cross-origin, por lo que asegúrate de definir `CORS_ORIGIN` cuando
-uses autenticación basada en cookies.
+uses autenticación basada en cookies. Si accedes a la documentación Swagger
+desde `http://localhost:3000`, incluye ese origen, por ejemplo:
+
+```
+CORS_ORIGIN=http://localhost:3000,http://localhost:4200
+```
 
 Al consumir los endpoints protegidos debes enviar el token JWT. Puedes
 hacerlo en el encabezado `Authorization` (recomendado) o confiar en la cookie
