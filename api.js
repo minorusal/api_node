@@ -27,6 +27,7 @@ const ownerCompaniesRouter = require('./routes/ownerCompanies');
 const remissionStyleRouter = require('./routes/remissionStyle');
 const remissionsRouter = require('./routes/remissions');
 const menusRouter = require('./routes/menus');
+const materialTypesRouter = require('./routes/materialTypes');
 
 const app = express();
 app.use(passport.initialize());
@@ -119,6 +120,7 @@ app.use('/', authenticateJWT, accessoriesRouter);
 app.use('/', authenticateJWT, playsetsRouter);
 app.use('/', authenticateJWT, playsetAccessoriesRouter);
 app.use('/', authenticateJWT, materialAttributesRouter);
+app.use('/', authenticateJWT, materialTypesRouter);
 app.use('/', authenticateJWT, clientsRouter);
 app.use('/', authenticateJWT, projectsRouter);
 app.use('/', authenticateJWT, installationCostsRouter);

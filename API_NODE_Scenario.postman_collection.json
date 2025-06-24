@@ -810,6 +810,35 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Material Types",
+      "item": [
+        {
+          "name": "List Material Types",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/material-types",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "material-types"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
