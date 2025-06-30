@@ -37,6 +37,7 @@ DB_NAME=demodb
 - `GET /materials` Lista materiales (protegido).
   - Parámetros opcionales: `page`, `limit` y `search` para paginar y filtrar por texto.
 - `GET /accessories` Lista accesorios (protegido).
+  - Parámetros opcionales: `page` y `limit` para paginar los resultados.
 - `GET /playsets` Lista playsets (protegido).
 - `GET /playsets/:id/cost` Calcula el costo total de un playset.
 - `POST /playset-accessories` Crea vínculo de accesorio a playset (protegido).

@@ -108,6 +108,92 @@ const findByOwnerWithCosts = async (ownerId = 1) => {
 };
 
 /**
+ * Obtiene accesorios de un propietario con costos usando paginación.
+ * @param {number} ownerId - ID del propietario.
+ * @param {number} page - Número de página.
+ * @param {number} limit - Cantidad de registros por página.
+ * @returns {Promise<object[]>} Arreglo de accesorios con costo y precio.
+ */
+const findByOwnerWithCostsPaginated = async (
+  ownerId = 1,
+  page = 1,
+  limit = 10
+) => {
+  const offset = (page - 1) * limit;
+  const query = (sql, params = []) =>
+    new Promise((resolve, reject) => {
+      db.query(sql, params, (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows);
+      });
+    });
+
+  const accessories = await query(
+    'SELECT * FROM accessories WHERE owner_id = ? LIMIT ? OFFSET ?',
+    [ownerId, parseInt(limit, 10), offset]
+  );
+
+  const ownerRows = await query(
+    'SELECT profit_percentage FROM owner_companies WHERE id = ?',
+    [ownerId]
+  );
+  const margin = ownerRows.length
+    ? +(ownerRows[0].profit_percentage / 100)
+    : 0;
+  const factor = 1 + margin;
+
+  for (const acc of accessories) {
+    const mats = await query(
+      `SELECT am.costo, am.quantity, am.width_m, am.length_m,
+              rm.price AS material_price, rm.width_m AS mat_width, rm.length_m AS mat_length
+       FROM accessory_materials am
+       JOIN raw_materials rm ON rm.id = am.material_id
+       WHERE am.accessory_id = ?`,
+      [acc.id]
+    );
+
+    let cost = 0;
+    for (const m of mats) {
+      let c;
+      if (m.costo !== null && m.costo !== undefined) {
+        c = m.costo;
+      } else {
+        c = (m.material_price || 0) * (m.quantity || 0);
+        if (m.width_m && m.length_m) {
+          const fullArea = m.mat_width * m.mat_length;
+          const pieceArea = m.width_m * m.length_m;
+          const unitCost = (m.material_price / fullArea) * pieceArea;
+          c = unitCost * (m.quantity || 0);
+        }
+      }
+      cost += c;
+    }
+    acc.cost = +cost.toFixed(2);
+    acc.price = +(cost * factor).toFixed(2);
+  }
+
+  return accessories;
+};
+
+/**
+ * Cuenta los accesorios de un propietario.
+ * @param {number} ownerId - ID del propietario.
+ * @returns {Promise<number>} Cantidad de accesorios.
+ */
+const countByOwner = (ownerId = 1) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      'SELECT COUNT(*) AS count FROM accessories WHERE owner_id = ?',
+      [ownerId],
+      (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows[0].count);
+      }
+    );
+  });
+};
+
+/**
  * Actualiza un accesorio existente.
  * @param {number} id - ID del accesorio a actualizar.
  * @param {string} name - Nuevo nombre del accesorio.
@@ -145,6 +231,8 @@ module.exports = {
   findById,
   findAll,
   findByOwnerWithCosts,
+  findByOwnerWithCostsPaginated,
+  countByOwner,
   updateAccessory,
   deleteAccessory
 };
