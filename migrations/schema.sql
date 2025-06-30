@@ -33,13 +33,18 @@ CREATE TABLE IF NOT EXISTS accessory_materials (
     id INT AUTO_INCREMENT PRIMARY KEY,
     accessory_id INT NOT NULL,
     material_id INT NOT NULL,
+    costo DECIMAL(10,2),
+    porcentaje_ganancia DECIMAL(5,2),
+    precio DECIMAL(10,2),
     quantity INT,
     width_m DECIMAL(10,2),
     length_m DECIMAL(10,2),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    owner_id INT,
     FOREIGN KEY (accessory_id) REFERENCES accessories(id),
-    FOREIGN KEY (material_id) REFERENCES raw_materials(id)
+    FOREIGN KEY (material_id) REFERENCES raw_materials(id),
+    FOREIGN KEY (owner_id) REFERENCES owner_companies(id)
 );
 
 CREATE TABLE IF NOT EXISTS playsets (
@@ -215,9 +220,7 @@ ALTER TABLE accessories
   ADD COLUMN owner_id INT,
   ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
 
-ALTER TABLE accessory_materials
-  ADD COLUMN owner_id INT,
-  ADD CONSTRAINT FOREIGN KEY (owner_id) REFERENCES owner_companies(id);
+-- owner_id column included in initial table definition
 
 ALTER TABLE playsets
   ADD COLUMN owner_id INT,
