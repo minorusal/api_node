@@ -78,7 +78,8 @@ const router = express.Router();
  */
 router.get('/accessories', async (req, res) => {
   try {
-    const accessories = await Accessories.findAll();
+    const ownerId = parseInt(req.query.owner_id || '1', 10);
+    const accessories = await Accessories.findByOwnerWithCosts(ownerId);
     res.json(accessories);
   } catch (error) {
     res.status(500).json({ message: error.message });
