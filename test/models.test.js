@@ -22,6 +22,8 @@ describe('Model exports', () => {
     expect(accessories.createAccessory).to.be.a('function');
     expect(accessories.findById).to.be.a('function');
     expect(accessories.findAll).to.be.a('function');
+    expect(accessories.findByOwnerWithCostsPaginated).to.be.a('function');
+    expect(accessories.countByOwner).to.be.a('function');
   });
 
   it('playsets model exposes CRUD functions', () => {
