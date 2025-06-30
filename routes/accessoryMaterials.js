@@ -102,22 +102,34 @@ router.post('/accessory-materials', async (req, res) => {
       return res.status(201).json(withCost);
     }
 
-    const { accessoryId, materialId, quantity, width, length } = req.body;
+    const {
+      accessoryId,
+      materialId,
+      cost,
+      profit_percentage,
+      price,
+      quantity,
+      width,
+      length
+    } = req.body;
     const link = await AccessoryMaterials.linkMaterial(
       accessoryId,
       materialId,
+      cost,
+      profit_percentage,
+      price,
       quantity,
       width,
       length,
       1
     );
-    const cost = await AccessoryMaterials.calculateCost(
+    const calculatedCost = await AccessoryMaterials.calculateCost(
       materialId,
       width,
       length,
       quantity
     );
-    res.status(201).json({ ...link, cost });
+    res.status(201).json({ ...link, cost: calculatedCost });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

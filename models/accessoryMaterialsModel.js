@@ -10,16 +10,47 @@ const db = require('../db');
  * @returns {Promise<object>} Registro creado con su ID.
  * @throws {Error} Si ocurre un error en la inserción.
  */
-const linkMaterial = (accessoryId, materialId, quantity, width, length, ownerId = 1) => {
+const linkMaterial = (
+  accessoryId,
+  materialId,
+  cost,
+  profitPercentage,
+  price,
+  quantity,
+  width,
+  length,
+  ownerId = 1
+) => {
   return new Promise((resolve, reject) => {
     const sql =
-      'INSERT INTO accessory_materials (accessory_id, material_id, quantity, width_m, length_m, owner_id) VALUES (?, ?, ?, ?, ?, ?)';
+      'INSERT INTO accessory_materials (accessory_id, material_id, costo, porcentaje_ganancia, precio, quantity, width_m, length_m, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
     db.query(
       sql,
-      [accessoryId, materialId, quantity, width, length, ownerId],
+      [
+        accessoryId,
+        materialId,
+        cost,
+        profitPercentage,
+        price,
+        quantity,
+        width,
+        length,
+        ownerId
+      ],
       (err, result) => {
         if (err) return reject(err);
-        resolve({ id: result.insertId, accessoryId, materialId, quantity, width, length, owner_id: ownerId });
+        resolve({
+          id: result.insertId,
+          accessoryId,
+          materialId,
+          cost,
+          profit_percentage: profitPercentage,
+          price,
+          quantity,
+          width,
+          length,
+          owner_id: ownerId
+        });
       }
     );
   });
@@ -42,19 +73,25 @@ const linkMaterialsBatch = (accessoryId, materials, ownerId = 1) => {
     const values = materials.map((m) => [
       accessoryId,
       m.material_id,
+      m.cost,
+      m.profit_percentage,
+      m.price,
       m.quantity,
       m.width,
       m.length,
       ownerId
     ]);
     const sql =
-      'INSERT INTO accessory_materials (accessory_id, material_id, quantity, width_m, length_m, owner_id) VALUES ?';
+      'INSERT INTO accessory_materials (accessory_id, material_id, costo, porcentaje_ganancia, precio, quantity, width_m, length_m, owner_id) VALUES ?';
     db.query(sql, [values], (err, result) => {
       if (err) return reject(err);
       const inserted = materials.map((m, idx) => ({
         id: result.insertId + idx,
         accessoryId,
         materialId: m.material_id,
+        cost: m.cost,
+        profit_percentage: m.profit_percentage,
+        price: m.price,
         quantity: m.quantity,
         width: m.width,
         length: m.length,
