@@ -69,9 +69,10 @@ const findByOwnerWithCosts = async (ownerId = 1) => {
     'SELECT profit_percentage FROM owner_companies WHERE id = ?',
     [ownerId]
   );
-  const margin = ownerRows.length
-    ? +(ownerRows[0].profit_percentage / 100)
+  const profitPercentage = ownerRows.length
+    ? +ownerRows[0].profit_percentage
     : 0;
+  const margin = profitPercentage / 100;
   const factor = 1 + margin;
 
   for (const acc of accessories) {
@@ -102,6 +103,8 @@ const findByOwnerWithCosts = async (ownerId = 1) => {
     }
     acc.cost = +cost.toFixed(2);
     acc.price = +(cost * factor).toFixed(2);
+    acc.profit_margin = margin;
+    acc.profit_percentage = profitPercentage;
   }
 
   return accessories;
@@ -137,9 +140,10 @@ const findByOwnerWithCostsPaginated = async (
     'SELECT profit_percentage FROM owner_companies WHERE id = ?',
     [ownerId]
   );
-  const margin = ownerRows.length
-    ? +(ownerRows[0].profit_percentage / 100)
+  const profitPercentage = ownerRows.length
+    ? +ownerRows[0].profit_percentage
     : 0;
+  const margin = profitPercentage / 100;
   const factor = 1 + margin;
 
   for (const acc of accessories) {
@@ -170,6 +174,8 @@ const findByOwnerWithCostsPaginated = async (
     }
     acc.cost = +cost.toFixed(2);
     acc.price = +(cost * factor).toFixed(2);
+    acc.profit_margin = margin;
+    acc.profit_percentage = profitPercentage;
   }
 
   return accessories;
