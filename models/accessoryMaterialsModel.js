@@ -26,6 +26,46 @@ const linkMaterial = (accessoryId, materialId, quantity, width, length, ownerId 
 };
 
 /**
+ * Inserta varios materiales para un accesorio de una sola vez.
+ * @param {number} accessoryId - ID del accesorio.
+ * @param {object[]} materials - Arreglo de materiales a vincular.
+ * @param {number} materials[].material_id - ID del material.
+ * @param {number} [materials[].quantity] - Cantidad del material.
+ * @param {number} [materials[].width] - Ancho utilizado en metros.
+ * @param {number} [materials[].length] - Largo utilizado en metros.
+ * @param {number} [ownerId=1] - ID del propietario.
+ * @returns {Promise<object[]>} Registros creados con sus IDs.
+ */
+const linkMaterialsBatch = (accessoryId, materials, ownerId = 1) => {
+  return new Promise((resolve, reject) => {
+    if (!materials.length) return resolve([]);
+    const values = materials.map((m) => [
+      accessoryId,
+      m.material_id,
+      m.quantity,
+      m.width,
+      m.length,
+      ownerId
+    ]);
+    const sql =
+      'INSERT INTO accessory_materials (accessory_id, material_id, quantity, width_m, length_m, owner_id) VALUES ?';
+    db.query(sql, [values], (err, result) => {
+      if (err) return reject(err);
+      const inserted = materials.map((m, idx) => ({
+        id: result.insertId + idx,
+        accessoryId,
+        materialId: m.material_id,
+        quantity: m.quantity,
+        width: m.width,
+        length: m.length,
+        owner_id: ownerId
+      }));
+      resolve(inserted);
+    });
+  });
+};
+
+/**
  * Calcula el costo de utilizar una porción de material.
  * @param {number} materialId - ID del material.
  * @param {number} width - Ancho de la pieza en metros.
@@ -197,6 +237,7 @@ const deleteLink = (id) => {
 
 module.exports = {
   linkMaterial,
+  linkMaterialsBatch,
   findById,
   findAll,
   findAccessoriesWithMaterialsCost,

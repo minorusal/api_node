@@ -23,16 +23,27 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               accessoryId:
+ *               accessory_id:
  *                 type: integer
- *               materialId:
- *                 type: integer
- *               quantity:
- *                 type: number
- *               width:
- *                 type: number
- *               length:
- *                 type: number
+ *               materials:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     material_id:
+ *                       type: integer
+ *                     quantity:
+ *                       type: number
+ *                     width:
+ *                       type: number
+ *                     length:
+ *                       type: number
+ *                     cost:
+ *                       type: number
+ *                     price:
+ *                       type: number
+ *                     profit_percentage:
+ *                       type: number
  *     responses:
  *       201:
  *         description: Vinculo creado
@@ -55,6 +66,42 @@ const router = express.Router();
  */
 router.post('/accessory-materials', async (req, res) => {
   try {
+    if (Array.isArray(req.body.materials)) {
+      const { accessory_id, materials } = req.body;
+      if (!accessory_id || !materials.length)
+        return res.status(400).json({ message: 'Datos incompletos' });
+
+      for (const m of materials) {
+        if (typeof m.material_id !== 'number')
+          return res.status(400).json({ message: 'material_id requerido' });
+        if (m.cost && typeof m.cost !== 'number')
+          return res.status(400).json({ message: 'cost invalido' });
+        if (m.price && typeof m.price !== 'number')
+          return res.status(400).json({ message: 'price invalido' });
+        if (m.profit_percentage && typeof m.profit_percentage !== 'number')
+          return res.status(400).json({ message: 'profit_percentage invalido' });
+      }
+
+      const inserted = await AccessoryMaterials.linkMaterialsBatch(
+        accessory_id,
+        materials,
+        1
+      );
+
+      const withCost = [];
+      for (let i = 0; i < materials.length; i++) {
+        const mat = materials[i];
+        const c = await AccessoryMaterials.calculateCost(
+          mat.material_id,
+          mat.width || 0,
+          mat.length || 0,
+          mat.quantity || 1
+        );
+        withCost.push({ ...inserted[i], cost: c });
+      }
+      return res.status(201).json(withCost);
+    }
+
     const { accessoryId, materialId, quantity, width, length } = req.body;
     const link = await AccessoryMaterials.linkMaterial(
       accessoryId,
