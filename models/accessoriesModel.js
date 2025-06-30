@@ -76,7 +76,8 @@ const findByOwnerWithCosts = async (ownerId = 1) => {
 
   for (const acc of accessories) {
     const mats = await query(
-      `SELECT am.quantity, am.width_m, am.length_m, rm.price, rm.width_m AS mat_width, rm.length_m AS mat_length
+      `SELECT am.costo, am.quantity, am.width_m, am.length_m,
+              rm.price AS material_price, rm.width_m AS mat_width, rm.length_m AS mat_length
        FROM accessory_materials am
        JOIN raw_materials rm ON rm.id = am.material_id
        WHERE am.accessory_id = ?`,
@@ -85,12 +86,17 @@ const findByOwnerWithCosts = async (ownerId = 1) => {
 
     let cost = 0;
     for (const m of mats) {
-      let c = (m.price || 0) * (m.quantity || 0);
-      if (m.width_m && m.length_m) {
-        const fullArea = m.mat_width * m.mat_length;
-        const pieceArea = m.width_m * m.length_m;
-        const unitCost = (m.price / fullArea) * pieceArea;
-        c = unitCost * (m.quantity || 0);
+      let c;
+      if (m.costo !== null && m.costo !== undefined) {
+        c = m.costo;
+      } else {
+        c = (m.material_price || 0) * (m.quantity || 0);
+        if (m.width_m && m.length_m) {
+          const fullArea = m.mat_width * m.mat_length;
+          const pieceArea = m.width_m * m.length_m;
+          const unitCost = (m.material_price / fullArea) * pieceArea;
+          c = unitCost * (m.quantity || 0);
+        }
       }
       cost += c;
     }
