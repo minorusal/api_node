@@ -1,5 +1,6 @@
 const db = require('../db');
 const AccessoryMaterials = require('./accessoryMaterialsModel');
+const Accessories = require('./accessoriesModel');
 
 const query = (sql, params = []) => {
   return new Promise((resolve, reject) => {
@@ -86,7 +87,7 @@ const calculatePlaysetCost = async (playsetId) => {
        WHERE am.accessory_id = ?`,
       [row.accessory_id]
     );
-    let unitCostPerAccessory = 0;
+    const unitCostPerAccessory = await Accessories.calculateAccessoryCost(row.accessory_id);
     const matDetails = [];
     for (const m of mats) {
       const c = await AccessoryMaterials.calculateCost(
@@ -95,7 +96,6 @@ const calculatePlaysetCost = async (playsetId) => {
         m.length_m,
         m.quantity
       );
-      unitCostPerAccessory += c;
       matDetails.push({
         material_id: m.material_id,
         material_name: m.material_name,

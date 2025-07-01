@@ -46,6 +46,57 @@ const findAll = () => {
   });
 };
 
+const calculateAccessoryCost = async (accessoryId, visited = new Set()) => {
+  if (visited.has(accessoryId)) return 0;
+  visited.add(accessoryId);
+
+  const query = (sql, params = []) =>
+    new Promise((resolve, reject) => {
+      db.query(sql, params, (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows);
+      });
+    });
+
+  const mats = await query(
+    `SELECT am.costo, am.quantity, am.width_m, am.length_m,
+            rm.price AS material_price, rm.width_m AS mat_width, rm.length_m AS mat_length
+     FROM accessory_materials am
+     JOIN raw_materials rm ON rm.id = am.material_id
+     WHERE am.accessory_id = ?`,
+    [accessoryId]
+  );
+
+  let cost = 0;
+  for (const m of mats) {
+    let c;
+    if (m.costo !== null && m.costo !== undefined) {
+      c = m.costo;
+    } else {
+      c = (m.material_price || 0) * (m.quantity || 0);
+      if (m.width_m && m.length_m) {
+        const fullArea = m.mat_width * m.mat_length;
+        const pieceArea = m.width_m * m.length_m;
+        const unitCost = (m.material_price / fullArea) * pieceArea;
+        c = unitCost * (m.quantity || 0);
+      }
+    }
+    cost += c;
+  }
+
+  const children = await query(
+    'SELECT child_accessory_id, quantity FROM accessory_components WHERE parent_accessory_id = ?',
+    [accessoryId]
+  );
+
+  for (const child of children) {
+    const childCost = await calculateAccessoryCost(child.child_accessory_id, visited);
+    cost += childCost * (child.quantity || 0);
+  }
+
+  return +cost.toFixed(2);
+};
+
 /**
  * Lista accesorios de un propietario calculando costo y precio.
  * @param {number} ownerId - ID del propietario.
@@ -76,32 +127,8 @@ const findByOwnerWithCosts = async (ownerId = 1) => {
   const factor = 1 + margin;
 
   for (const acc of accessories) {
-    const mats = await query(
-      `SELECT am.costo, am.quantity, am.width_m, am.length_m,
-              rm.price AS material_price, rm.width_m AS mat_width, rm.length_m AS mat_length
-       FROM accessory_materials am
-       JOIN raw_materials rm ON rm.id = am.material_id
-       WHERE am.accessory_id = ?`,
-      [acc.id]
-    );
-
-    let cost = 0;
-    for (const m of mats) {
-      let c;
-      if (m.costo !== null && m.costo !== undefined) {
-        c = m.costo;
-      } else {
-        c = (m.material_price || 0) * (m.quantity || 0);
-        if (m.width_m && m.length_m) {
-          const fullArea = m.mat_width * m.mat_length;
-          const pieceArea = m.width_m * m.length_m;
-          const unitCost = (m.material_price / fullArea) * pieceArea;
-          c = unitCost * (m.quantity || 0);
-        }
-      }
-      cost += c;
-    }
-    acc.cost = +cost.toFixed(2);
+    const cost = await calculateAccessoryCost(acc.id);
+    acc.cost = cost;
     acc.price = +(cost * factor).toFixed(2);
     acc.profit_margin = margin;
     acc.profit_percentage = profitPercentage;
@@ -147,32 +174,8 @@ const findByOwnerWithCostsPaginated = async (
   const factor = 1 + margin;
 
   for (const acc of accessories) {
-    const mats = await query(
-      `SELECT am.costo, am.quantity, am.width_m, am.length_m,
-              rm.price AS material_price, rm.width_m AS mat_width, rm.length_m AS mat_length
-       FROM accessory_materials am
-       JOIN raw_materials rm ON rm.id = am.material_id
-       WHERE am.accessory_id = ?`,
-      [acc.id]
-    );
-
-    let cost = 0;
-    for (const m of mats) {
-      let c;
-      if (m.costo !== null && m.costo !== undefined) {
-        c = m.costo;
-      } else {
-        c = (m.material_price || 0) * (m.quantity || 0);
-        if (m.width_m && m.length_m) {
-          const fullArea = m.mat_width * m.mat_length;
-          const pieceArea = m.width_m * m.length_m;
-          const unitCost = (m.material_price / fullArea) * pieceArea;
-          c = unitCost * (m.quantity || 0);
-        }
-      }
-      cost += c;
-    }
-    acc.cost = +cost.toFixed(2);
+    const cost = await calculateAccessoryCost(acc.id);
+    acc.cost = cost;
     acc.price = +(cost * factor).toFixed(2);
     acc.profit_margin = margin;
     acc.profit_percentage = profitPercentage;
@@ -240,5 +243,6 @@ module.exports = {
   findByOwnerWithCostsPaginated,
   countByOwner,
   updateAccessory,
-  deleteAccessory
+  deleteAccessory,
+  calculateAccessoryCost
 };
