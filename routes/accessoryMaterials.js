@@ -64,6 +64,23 @@ const router = express.Router();
  *       404:
  *         description: Accesorio no encontrado
  */
+/**
+ * /accessories/{id}/materials:
+ *   get:
+ *     summary: Listar materiales de un accesorio
+ *     tags:
+ *       - AccessoryMaterials
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Lista de materiales
+ *       404:
+ *         description: Accesorio no encontrado
+ */
 router.post('/accessory-materials', async (req, res) => {
   try {
     if (Array.isArray(req.body.materials)) {
@@ -143,6 +160,38 @@ router.get('/accessory-materials', async (req, res) => {
   try {
     const links = await AccessoryMaterials.findAll();
     res.json(links);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * Obtiene los materiales vinculados a un accesorio.
+ * @route GET /accessories/:id/materials
+ */
+router.get('/accessories/:id/materials', async (req, res) => {
+  try {
+    const rows = await AccessoryMaterials.findMaterialsByAccessory(req.params.id);
+    if (rows.length === 0)
+      return res.status(404).json({ message: 'Accesorio no encontrado' });
+    const { accessory_id, accessory_name } = rows[0];
+    const materials = rows.map((row) => ({
+      link_id: row.link_id,
+      material_id: row.material_id,
+      material_name: row.material_name,
+      description: row.description,
+      thickness_mm: row.thickness_mm,
+      width_m: row.material_width,
+      length_m: row.material_length,
+      price: row.price,
+      quantity: row.quantity,
+      width_m_used: row.width_m,
+      length_m_used: row.length_m,
+      cost: row.costo,
+      profit_percentage: row.porcentaje_ganancia,
+      price_override: row.precio
+    }));
+    res.json({ accessory_id, accessory_name, materials });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
