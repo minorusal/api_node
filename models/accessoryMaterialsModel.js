@@ -285,6 +285,54 @@ const updateLink = (id, quantity) => {
 };
 
 /**
+ * Actualiza todos los datos de un vínculo existente.
+ * @param {number} id - ID del vínculo.
+ * @param {number} accessoryId - Nuevo ID del accesorio.
+ * @param {number} materialId - Nuevo ID del material.
+ * @param {number} cost - Costo del material.
+ * @param {number} profitPercentage - Porcentaje de ganancia.
+ * @param {number} price - Precio del material.
+ * @param {number} quantity - Cantidad utilizada.
+ * @param {number} width - Ancho utilizado en metros.
+ * @param {number} length - Largo utilizado en metros.
+ * @returns {Promise<object>} Resultado de la actualización.
+ */
+const updateLinkData = (
+  id,
+  accessoryId,
+  materialId,
+  cost,
+  profitPercentage,
+  price,
+  quantity,
+  width,
+  length
+) => {
+  return new Promise((resolve, reject) => {
+    const sql =
+      'UPDATE accessory_materials SET accessory_id = ?, material_id = ?, costo = ?, porcentaje_ganancia = ?, precio = ?, quantity = ?, width_m = ?, length_m = ? WHERE id = ?';
+    db.query(
+      sql,
+      [
+        accessoryId,
+        materialId,
+        cost,
+        profitPercentage,
+        price,
+        quantity,
+        width,
+        length,
+        id
+      ],
+      (err, result) => {
+        if (err) return reject(err);
+        resolve(result);
+      }
+    );
+  });
+};
+
+/**
  * Elimina un vínculo entre accesorio y material.
  * @param {number} id - Identificador del vínculo.
  * @returns {Promise<object>} Resultado de la operación.
@@ -308,6 +356,7 @@ module.exports = {
   findMaterialsCostByAccessory,
   findMaterialsByAccessory,
   updateLink,
+  updateLinkData,
   deleteLink,
   calculateCost
 };
