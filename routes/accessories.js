@@ -22,6 +22,12 @@ const router = express.Router();
  *           type: integer
  *         required: false
  *         description: Cantidad de elementos por página (por defecto 10)
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Texto a buscar en nombre o descripción
  *     responses:
  *       200:
  *         description: Lista de accesorios
@@ -94,10 +100,11 @@ router.get('/accessories', async (req, res) => {
     const ownerId = parseInt(req.query.owner_id || '1', 10);
     const page = parseInt(req.query.page || '1', 10);
     const limit = parseInt(req.query.limit || '10', 10);
+    const search = req.query.search || '';
 
     const [accessories, totalDocs] = await Promise.all([
-      Accessories.findByOwnerWithCostsPaginated(ownerId, page, limit),
-      Accessories.countByOwner(ownerId)
+      Accessories.findByOwnerWithCostsPaginated(ownerId, page, limit, search),
+      Accessories.countByOwner(ownerId, search)
     ]);
 
     const totalPages = Math.ceil(totalDocs / limit);
@@ -107,7 +114,8 @@ router.get('/accessories', async (req, res) => {
       totalDocs,
       totalPages,
       page,
-      limit
+      limit,
+      search
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

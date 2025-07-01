@@ -144,10 +144,18 @@ const findByOwnerWithCosts = async (ownerId = 1) => {
  * @param {number} limit - Cantidad de registros por página.
  * @returns {Promise<object[]>} Arreglo de accesorios con costo y precio.
  */
+const buildSearchQuery = search => {
+  if (!search) return { clause: '', params: [] };
+  const pattern = `%${search}%`;
+  const clause = 'AND (name LIKE ? OR description LIKE ?)';
+  return { clause, params: [pattern, pattern] };
+};
+
 const findByOwnerWithCostsPaginated = async (
   ownerId = 1,
   page = 1,
-  limit = 10
+  limit = 10,
+  search = ''
 ) => {
   const offset = (page - 1) * limit;
   const query = (sql, params = []) =>
@@ -158,9 +166,11 @@ const findByOwnerWithCostsPaginated = async (
       });
     });
 
+  const { clause, params } = buildSearchQuery(search);
+
   const accessories = await query(
-    'SELECT * FROM accessories WHERE owner_id = ? LIMIT ? OFFSET ?',
-    [ownerId, parseInt(limit, 10), offset]
+    `SELECT * FROM accessories WHERE owner_id = ? ${clause} LIMIT ? OFFSET ?`,
+    [ownerId, ...params, parseInt(limit, 10), offset]
   );
 
   const ownerRows = await query(
@@ -189,11 +199,12 @@ const findByOwnerWithCostsPaginated = async (
  * @param {number} ownerId - ID del propietario.
  * @returns {Promise<number>} Cantidad de accesorios.
  */
-const countByOwner = (ownerId = 1) => {
+const countByOwner = (ownerId = 1, search = '') => {
   return new Promise((resolve, reject) => {
+    const { clause, params } = buildSearchQuery(search);
     db.query(
-      'SELECT COUNT(*) AS count FROM accessories WHERE owner_id = ?',
-      [ownerId],
+      `SELECT COUNT(*) AS count FROM accessories WHERE owner_id = ? ${clause}`,
+      [ownerId, ...params],
       (err, rows) => {
         if (err) return reject(err);
         resolve(rows[0].count);
