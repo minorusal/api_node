@@ -3,6 +3,7 @@ const materials = require('../models/materialsModel');
 const accessories = require('../models/accessoriesModel');
 const playsets = require('../models/playsetsModel');
 const playsetAccessories = require('../models/playsetAccessoriesModel');
+const accessoryComponents = require('../models/accessoryComponentsModel');
 const clients = require('../models/clientsModel');
 const projects = require('../models/projectsModel');
 const installationCosts = require('../models/installationCostsModel');
@@ -24,6 +25,12 @@ describe('Model exports', () => {
     expect(accessories.findAll).to.be.a('function');
     expect(accessories.findByOwnerWithCostsPaginated).to.be.a('function');
     expect(accessories.countByOwner).to.be.a('function');
+  });
+
+  it('accessory components model exposes basic functions', () => {
+    expect(accessoryComponents.createComponentLink).to.be.a('function');
+    expect(accessoryComponents.findAll).to.be.a('function');
+    expect(accessoryComponents.deleteLink).to.be.a('function');
   });
 
   it('playsets model exposes CRUD functions', () => {
@@ -138,7 +145,7 @@ describe('Model logic', () => {
     expect(cost).to.be.closeTo(6, 0.0001);
   });
 
-  it('calculatePlaysetCost sums accessory material costs', async () => {
+  it('calculatePlaysetCost sums accessory and component costs', async () => {
     const playsetAccessoriesModel = require('../models/playsetAccessoriesModel');
     const originalCalc = accessoryMaterials.calculateCost;
     accessoryMaterials.calculateCost = async () => 4;
@@ -146,13 +153,14 @@ describe('Model logic', () => {
     db.query = (sql, params, callback) => {
       if (sql.includes('FROM playsets')) return callback(null, [{ id: 1, name: 'Set' }]);
       if (sql.includes('playset_accessories')) return callback(null, [{ accessory_id: 2, quantity: 1, name: 'Acc' }]);
+      if (sql.includes('accessory_components')) return callback(null, [{ child_accessory_id: 3, quantity: 2 }]);
       if (sql.includes('accessory_materials')) return callback(null, [{ material_id: 3, quantity: 1, width_m: 1, length_m: 1 }]);
       callback(null, []);
     };
 
     const result = await playsetAccessoriesModel.calculatePlaysetCost(1);
 
-    expect(result.total_cost).to.equal(4);
+    expect(result.total_cost).to.equal(12);
     expect(result.accessories).to.have.lengthOf(1);
 
     accessoryMaterials.calculateCost = originalCalc;

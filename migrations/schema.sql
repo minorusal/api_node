@@ -66,6 +66,19 @@ CREATE TABLE IF NOT EXISTS playset_accessories (
     FOREIGN KEY (accessory_id) REFERENCES accessories(id)
 );
 
+CREATE TABLE IF NOT EXISTS accessory_components (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    parent_accessory_id INT NOT NULL,
+    child_accessory_id INT NOT NULL,
+    quantity INT,
+    owner_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_accessory_id) REFERENCES accessories(id),
+    FOREIGN KEY (child_accessory_id) REFERENCES accessories(id),
+    FOREIGN KEY (owner_id) REFERENCES owner_companies(id)
+);
+
 -- Tabla de ejemplo para almacenar operaciones básicas
 CREATE TABLE IF NOT EXISTS demo_table (
     id INT AUTO_INCREMENT PRIMARY KEY,
