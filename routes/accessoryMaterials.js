@@ -48,6 +48,40 @@ const router = express.Router();
  *       201:
  *         description: Vinculo creado
  *
+ * /accessory-materials/{id}:
+ *   put:
+ *     summary: Actualizar vinculo
+ *     tags:
+ *       - AccessoryMaterials
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               accessoryId:
+ *                 type: integer
+ *               materialId:
+ *                 type: integer
+ *               cost:
+ *                 type: number
+ *               profit_percentage:
+ *                 type: number
+ *               price:
+ *                 type: number
+ *               quantity:
+ *                 type: number
+ *               width:
+ *                 type: number
+ *               length:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Vinculo actualizado
+ *       404:
+ *         description: Vinculo no encontrado
+ *
  * /accessories/{id}/materials-cost:
  *   get:
  *     summary: Obtener costo de materiales de un accesorio
@@ -160,6 +194,41 @@ router.get('/accessory-materials', async (req, res) => {
   try {
     const links = await AccessoryMaterials.findAll();
     res.json(links);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * Actualiza un vínculo accesorio-material.
+ * @route PUT /accessory-materials/:id
+ */
+router.put('/accessory-materials/:id', async (req, res) => {
+  try {
+    const {
+      accessoryId,
+      materialId,
+      cost,
+      profit_percentage,
+      price,
+      quantity,
+      width,
+      length
+    } = req.body;
+    const link = await AccessoryMaterials.findById(req.params.id);
+    if (!link) return res.status(404).json({ message: 'Vinculo no encontrado' });
+    await AccessoryMaterials.updateLinkData(
+      req.params.id,
+      accessoryId,
+      materialId,
+      cost,
+      profit_percentage,
+      price,
+      quantity,
+      width,
+      length
+    );
+    res.json({ message: 'Vinculo actualizado' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
