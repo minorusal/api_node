@@ -206,8 +206,8 @@ router.get('/accessory-materials', async (req, res) => {
 router.put('/accessory-materials/:id', async (req, res) => {
   try {
     const {
-      accessoryId,
-      materialId,
+      accessoryId = req.body.accessory_id,
+      materialId = req.body.material_id,
       cost,
       profit_percentage,
       price,
@@ -215,6 +215,16 @@ router.put('/accessory-materials/:id', async (req, res) => {
       width,
       length
     } = req.body;
+
+    if (typeof accessoryId !== 'number' || typeof materialId !== 'number')
+      return res.status(400).json({ message: 'Datos incompletos' });
+
+    const numericFields = { cost, profit_percentage, price, quantity, width, length };
+    for (const [key, value] of Object.entries(numericFields)) {
+      if (value !== undefined && value !== null && typeof value !== 'number')
+        return res.status(400).json({ message: `${key} invalido` });
+    }
+
     const link = await AccessoryMaterials.findById(req.params.id);
     if (!link) return res.status(404).json({ message: 'Vinculo no encontrado' });
     await AccessoryMaterials.updateLinkData(
