@@ -241,6 +241,31 @@ const findMaterialsCostByAccessory = (accessoryId) => {
 };
 
 /**
+ * Obtiene la lista de materiales asociados a un accesorio.
+ * @param {number} accessoryId - ID del accesorio.
+ * @returns {Promise<object[]>} Materiales vinculados al accesorio.
+ */
+const findMaterialsByAccessory = (accessoryId) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT a.id AS accessory_id, a.name AS accessory_name,
+             am.id AS link_id, am.quantity, am.width_m, am.length_m,
+             am.costo, am.porcentaje_ganancia, am.precio,
+             rm.id AS material_id, rm.name AS material_name, rm.description,
+             rm.thickness_mm, rm.width_m AS material_width, rm.length_m AS material_length,
+             rm.price
+      FROM accessories a
+      JOIN accessory_materials am ON a.id = am.accessory_id
+      JOIN raw_materials rm ON rm.id = am.material_id
+      WHERE a.id = ?`;
+    db.query(sql, [accessoryId], (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows);
+    });
+  });
+};
+
+/**
  * Actualiza la cantidad de un vínculo existente.
  * @param {number} id - ID del vínculo.
  * @param {number} quantity - Nueva cantidad.
@@ -279,6 +304,7 @@ module.exports = {
   findAll,
   findAccessoriesWithMaterialsCost,
   findMaterialsCostByAccessory,
+  findMaterialsByAccessory,
   updateLink,
   deleteLink,
   calculateCost
