@@ -347,6 +347,24 @@ const deleteLink = (id) => {
   });
 };
 
+/**
+ * Elimina todas las relaciones de materiales para un accesorio.
+ * @param {number} accessoryId - Identificador del accesorio.
+ * @returns {Promise<object>} Resultado de la operación.
+ */
+const deleteByAccessory = (accessoryId) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      'DELETE FROM accessory_materials WHERE accessory_id = ?',
+      [accessoryId],
+      (err, result) => {
+        if (err) return reject(err);
+        resolve(result);
+      }
+    );
+  });
+};
+
 module.exports = {
   linkMaterial,
   linkMaterialsBatch,
@@ -357,6 +375,7 @@ module.exports = {
   findMaterialsByAccessory,
   updateLink,
   updateLinkData,
+  deleteByAccessory,
   deleteLink,
   calculateCost
 };

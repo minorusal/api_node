@@ -50,7 +50,7 @@ const router = express.Router();
  *
  * /accessory-materials/{id}:
  *   put:
- *     summary: Actualizar vinculo
+ *     summary: Actualizar vinculo o reemplazar materiales
  *     tags:
  *       - AccessoryMaterials
  *     requestBody:
@@ -76,6 +76,25 @@ const router = express.Router();
  *                 type: number
  *               length:
  *                 type: number
+ *               materials:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     material_id:
+ *                       type: integer
+ *                     quantity:
+ *                       type: number
+ *                     width:
+ *                       type: number
+ *                     length:
+ *                       type: number
+ *                     cost:
+ *                       type: number
+ *                     price:
+ *                       type: number
+ *                     profit_percentage:
+ *                       type: number
  *     responses:
  *       200:
  *         description: Vinculo actualizado
@@ -205,6 +224,45 @@ router.get('/accessory-materials', async (req, res) => {
  */
 router.put('/accessory-materials/:id', async (req, res) => {
   try {
+    if (Array.isArray(req.body.materials)) {
+      const accessoryId = Number(req.params.id);
+      const materials = req.body.materials;
+      if (isNaN(accessoryId) || !materials.length)
+        return res.status(400).json({ message: 'Datos incompletos' });
+
+      for (const m of materials) {
+        if (typeof m.material_id !== 'number')
+          return res.status(400).json({ message: 'material_id requerido' });
+        const numericCheck = {
+          cost: m.cost,
+          profit_percentage: m.profit_percentage,
+          price: m.price,
+          quantity: m.quantity,
+          width: m.width,
+          length: m.length
+        };
+        for (const [k, v] of Object.entries(numericCheck)) {
+          if (v !== undefined && v !== null && typeof v !== 'number')
+            return res.status(400).json({ message: `${k} invalido` });
+        }
+      }
+
+      await AccessoryMaterials.deleteByAccessory(accessoryId);
+      const inserted = await AccessoryMaterials.linkMaterialsBatch(accessoryId, materials, 1);
+      const withCost = [];
+      for (let i = 0; i < materials.length; i++) {
+        const mat = materials[i];
+        const c = await AccessoryMaterials.calculateCost(
+          mat.material_id,
+          mat.width || 0,
+          mat.length || 0,
+          mat.quantity || 1
+        );
+        withCost.push({ ...inserted[i], cost: c });
+      }
+      return res.json(withCost);
+    }
+
     const {
       accessoryId = req.body.accessory_id,
       materialId = req.body.material_id,
