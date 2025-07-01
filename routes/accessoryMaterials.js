@@ -179,6 +179,8 @@ router.get('/accessories/:id/materials', async (req, res) => {
       link_id: row.link_id,
       material_id: row.material_id,
       material_name: row.material_name,
+      material_type_id: row.material_type_id,
+      material_type_description: row.material_type_description,
       description: row.description,
       thickness_mm: row.thickness_mm,
       width_m: row.material_width,
