@@ -20,6 +20,7 @@ const playsetsRouter = require('./routes/playsets');
 const playsetAccessoriesRouter = require('./routes/playsetAccessories');
 const materialAttributesRouter = require('./routes/materialAttributes');
 const accessoryMaterialsRouter = require('./routes/accessoryMaterials');
+const accessoryComponentsRouter = require('./routes/accessoryComponents');
 const clientsRouter = require('./routes/clients');
 const projectsRouter = require('./routes/projects');
 const installationCostsRouter = require('./routes/installationCosts');
@@ -116,6 +117,7 @@ const authenticateJWT = (req, res, next) => {
 app.use('/', authenticateJWT, userRouter);
 app.use('/', authenticateJWT, materialsRouter);
 app.use('/', authenticateJWT, accessoryMaterialsRouter);
+app.use('/', authenticateJWT, accessoryComponentsRouter);
 app.use('/', authenticateJWT, accessoriesRouter);
 app.use('/', authenticateJWT, playsetsRouter);
 app.use('/', authenticateJWT, playsetAccessoriesRouter);
