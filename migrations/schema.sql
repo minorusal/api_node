@@ -71,6 +71,8 @@ CREATE TABLE IF NOT EXISTS accessory_components (
     parent_accessory_id INT NOT NULL,
     child_accessory_id INT NOT NULL,
     quantity INT,
+    cost DECIMAL(10,2),
+    price DECIMAL(10,2),
     owner_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -280,3 +282,7 @@ ALTER TABLE owner_companies
 
 ALTER TABLE owner_companies
   ADD COLUMN logo_path VARCHAR(255);
+
+ALTER TABLE accessory_components
+  ADD COLUMN cost DECIMAL(10,2),
+  ADD COLUMN price DECIMAL(10,2);
