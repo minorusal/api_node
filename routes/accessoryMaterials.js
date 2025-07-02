@@ -230,13 +230,30 @@ router.put('/accessory-materials/:id', async (req, res) => {
       if (isNaN(accessoryId) || !materials.length)
         return res.status(400).json({ message: 'Datos incompletos' });
 
+      const bodyDefaults = {
+        cost: req.body.cost,
+        price: req.body.price,
+        profit_percentage:
+          req.body.profit_percentage ??
+          (req.body.profit_margin != null ? req.body.profit_margin * 100 : undefined)
+      };
+
+      if (
+        bodyDefaults.price === undefined &&
+        bodyDefaults.cost !== undefined &&
+        bodyDefaults.profit_percentage !== undefined
+      ) {
+        const margin = bodyDefaults.profit_percentage / 100;
+        bodyDefaults.price = +(bodyDefaults.cost * (1 + margin)).toFixed(2);
+      }
+
       for (const m of materials) {
         if (typeof m.material_id !== 'number')
           return res.status(400).json({ message: 'material_id requerido' });
         const numericCheck = {
-          cost: m.cost,
-          profit_percentage: m.profit_percentage,
-          price: m.price,
+          cost: m.cost ?? bodyDefaults.cost,
+          profit_percentage: m.profit_percentage ?? bodyDefaults.profit_percentage,
+          price: m.price ?? bodyDefaults.price,
           quantity: m.quantity,
           width: m.width,
           length: m.length
@@ -247,18 +264,41 @@ router.put('/accessory-materials/:id', async (req, res) => {
         }
       }
 
+      const mapped = materials.map(m => {
+        const item = {
+          ...m,
+          cost: m.cost ?? bodyDefaults.cost,
+          profit_percentage: m.profit_percentage ?? bodyDefaults.profit_percentage,
+          price: m.price ?? bodyDefaults.price
+        };
+
+        if (
+          item.price === undefined &&
+          item.cost !== undefined &&
+          item.profit_percentage !== undefined
+        ) {
+          const margin = item.profit_percentage / 100;
+          item.price = +(item.cost * (1 + margin)).toFixed(2);
+        }
+
+        return item;
+      });
+
       await AccessoryMaterials.deleteByAccessory(accessoryId);
-      const inserted = await AccessoryMaterials.linkMaterialsBatch(accessoryId, materials, 1);
+      const inserted = await AccessoryMaterials.linkMaterialsBatch(accessoryId, mapped, 1);
       const withCost = [];
-      for (let i = 0; i < materials.length; i++) {
-        const mat = materials[i];
-        const c = await AccessoryMaterials.calculateCost(
-          mat.material_id,
-          mat.width || 0,
-          mat.length || 0,
-          mat.quantity || 1
-        );
-        withCost.push({ ...inserted[i], cost: c });
+      for (let i = 0; i < mapped.length; i++) {
+        const mat = mapped[i];
+        const calculated =
+          mat.cost !== undefined && mat.cost !== null
+            ? mat.cost
+            : await AccessoryMaterials.calculateCost(
+                mat.material_id,
+                mat.width || 0,
+                mat.length || 0,
+                mat.quantity || 1
+              );
+        withCost.push({ ...inserted[i], cost: calculated });
       }
       return res.json(withCost);
     }
@@ -267,12 +307,21 @@ router.put('/accessory-materials/:id', async (req, res) => {
       accessoryId = req.body.accessory_id,
       materialId = req.body.material_id,
       cost,
-      profit_percentage,
-      price,
+      profit_percentage: bodyProfitPercentage,
+      profit_margin,
+      price: bodyPrice,
       quantity,
       width,
       length
     } = req.body;
+
+    let profit_percentage =
+      bodyProfitPercentage ?? (profit_margin != null ? profit_margin * 100 : undefined);
+    let price = bodyPrice;
+    if (price === undefined && cost !== undefined && profit_percentage !== undefined) {
+      const margin = profit_percentage / 100;
+      price = +(cost * (1 + margin)).toFixed(2);
+    }
 
     if (typeof accessoryId !== 'number' || typeof materialId !== 'number')
       return res.status(400).json({ message: 'Datos incompletos' });
