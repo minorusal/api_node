@@ -85,6 +85,44 @@ const findByParentDetailed = async (parentId, ownerId = 1) => {
   return rows;
 };
 
+const createComponentLinksBatch = (parentId, components, ownerId = 1) => {
+  return new Promise((resolve, reject) => {
+    if (!components.length) return resolve([]);
+    const values = components.map(c => [
+      parentId,
+      c.accessory_id,
+      c.quantity,
+      ownerId
+    ]);
+    const sql =
+      'INSERT INTO accessory_components (parent_accessory_id, child_accessory_id, quantity, owner_id) VALUES ?';
+    db.query(sql, [values], (err, result) => {
+      if (err) return reject(err);
+      const inserted = components.map((c, idx) => ({
+        id: result.insertId + idx,
+        parent_accessory_id: parentId,
+        child_accessory_id: c.accessory_id,
+        quantity: c.quantity,
+        owner_id: ownerId
+      }));
+      resolve(inserted);
+    });
+  });
+};
+
+const deleteByParent = parentId => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      'DELETE FROM accessory_components WHERE parent_accessory_id = ?',
+      [parentId],
+      (err, result) => {
+        if (err) return reject(err);
+        resolve(result);
+      }
+    );
+  });
+};
+
 const deleteLink = (id) => {
   return new Promise((resolve, reject) => {
     db.query('DELETE FROM accessory_components WHERE id = ?', [id], (err, result) => {
@@ -96,8 +134,10 @@ const deleteLink = (id) => {
 
 module.exports = {
   createComponentLink,
+  createComponentLinksBatch,
   findAll,
   findByParent,
   findByParentDetailed,
+  deleteByParent,
   deleteLink
 };

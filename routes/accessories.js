@@ -1,6 +1,8 @@
 const express = require('express');
 const Accessories = require('../models/accessoriesModel');
 const OwnerCompanies = require('../models/ownerCompaniesModel');
+const AccessoryMaterials = require('../models/accessoryMaterialsModel');
+const AccessoryComponents = require('../models/accessoryComponentsModel');
 const router = express.Router();
 
 /**
@@ -64,6 +66,25 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: Accesorio encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 name:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 materials:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 accessories:
+ *                   type: array
+ *                   items:
+ *                     type: object
  *       404:
  *         description: Accesorio no encontrado
  *   put:
@@ -130,8 +151,17 @@ router.get('/accessories', async (req, res) => {
 router.get('/accessories/:id', async (req, res) => {
   try {
     const accessory = await Accessories.findById(req.params.id);
-    if (!accessory) return res.status(404).json({ message: 'Accesorio no encontrado' });
-    res.json(accessory);
+    if (!accessory)
+      return res.status(404).json({ message: 'Accesorio no encontrado' });
+    const ownerId = parseInt(req.query.owner_id || '1', 10);
+    const materials = await AccessoryMaterials.findMaterialsByAccessory(
+      accessory.id
+    );
+    const accessories = await AccessoryComponents.findByParentDetailed(
+      accessory.id,
+      ownerId
+    );
+    res.json({ ...accessory, materials, accessories });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
