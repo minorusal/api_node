@@ -1,5 +1,6 @@
 const express = require('express');
 const Accessories = require('../models/accessoriesModel');
+const OwnerCompanies = require('../models/ownerCompaniesModel');
 const router = express.Router();
 
 /**
@@ -131,6 +132,35 @@ router.get('/accessories/:id', async (req, res) => {
     const accessory = await Accessories.findById(req.params.id);
     if (!accessory) return res.status(404).json({ message: 'Accesorio no encontrado' });
     res.json(accessory);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * Calcula el costo y precio de un accesorio.
+ * @route GET /accessories/:id/cost
+ */
+router.get('/accessories/:id/cost', async (req, res) => {
+  try {
+    const accessory = await Accessories.findById(req.params.id);
+    if (!accessory)
+      return res.status(404).json({ message: 'Accesorio no encontrado' });
+    const ownerId = parseInt(req.query.owner_id || '1', 10);
+    const owner = await OwnerCompanies.findById(ownerId);
+    const profitPercentage = owner ? +owner.profit_percentage : 0;
+    const margin = profitPercentage / 100;
+    const factor = 1 + margin;
+    const cost = await Accessories.calculateAccessoryCost(accessory.id);
+    const price = +(cost * factor).toFixed(2);
+    res.json({
+      accessory_id: accessory.id,
+      accessory_name: accessory.name,
+      cost,
+      price,
+      profit_margin: margin,
+      profit_percentage: profitPercentage
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
