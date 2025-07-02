@@ -1,6 +1,7 @@
 const express = require('express');
 const AccessoryComponents = require('../models/accessoryComponentsModel');
 const router = express.Router();
+const { buildAccessoryPricing } = require("./accessoryMaterials");
 
 // Create component link
 router.post('/accessory-components', async (req, res) => {
@@ -58,12 +59,11 @@ router.put('/accessories/:id/components', async (req, res) => {
     }
 
     await AccessoryComponents.deleteByParent(parentId);
-    const inserted = await AccessoryComponents.createComponentLinksBatch(
-      parentId,
-      components,
-      1
-    );
-    res.json(inserted);
+    await AccessoryComponents.createComponentLinksBatch(parentId, components, 1);
+
+    const ownerId = parseInt(req.query.owner_id || '1', 10);
+    const pricing = await buildAccessoryPricing(parentId, ownerId);
+    res.json(pricing);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

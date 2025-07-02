@@ -3,6 +3,7 @@ const AccessoryMaterials = require('../models/accessoryMaterialsModel');
 const AccessoryComponents = require('../models/accessoryComponentsModel');
 const OwnerCompanies = require('../models/ownerCompaniesModel');
 const router = express.Router();
+const AccessoryPricing = require("../models/accessoryPricingModel");
 
 const buildAccessoryPricing = async (accessoryId, ownerId = 1) => {
   const owner = await OwnerCompanies.findById(ownerId);
@@ -55,14 +56,27 @@ const buildAccessoryPricing = async (accessoryId, ownerId = 1) => {
     });
   }
 
+  const totalMaterialsPrice = +totalMaterials.toFixed(2);
+  const totalAccessoriesPrice = +totalAccessories.toFixed(2);
+  const totalPrice = +(totalMaterials + totalAccessories).toFixed(2);
+
+  await AccessoryPricing.upsertPricing(
+    accessoryId,
+    ownerId,
+    markup,
+    totalMaterialsPrice,
+    totalAccessoriesPrice,
+    totalPrice
+  );
+
   return {
     accessory_id: accessoryId,
     markup_percentage: markup,
     materials,
     accessories,
-    total_materials_price: +totalMaterials.toFixed(2),
-    total_accessories_price: +totalAccessories.toFixed(2),
-    total_price: +(totalMaterials + totalAccessories).toFixed(2)
+    total_materials_price: totalMaterialsPrice,
+    total_accessories_price: totalAccessoriesPrice,
+    total_price: totalPrice
   };
 };
 
@@ -479,3 +493,4 @@ router.get('/accessories/:id/materials-cost', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.buildAccessoryPricing = buildAccessoryPricing;
