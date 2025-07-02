@@ -165,7 +165,7 @@ const findAccessoriesWithMaterialsCost = () => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT a.id AS accessory_id, a.name AS accessory_name,
-             am.quantity, am.width_m AS piece_width, am.length_m AS piece_length,
+             am.costo, am.quantity, am.width_m AS piece_width, am.length_m AS piece_length,
              rm.id AS material_id, rm.name AS material_name,
              rm.price, rm.width_m AS material_width, rm.length_m AS material_length
       FROM accessories a
@@ -174,12 +174,17 @@ const findAccessoriesWithMaterialsCost = () => {
     db.query(sql, (err, rows) => {
       if (err) return reject(err);
       const detailed = rows.map((row) => {
-        let cost = row.price * row.quantity;
-        if (row.piece_width && row.piece_length) {
-          const fullArea = row.material_width * row.material_length;
-          const pieceArea = row.piece_width * row.piece_length;
-          const unitCost = (row.price / fullArea) * pieceArea;
-          cost = unitCost * row.quantity;
+        let cost;
+        if (row.costo !== null && row.costo !== undefined) {
+          cost = row.costo;
+        } else {
+          cost = row.price * row.quantity;
+          if (row.piece_width && row.piece_length) {
+            const fullArea = row.material_width * row.material_length;
+            const pieceArea = row.piece_width * row.piece_length;
+            const unitCost = (row.price / fullArea) * pieceArea;
+            cost = unitCost * row.quantity;
+          }
         }
         return {
           accessory_id: row.accessory_id,
@@ -205,9 +210,9 @@ const findAccessoriesWithMaterialsCost = () => {
  */
 const findMaterialsCostByAccessory = (accessoryId) => {
   return new Promise((resolve, reject) => {
-    const sql = `
+  const sql = `
       SELECT a.id AS accessory_id, a.name AS accessory_name,
-             am.quantity, am.width_m AS piece_width, am.length_m AS piece_length,
+             am.costo, am.quantity, am.width_m AS piece_width, am.length_m AS piece_length,
              rm.id AS material_id, rm.name AS material_name,
              rm.price, rm.width_m AS material_width, rm.length_m AS material_length
       FROM accessories a
@@ -217,12 +222,17 @@ const findMaterialsCostByAccessory = (accessoryId) => {
     db.query(sql, [accessoryId], (err, rows) => {
       if (err) return reject(err);
       const detailed = rows.map((row) => {
-        let cost = row.price * row.quantity;
-        if (row.piece_width && row.piece_length) {
-          const fullArea = row.material_width * row.material_length;
-          const pieceArea = row.piece_width * row.piece_length;
-          const unitCost = (row.price / fullArea) * pieceArea;
-          cost = unitCost * row.quantity;
+        let cost;
+        if (row.costo !== null && row.costo !== undefined) {
+          cost = row.costo;
+        } else {
+          cost = row.price * row.quantity;
+          if (row.piece_width && row.piece_length) {
+            const fullArea = row.material_width * row.material_length;
+            const pieceArea = row.piece_width * row.piece_length;
+            const unitCost = (row.price / fullArea) * pieceArea;
+            cost = unitCost * row.quantity;
+          }
         }
         return {
           accessory_id: row.accessory_id,
