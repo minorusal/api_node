@@ -204,7 +204,8 @@ const findAccessoriesWithMaterialsCost = () => {
           quantity: row.quantity,
           width_m: row.piece_width,
           length_m: row.piece_length,
-          cost
+          cost,
+          unit: row.unit
         };
       });
       resolve(detailed);
@@ -224,10 +225,12 @@ const findMaterialsCostByAccessory = (accessoryId) => {
       SELECT a.id AS accessory_id, a.name AS accessory_name,
              am.costo, am.quantity, am.width_m AS piece_width, am.length_m AS piece_length,
              rm.id AS material_id, rm.name AS material_name,
-             rm.price, rm.width_m AS material_width, rm.length_m AS material_length
+             rm.price, rm.width_m AS material_width, rm.length_m AS material_length,
+             mt.unit
       FROM accessories a
       JOIN accessory_materials am ON a.id = am.accessory_id
       JOIN raw_materials rm ON rm.id = am.material_id
+      LEFT JOIN material_types mt ON rm.material_type_id = mt.id
       WHERE a.id = ?`;
     db.query(sql, [accessoryId], (err, rows) => {
       if (err) return reject(err);
@@ -275,7 +278,8 @@ const findMaterialsByAccessory = (accessoryId) => {
              rm.id AS material_id, rm.name AS material_name, rm.description,
              rm.thickness_mm, rm.width_m AS material_width, rm.length_m AS material_length,
              rm.price, rm.material_type_id,
-             mt.description AS material_type_description
+             mt.description AS material_type_description,
+             mt.unit AS unit
       FROM accessories a
       JOIN accessory_materials am ON a.id = am.accessory_id
       JOIN raw_materials rm ON rm.id = am.material_id
