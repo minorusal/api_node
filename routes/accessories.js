@@ -3,7 +3,15 @@ const Accessories = require('../models/accessoriesModel');
 const OwnerCompanies = require('../models/ownerCompaniesModel');
 const AccessoryMaterials = require('../models/accessoryMaterialsModel');
 const AccessoryComponents = require('../models/accessoryComponentsModel');
+const { buildAccessoryPricing } = require('./accessoryMaterials');
 const router = express.Router();
+
+const applyQuantityTotals = item => {
+  const qty = item.quantity != null ? item.quantity : 1;
+  if (item.cost !== undefined && item.cost !== null) item.cost *= qty;
+  if (item.price !== undefined && item.price !== null) item.price *= qty;
+  return item;
+};
 
 /**
  * @openapi
@@ -35,7 +43,7 @@ const router = express.Router();
  *       200:
  *         description: Lista de accesorios
  *   post:
- *     summary: Crear accesorio
+ *     summary: Crear accesorio y vincular materiales
  *     tags:
  *       - Accessories
  *     requestBody:
@@ -49,6 +57,34 @@ const router = express.Router();
  *                 type: string
  *               description:
  *                 type: string
+ *               owner_id:
+ *                 type: integer
+ *               materials:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     material_id:
+ *                       type: integer
+ *                     quantity:
+ *                       type: number
+ *                     width:
+ *                       type: number
+ *                     length:
+ *                       type: number
+ *                     cost:
+ *                       type: number
+ *                     price:
+ *                       type: number
+ *               accessories:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     accessory_id:
+ *                       type: integer
+ *                     quantity:
+ *                       type: number
  *     responses:
  *       201:
  *         description: Accesorio creado
@@ -202,9 +238,35 @@ router.get('/accessories/:id/cost', async (req, res) => {
  */
 router.post('/accessories', async (req, res) => {
   try {
-    const { name, description } = req.body;
-    const accessory = await Accessories.createAccessory(name, description, 1);
-    res.status(201).json(accessory);
+    const { name, description, owner_id = 1, materials, accessories } = req.body;
+
+    const accessory = await Accessories.createAccessory(name, description, owner_id);
+
+    if (Array.isArray(materials) && materials.length) {
+      const mapped = materials.map(m =>
+        applyQuantityTotals({
+          material_id: m.material_id,
+          cost: m.cost,
+          profit_percentage: m.profit_percentage,
+          price: m.price,
+          quantity: m.quantity,
+          width: m.width,
+          length: m.length
+        })
+      );
+      await AccessoryMaterials.linkMaterialsBatch(accessory.id, mapped, owner_id);
+    }
+
+    if (Array.isArray(accessories) && accessories.length) {
+      const comps = accessories.map(a => ({
+        accessory_id: a.accessory_id,
+        quantity: a.quantity
+      }));
+      await AccessoryComponents.createComponentLinksBatch(accessory.id, comps, owner_id);
+    }
+
+    const pricing = await buildAccessoryPricing(accessory.id, owner_id);
+    res.status(201).json(pricing);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
