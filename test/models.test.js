@@ -10,6 +10,7 @@ const installationCosts = require('../models/installationCostsModel');
 const ownerCompanies = require('../models/ownerCompaniesModel');
 const menus = require('../models/menusModel');
 const materialTypes = require('../models/materialTypesModel');
+const accessoryPricing = require('../models/accessoryPricingModel');
 
 describe('Model exports', () => {
   it('materials model exposes CRUD functions', () => {
@@ -74,6 +75,11 @@ describe('Model exports', () => {
 
   it('materialTypes model exposes findAll function', () => {
     expect(materialTypes.findAll).to.be.a('function');
+  });
+
+  it('accessoryPricing model exposes upsert and find functions', () => {
+    expect(accessoryPricing.upsertPricing).to.be.a('function');
+    expect(accessoryPricing.findByAccessory).to.be.a('function');
   });
 });
 
