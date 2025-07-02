@@ -19,11 +19,13 @@ const linkMaterial = (
   quantity,
   width,
   length,
+  investment,
+  description,
   ownerId = 1
 ) => {
   return new Promise((resolve, reject) => {
     const sql =
-      'INSERT INTO accessory_materials (accessory_id, material_id, costo, porcentaje_ganancia, precio, quantity, width_m, length_m, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+      'INSERT INTO accessory_materials (accessory_id, material_id, costo, porcentaje_ganancia, precio, quantity, width_m, length_m, investment, descripcion_material, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
     db.query(
       sql,
       [
@@ -35,6 +37,8 @@ const linkMaterial = (
         quantity,
         width,
         length,
+        investment,
+        description,
         ownerId
       ],
       (err, result) => {
@@ -49,6 +53,8 @@ const linkMaterial = (
           quantity,
           width,
           length,
+          investment,
+          description,
           owner_id: ownerId
         });
       }
@@ -79,10 +85,12 @@ const linkMaterialsBatch = (accessoryId, materials, ownerId = 1) => {
       m.quantity,
       m.width,
       m.length,
+      m.investment,
+      m.description,
       ownerId
     ]);
     const sql =
-      'INSERT INTO accessory_materials (accessory_id, material_id, costo, porcentaje_ganancia, precio, quantity, width_m, length_m, owner_id) VALUES ?';
+      'INSERT INTO accessory_materials (accessory_id, material_id, costo, porcentaje_ganancia, precio, quantity, width_m, length_m, investment, descripcion_material, owner_id) VALUES ?';
     db.query(sql, [values], (err, result) => {
       if (err) return reject(err);
       const inserted = materials.map((m, idx) => ({
@@ -95,6 +103,8 @@ const linkMaterialsBatch = (accessoryId, materials, ownerId = 1) => {
         quantity: m.quantity,
         width: m.width,
         length: m.length,
+        investment: m.investment,
+        description: m.description,
         owner_id: ownerId
       }));
       resolve(inserted);
@@ -316,11 +326,13 @@ const updateLinkData = (
   price,
   quantity,
   width,
-  length
+  length,
+  investment,
+  description
 ) => {
   return new Promise((resolve, reject) => {
     const sql =
-      'UPDATE accessory_materials SET accessory_id = ?, material_id = ?, costo = ?, porcentaje_ganancia = ?, precio = ?, quantity = ?, width_m = ?, length_m = ? WHERE id = ?';
+      'UPDATE accessory_materials SET accessory_id = ?, material_id = ?, costo = ?, porcentaje_ganancia = ?, precio = ?, quantity = ?, width_m = ?, length_m = ?, investment = ?, descripcion_material = ? WHERE id = ?';
     db.query(
       sql,
       [
@@ -332,6 +344,8 @@ const updateLinkData = (
         quantity,
         width,
         length,
+        investment,
+        description,
         id
       ],
       (err, result) => {

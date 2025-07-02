@@ -4,6 +4,7 @@ const AccessoryComponents = require('../models/accessoryComponentsModel');
 const OwnerCompanies = require('../models/ownerCompaniesModel');
 const router = express.Router();
 const AccessoryPricing = require("../models/accessoryPricingModel");
+const { ensureColumn } = require('../Modules/dbUtils');
 
 const buildAccessoryPricing = async (accessoryId, ownerId = 1) => {
   const owner = await OwnerCompanies.findById(ownerId);
@@ -221,6 +222,10 @@ const applyQuantityTotals = item => {
  */
 router.post('/accessory-materials', async (req, res) => {
   try {
+    await Promise.all([
+      ensureColumn('accessory_materials', 'investment', 'DECIMAL(10,2)'),
+      ensureColumn('accessory_materials', 'descripcion_material', 'VARCHAR(255)')
+    ]);
     if (Array.isArray(req.body.materials)) {
       const { accessory_id, materials } = req.body;
       if (!accessory_id || !materials.length)
@@ -266,7 +271,9 @@ router.post('/accessory-materials', async (req, res) => {
       price,
       quantity,
       width,
-      length
+      length,
+      investment,
+      description
     } = req.body;
     const totals = applyQuantityTotals({ cost, price, quantity });
     const link = await AccessoryMaterials.linkMaterial(
@@ -278,6 +285,8 @@ router.post('/accessory-materials', async (req, res) => {
       quantity,
       width,
       length,
+      investment,
+      description,
       1
     );
     const calculatedCost = await AccessoryMaterials.calculateCost(
@@ -311,6 +320,10 @@ router.get('/accessory-materials', async (req, res) => {
  */
 router.put('/accessory-materials/:id', async (req, res) => {
   try {
+    await Promise.all([
+      ensureColumn('accessory_materials', 'investment', 'DECIMAL(10,2)'),
+      ensureColumn('accessory_materials', 'descripcion_material', 'VARCHAR(255)')
+    ]);
     if (Array.isArray(req.body.materials)) {
       const accessoryId = Number(req.params.id);
       const materials = req.body.materials;
@@ -420,7 +433,9 @@ router.put('/accessory-materials/:id', async (req, res) => {
       totals.price,
       quantity,
       width,
-      length
+      length,
+      investment,
+      description
     );
 
     const ownerId = parseInt(req.query.owner_id || '1', 10);
