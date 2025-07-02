@@ -470,6 +470,8 @@ router.get('/accessories/:id/materials', async (req, res) => {
       quantity: row.quantity,
       width_m_used: row.width_m,
       length_m_used: row.length_m,
+      investment: row.investment,
+      descripcion_material: row.descripcion_material,
       cost: row.costo,
       profit_percentage: row.porcentaje_ganancia,
       price_override: row.precio
