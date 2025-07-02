@@ -2,6 +2,13 @@ const express = require('express');
 const AccessoryMaterials = require('../models/accessoryMaterialsModel');
 const router = express.Router();
 
+const applyQuantityTotals = item => {
+  const qty = item.quantity != null ? item.quantity : 1;
+  if (item.cost !== undefined && item.cost !== null) item.cost *= qty;
+  if (item.price !== undefined && item.price !== null) item.price *= qty;
+  return item;
+};
+
 /**
  * @openapi
  * /accessory-materials:
@@ -152,9 +159,10 @@ router.post('/accessory-materials', async (req, res) => {
           return res.status(400).json({ message: 'profit_percentage invalido' });
       }
 
+      const totals = materials.map(m => applyQuantityTotals({ ...m }));
       const inserted = await AccessoryMaterials.linkMaterialsBatch(
         accessory_id,
-        materials,
+        totals,
         1
       );
 
@@ -182,12 +190,13 @@ router.post('/accessory-materials', async (req, res) => {
       width,
       length
     } = req.body;
+    const totals = applyQuantityTotals({ cost, price, quantity });
     const link = await AccessoryMaterials.linkMaterial(
       accessoryId,
       materialId,
-      cost,
+      totals.cost,
       profit_percentage,
-      price,
+      totals.price,
       quantity,
       width,
       length,
@@ -281,7 +290,7 @@ router.put('/accessory-materials/:id', async (req, res) => {
           item.price = +(item.cost * (1 + margin)).toFixed(2);
         }
 
-        return item;
+        return applyQuantityTotals(item);
       });
 
       await AccessoryMaterials.deleteByAccessory(accessoryId);
@@ -334,13 +343,14 @@ router.put('/accessory-materials/:id', async (req, res) => {
 
     const link = await AccessoryMaterials.findById(req.params.id);
     if (!link) return res.status(404).json({ message: 'Vinculo no encontrado' });
+    const totals = applyQuantityTotals({ cost, price, quantity });
     await AccessoryMaterials.updateLinkData(
       req.params.id,
       accessoryId,
       materialId,
-      cost,
+      totals.cost,
       profit_percentage,
-      price,
+      totals.price,
       quantity,
       width,
       length

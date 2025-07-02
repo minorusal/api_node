@@ -48,6 +48,11 @@ DB_NAME=demodb
 - `GET /playset-accessories` Lista vínculos playset-accesorio (protegido).
 - `PUT /playset-accessories/:id` Actualiza la cantidad del vínculo (protegido).
 - `DELETE /playset-accessories/:id` Elimina un vínculo (protegido).
+- `POST /accessory-materials` Vincula materiales a un accesorio. Cuando se
+  envían `cost` o `price` se multiplican por `quantity` para guardar el total.
+- `PUT /accessory-materials/:id` Actualiza un vínculo individual o reemplaza los
+  materiales de un accesorio. Los valores de `cost` y `price` también se
+  multiplican por `quantity`.
 - `GET /clients` Lista clientes (protegido).
 - `POST /clients` Crea un cliente (protegido).
 - `GET /projects` Lista proyectos (protegido). Incluye el nombre y descripción del playset asociado.
