@@ -4,6 +4,8 @@ const OwnerCompanies = require('../models/ownerCompaniesModel');
 const AccessoryMaterials = require('../models/accessoryMaterialsModel');
 const AccessoryComponents = require('../models/accessoryComponentsModel');
 const { buildAccessoryPricing } = require('./accessoryMaterials');
+const AccessoryPricing = require('../models/accessoryPricingModel');
+const { ensureColumn } = require('../Modules/dbUtils');
 const router = express.Router();
 
 const applyQuantityTotals = item => {
@@ -238,7 +240,27 @@ router.get('/accessories/:id/cost', async (req, res) => {
  */
 router.post('/accessories', async (req, res) => {
   try {
-    const { name, description, owner_id = 1, materials, accessories } = req.body;
+    const {
+      name,
+      description,
+      owner_id = 1,
+      markup_percentage,
+      total_materials_cost,
+      total_accessories_cost,
+      total_cost,
+      materials,
+      accessories
+    } = req.body;
+
+    await Promise.all([
+      ensureColumn('accessory_materials', 'investment', 'DECIMAL(10,2)'),
+      ensureColumn('accessory_materials', 'descripcion_material', 'VARCHAR(255)'),
+      ensureColumn('accessory_components', 'child_accessory_name', 'VARCHAR(100)'),
+      ensureColumn('accessory_pricing', 'markup_percentage', 'DECIMAL(10,2) DEFAULT 0'),
+      ensureColumn('accessory_pricing', 'total_materials_price', 'DECIMAL(10,2) DEFAULT 0'),
+      ensureColumn('accessory_pricing', 'total_accessories_price', 'DECIMAL(10,2) DEFAULT 0'),
+      ensureColumn('accessory_pricing', 'total_price', 'DECIMAL(10,2) DEFAULT 0')
+    ]);
 
     const accessory = await Accessories.createAccessory(name, description, owner_id);
 
@@ -251,7 +273,9 @@ router.post('/accessories', async (req, res) => {
           price: m.price,
           quantity: m.quantity,
           width: m.width,
-          length: m.length
+          length: m.length,
+          investment: m.investment,
+          description: m.description
         })
       );
       await AccessoryMaterials.linkMaterialsBatch(accessory.id, mapped, owner_id);
@@ -260,12 +284,37 @@ router.post('/accessories', async (req, res) => {
     if (Array.isArray(accessories) && accessories.length) {
       const comps = accessories.map(a => ({
         accessory_id: a.accessory_id,
-        quantity: a.quantity
+        quantity: a.quantity,
+        name: a.name
       }));
       await AccessoryComponents.createComponentLinksBatch(accessory.id, comps, owner_id);
     }
 
-    const pricing = await buildAccessoryPricing(accessory.id, owner_id);
+    let pricing;
+    if (
+      markup_percentage !== undefined ||
+      total_materials_cost !== undefined ||
+      total_accessories_cost !== undefined ||
+      total_cost !== undefined
+    ) {
+      await AccessoryPricing.upsertPricing(
+        accessory.id,
+        owner_id,
+        markup_percentage ?? 0,
+        total_materials_cost ?? 0,
+        total_accessories_cost ?? 0,
+        total_cost ?? 0
+      );
+      pricing = {
+        accessory_id: accessory.id,
+        markup_percentage: markup_percentage ?? 0,
+        total_materials_price: total_materials_cost ?? 0,
+        total_accessories_price: total_accessories_cost ?? 0,
+        total_price: total_cost ?? 0
+      };
+    } else {
+      pricing = await buildAccessoryPricing(accessory.id, owner_id);
+    }
     res.status(201).json(pricing);
   } catch (error) {
     res.status(500).json({ message: error.message });
