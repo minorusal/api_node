@@ -30,6 +30,7 @@ describe('Model exports', () => {
   it('accessory components model exposes basic functions', () => {
     expect(accessoryComponents.createComponentLink).to.be.a('function');
     expect(accessoryComponents.findAll).to.be.a('function');
+    expect(accessoryComponents.findByParentDetailed).to.be.a('function');
     expect(accessoryComponents.deleteLink).to.be.a('function');
   });
 
