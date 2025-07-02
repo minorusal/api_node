@@ -42,14 +42,16 @@ DB_NAME=demodb
 - `GET /accessories/:id/cost` Calcula el costo y precio de un accesorio.
 - `PUT /accessories/:id/components` Reemplaza los componentes de un accesorio.
   - Envía un arreglo `components` con `accessory_id` y `quantity`.
+- `POST /accessories` Crea un accesorio y opcionalmente vincula materiales y otros accesorios enviando los campos `materials` y `accessories`.
 - `GET /playsets` Lista playsets (protegido).
 - `GET /playsets/:id/cost` Calcula el costo total de un playset.
 - `POST /playset-accessories` Crea vínculo de accesorio a playset (protegido).
 - `GET /playset-accessories` Lista vínculos playset-accesorio (protegido).
 - `PUT /playset-accessories/:id` Actualiza la cantidad del vínculo (protegido).
 - `DELETE /playset-accessories/:id` Elimina un vínculo (protegido).
-- `POST /accessory-materials` Vincula materiales a un accesorio. Cuando se
-  envían `cost` o `price` se multiplican por `quantity` para guardar el total.
+- `POST /accessory-materials` Vincula materiales a un accesorio de forma
+  independiente. Cuando se envían `cost` o `price` se multiplican por `quantity`
+  para guardar el total.
 - `PUT /accessory-materials/:id` Actualiza un vínculo individual o reemplaza los
   materiales de un accesorio. Los valores de `cost` y `price` también se
   multiplican por `quantity`.
