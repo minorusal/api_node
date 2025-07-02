@@ -42,6 +42,33 @@ router.get('/accessories/:id/components', async (req, res) => {
   }
 });
 
+// Replace components of a parent accessory
+router.put('/accessories/:id/components', async (req, res) => {
+  try {
+    const parentId = Number(req.params.id);
+    const components = req.body.components;
+    if (isNaN(parentId) || !Array.isArray(components))
+      return res.status(400).json({ message: 'Datos incompletos' });
+
+    for (const c of components) {
+      if (typeof c.accessory_id !== 'number')
+        return res.status(400).json({ message: 'accessory_id requerido' });
+      if (c.quantity !== undefined && c.quantity !== null && typeof c.quantity !== 'number')
+        return res.status(400).json({ message: 'quantity invalido' });
+    }
+
+    await AccessoryComponents.deleteByParent(parentId);
+    const inserted = await AccessoryComponents.createComponentLinksBatch(
+      parentId,
+      components,
+      1
+    );
+    res.json(inserted);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Delete link
 router.delete('/accessory-components/:id', async (req, res) => {
   try {

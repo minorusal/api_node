@@ -38,7 +38,10 @@ DB_NAME=demodb
   - Parámetros opcionales: `page`, `limit` y `search` para paginar y filtrar por texto.
 - `GET /accessories` Lista accesorios (protegido).
   - Parámetros opcionales: `page` y `limit` para paginar los resultados.
+- `GET /accessories/:id` Obtiene un accesorio con sus materiales y componentes.
 - `GET /accessories/:id/cost` Calcula el costo y precio de un accesorio.
+- `PUT /accessories/:id/components` Reemplaza los componentes de un accesorio.
+  - Envía un arreglo `components` con `accessory_id` y `quantity`.
 - `GET /playsets` Lista playsets (protegido).
 - `GET /playsets/:id/cost` Calcula el costo total de un playset.
 - `POST /playset-accessories` Crea vínculo de accesorio a playset (protegido).

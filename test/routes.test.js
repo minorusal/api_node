@@ -45,6 +45,16 @@ describe('Route definitions', () => {
     expect(accessoryComponentsRouter.stack).to.be.an('array').that.is.not.empty;
   });
 
+  it('accessory components router registers replace route', () => {
+    const hasRoute = accessoryComponentsRouter.stack.some(
+      layer =>
+        layer.route &&
+        layer.route.path === '/accessories/:id/components' &&
+        layer.route.methods.put
+    );
+    expect(hasRoute).to.be.true;
+  });
+
   it('playset accessories router has routes configured', () => {
     expect(playsetAccessoriesRouter.stack).to.be.an('array').that.is.not.empty;
   });
