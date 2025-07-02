@@ -6,11 +6,12 @@ const { buildAccessoryPricing } = require("./accessoryMaterials");
 // Create component link
 router.post('/accessory-components', async (req, res) => {
   try {
-    const { parent_accessory_id, child_accessory_id, quantity } = req.body;
+    const { parent_accessory_id, child_accessory_id, quantity, name } = req.body;
     const link = await AccessoryComponents.createComponentLink(
       parent_accessory_id,
       child_accessory_id,
       quantity,
+      name,
       1
     );
     res.status(201).json(link);

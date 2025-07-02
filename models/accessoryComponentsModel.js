@@ -1,17 +1,24 @@
 const db = require('../db');
 const Accessories = require('./accessoriesModel');
 
-const createComponentLink = (parentId, childId, quantity, ownerId = 1) => {
+const createComponentLink = (
+  parentId,
+  childId,
+  quantity,
+  childName,
+  ownerId = 1
+) => {
   return new Promise((resolve, reject) => {
-    const sql = `INSERT INTO accessory_components (parent_accessory_id, child_accessory_id, quantity, owner_id)
-                 VALUES (?, ?, ?, ?)`;
-    db.query(sql, [parentId, childId, quantity, ownerId], (err, result) => {
+    const sql = `INSERT INTO accessory_components (parent_accessory_id, child_accessory_id, quantity, child_accessory_name, owner_id)
+                 VALUES (?, ?, ?, ?, ?)`;
+    db.query(sql, [parentId, childId, quantity, childName, ownerId], (err, result) => {
       if (err) return reject(err);
       resolve({
         id: result.insertId,
         parent_accessory_id: parentId,
         child_accessory_id: childId,
         quantity,
+        child_name: childName,
         owner_id: ownerId
       });
     });
@@ -92,10 +99,11 @@ const createComponentLinksBatch = (parentId, components, ownerId = 1) => {
       parentId,
       c.accessory_id,
       c.quantity,
+      c.name,
       ownerId
     ]);
     const sql =
-      'INSERT INTO accessory_components (parent_accessory_id, child_accessory_id, quantity, owner_id) VALUES ?';
+      'INSERT INTO accessory_components (parent_accessory_id, child_accessory_id, quantity, child_accessory_name, owner_id) VALUES ?';
     db.query(sql, [values], (err, result) => {
       if (err) return reject(err);
       const inserted = components.map((c, idx) => ({
@@ -103,6 +111,7 @@ const createComponentLinksBatch = (parentId, components, ownerId = 1) => {
         parent_accessory_id: parentId,
         child_accessory_id: c.accessory_id,
         quantity: c.quantity,
+        child_name: c.name,
         owner_id: ownerId
       }));
       resolve(inserted);
