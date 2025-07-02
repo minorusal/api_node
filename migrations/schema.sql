@@ -216,6 +216,19 @@ CREATE TABLE IF NOT EXISTS menus (
     FOREIGN KEY (parent_id) REFERENCES menus(id),
     FOREIGN KEY (owner_id) REFERENCES owner_companies(id)
 );
+CREATE TABLE IF NOT EXISTS accessory_pricing (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    accessory_id INT NOT NULL,
+    owner_id INT NOT NULL,
+    markup_percentage DECIMAL(10,2) DEFAULT 0,
+    total_materials_price DECIMAL(10,2) DEFAULT 0,
+    total_accessories_price DECIMAL(10,2) DEFAULT 0,
+    total_price DECIMAL(10,2) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (accessory_id) REFERENCES accessories(id),
+    FOREIGN KEY (owner_id) REFERENCES owner_companies(id)
+);
 
 /* ──────────── Asociaciones con owner ──────────── */
 ALTER TABLE raw_materials
