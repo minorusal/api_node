@@ -34,7 +34,7 @@ const buildAccessoryPricing = async (accessoryId, ownerId = 1) => {
       material_id: m.material_id,
       width: m.width_m,
       length: m.length_m,
-      unit: 'm',
+      unit: m.unit,
       quantity: m.quantity,
       cost,
       price
@@ -474,7 +474,8 @@ router.get('/accessories/:id/materials', async (req, res) => {
       descripcion_material: row.descripcion_material,
       cost: row.costo,
       profit_percentage: row.porcentaje_ganancia,
-      price_override: row.precio
+      price_override: row.precio,
+      unit: row.unit
     }));
     res.json({ accessory_id, accessory_name, materials });
   } catch (error) {
@@ -500,7 +501,8 @@ router.get('/accessories/:id/materials-cost', async (req, res) => {
       quantity: row.quantity,
       width_m: row.width_m,
       length_m: row.length_m,
-      cost: row.cost
+      cost: row.cost,
+      unit: row.unit
     }));
     const total_cost = materials.reduce((sum, m) => sum + m.cost, 0);
     res.json({ accessory_id, accessory_name, total_cost, materials });

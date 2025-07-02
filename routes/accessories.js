@@ -197,7 +197,7 @@ router.get('/accessories/:id', async (req, res) => {
     );
     const materials = rawMaterials.map(m => ({
       ...m,
-      unit: m.width_m && m.length_m ? 'm²' : 'unit'
+      unit: m.unit
     }));
     const accessories = await AccessoryComponents.findByParentDetailed(
       accessory.id,
