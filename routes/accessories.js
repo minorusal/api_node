@@ -192,14 +192,20 @@ router.get('/accessories/:id', async (req, res) => {
     if (!accessory)
       return res.status(404).json({ message: 'Accesorio no encontrado' });
     const ownerId = parseInt(req.query.owner_id || '1', 10);
-    const materials = await AccessoryMaterials.findMaterialsByAccessory(
+    const rawMaterials = await AccessoryMaterials.findMaterialsByAccessory(
       accessory.id
     );
+    const materials = rawMaterials.map(m => ({
+      ...m,
+      unit: m.width_m && m.length_m ? 'm²' : 'unit'
+    }));
     const accessories = await AccessoryComponents.findByParentDetailed(
       accessory.id,
       ownerId
     );
-    res.json({ ...accessory, materials, accessories });
+    let pricing = await AccessoryPricing.findByAccessory(accessory.id, ownerId);
+    if (!pricing) pricing = await buildAccessoryPricing(accessory.id, ownerId);
+    res.json({ ...accessory, ...pricing, materials, accessories });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -256,6 +262,8 @@ router.post('/accessories', async (req, res) => {
       ensureColumn('accessory_materials', 'investment', 'DECIMAL(10,2)'),
       ensureColumn('accessory_materials', 'descripcion_material', 'VARCHAR(255)'),
       ensureColumn('accessory_components', 'child_accessory_name', 'VARCHAR(100)'),
+      ensureColumn('accessory_components', 'cost', 'DECIMAL(10,2)'),
+      ensureColumn('accessory_components', 'price', 'DECIMAL(10,2)'),
       ensureColumn('accessory_pricing', 'markup_percentage', 'DECIMAL(10,2) DEFAULT 0'),
       ensureColumn('accessory_pricing', 'total_materials_price', 'DECIMAL(10,2) DEFAULT 0'),
       ensureColumn('accessory_pricing', 'total_accessories_price', 'DECIMAL(10,2) DEFAULT 0'),
@@ -285,7 +293,9 @@ router.post('/accessories', async (req, res) => {
       const comps = accessories.map(a => ({
         accessory_id: a.accessory_id,
         quantity: a.quantity,
-        name: a.name
+        name: a.name,
+        cost: a.cost,
+        price: a.price
       }));
       await AccessoryComponents.createComponentLinksBatch(accessory.id, comps, owner_id);
     }
