@@ -6,12 +6,17 @@ const createComponentLink = (
   childId,
   quantity,
   childName,
+  cost,
+  price,
   ownerId = 1
 ) => {
   return new Promise((resolve, reject) => {
-    const sql = `INSERT INTO accessory_components (parent_accessory_id, child_accessory_id, quantity, child_accessory_name, owner_id)
-                 VALUES (?, ?, ?, ?, ?)`;
-    db.query(sql, [parentId, childId, quantity, childName, ownerId], (err, result) => {
+    const sql = `INSERT INTO accessory_components (parent_accessory_id, child_accessory_id, quantity, child_accessory_name, cost, price, owner_id)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    db.query(
+      sql,
+      [parentId, childId, quantity, childName, cost, price, ownerId],
+      (err, result) => {
       if (err) return reject(err);
       resolve({
         id: result.insertId,
@@ -19,6 +24,8 @@ const createComponentLink = (
         child_accessory_id: childId,
         quantity,
         child_name: childName,
+        cost,
+        price,
         owner_id: ownerId
       });
     });
@@ -58,6 +65,7 @@ const findByParentDetailed = async (parentId, ownerId = 1) => {
 
   const rows = await query(
     `SELECT ac.id, ac.parent_accessory_id, ac.child_accessory_id, ac.quantity,
+            ac.cost, ac.price,
             child.id AS child_id, child.name AS child_name,
             child.description AS child_description
        FROM accessory_components ac
@@ -76,9 +84,11 @@ const findByParentDetailed = async (parentId, ownerId = 1) => {
   const factor = 1 + profitPercentage / 100;
 
   for (const row of rows) {
-    const cost = await Accessories.calculateAccessoryCost(row.child_accessory_id);
-    row.cost = cost;
-    row.price = +(cost * factor).toFixed(2);
+    if (row.cost == null || row.price == null) {
+      const calc = await Accessories.calculateAccessoryCost(row.child_accessory_id);
+      row.cost = calc;
+      row.price = +(calc * factor).toFixed(2);
+    }
     row.child = {
       id: row.child_id,
       name: row.child_name,
@@ -100,10 +110,12 @@ const createComponentLinksBatch = (parentId, components, ownerId = 1) => {
       c.accessory_id,
       c.quantity,
       c.name,
+      c.cost,
+      c.price,
       ownerId
     ]);
     const sql =
-      'INSERT INTO accessory_components (parent_accessory_id, child_accessory_id, quantity, child_accessory_name, owner_id) VALUES ?';
+      'INSERT INTO accessory_components (parent_accessory_id, child_accessory_id, quantity, child_accessory_name, cost, price, owner_id) VALUES ?';
     db.query(sql, [values], (err, result) => {
       if (err) return reject(err);
       const inserted = components.map((c, idx) => ({
@@ -112,6 +124,8 @@ const createComponentLinksBatch = (parentId, components, ownerId = 1) => {
         child_accessory_id: c.accessory_id,
         quantity: c.quantity,
         child_name: c.name,
+        cost: c.cost,
+        price: c.price,
         owner_id: ownerId
       }));
       resolve(inserted);

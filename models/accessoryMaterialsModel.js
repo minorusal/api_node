@@ -283,7 +283,11 @@ const findMaterialsByAccessory = (accessoryId) => {
       WHERE a.id = ?`;
     db.query(sql, [accessoryId], (err, rows) => {
       if (err) return reject(err);
-      resolve(rows);
+      const mapped = rows.map(r => ({
+        ...r,
+        porcentaje_ganancia: r.porcentaje_ganancia ?? 0
+      }));
+      resolve(mapped);
     });
   });
 };
