@@ -273,11 +273,11 @@ const findMaterialsByAccessory = (accessoryId) => {
     const sql = `
       SELECT a.id AS accessory_id, a.name AS accessory_name,
              am.id AS link_id, am.quantity, am.width_m, am.length_m,
-             am.costo, am.porcentaje_ganancia, am.precio,
+             am.costo, am.porcentaje_ganancia, am.precio, am.precio AS price,
              am.investment, am.descripcion_material,
              rm.id AS material_id, rm.name AS material_name, rm.description,
              rm.thickness_mm, rm.width_m AS material_width, rm.length_m AS material_length,
-             rm.price, rm.material_type_id,
+             rm.price AS material_price, rm.material_type_id,
              mt.description AS material_type_description,
              mt.unit AS unit
       FROM accessories a
