@@ -414,6 +414,45 @@ const deleteByAccessory = (accessoryId) => {
   });
 };
 
+/**
+ * Recalcula y actualiza costo y precio de los vínculos de un material.
+ * @param {number} materialId - ID del material editado.
+ * @returns {Promise<void>} Promesa que se resuelve al finalizar.
+ */
+const updateCostsByMaterial = async (materialId) => {
+  const getLinks = () =>
+    new Promise((resolve, reject) => {
+      const sql =
+        'SELECT id, width_m, length_m, quantity, porcentaje_ganancia FROM accessory_materials WHERE material_id = ?';
+      db.query(sql, [materialId], (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows);
+      });
+    });
+
+  const updateLinkCost = (id, cost, price) =>
+    new Promise((resolve, reject) => {
+      const sql = 'UPDATE accessory_materials SET costo = ?, precio = ? WHERE id = ?';
+      db.query(sql, [cost, price, id], (err, result) => {
+        if (err) return reject(err);
+        resolve(result);
+      });
+    });
+
+  const links = await getLinks();
+  for (const link of links) {
+    const cost = await calculateCost(
+      materialId,
+      link.width_m || 0,
+      link.length_m || 0,
+      link.quantity != null ? link.quantity : 1
+    );
+    const profit = link.porcentaje_ganancia ? +link.porcentaje_ganancia : 0;
+    const price = +(cost * (1 + profit / 100)).toFixed(2);
+    await updateLinkCost(link.id, cost, price);
+  }
+};
+
 module.exports = {
   linkMaterial,
   linkMaterialsBatch,
@@ -427,5 +466,6 @@ module.exports = {
   deleteByAccessory,
   deleteLink,
   calculateCost,
-  findAccessoryIdsByMaterial
+  findAccessoryIdsByMaterial,
+  updateCostsByMaterial
 };
