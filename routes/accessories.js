@@ -8,10 +8,8 @@ const AccessoryPricing = require('../models/accessoryPricingModel');
 const { ensureColumn } = require('../Modules/dbUtils');
 const router = express.Router();
 
+// cost and price are stored as totals so avoid modifying them
 const applyQuantityTotals = item => {
-  const qty = item.quantity != null ? item.quantity : 1;
-  if (item.cost !== undefined && item.cost !== null) item.cost *= qty;
-  if (item.price !== undefined && item.price !== null) item.price *= qty;
   return item;
 };
 
