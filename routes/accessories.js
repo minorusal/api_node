@@ -14,6 +14,55 @@ const applyQuantityTotals = item => {
   return item;
 };
 
+const calculateAccessoryTotals = async (accessoryId, ownerId = 1, markup) => {
+  if (markup === undefined || markup === null) {
+    const owner = await OwnerCompanies.findById(ownerId);
+    markup = owner ? +owner.profit_percentage : 0;
+  }
+  const factor = 1 + markup / 100;
+
+  const mats = await AccessoryMaterials.findMaterialsByAccessory(accessoryId);
+  let totalMaterials = 0;
+  for (const m of mats) {
+    let cost = m.costo;
+    if (cost === null || cost === undefined) {
+      cost = await AccessoryMaterials.calculateCost(
+        m.material_id,
+        m.width_m || 0,
+        m.length_m || 0,
+        m.quantity != null ? m.quantity : 1
+      );
+    }
+    cost = +cost.toFixed(2);
+    let price = m.price;
+    if (price === null || price === undefined) {
+      price = +(cost * factor).toFixed(2);
+    } else {
+      price = +price.toFixed(2);
+    }
+    totalMaterials += price;
+  }
+
+  const comps = await AccessoryComponents.findByParent(accessoryId);
+  let totalAccessories = 0;
+  for (const c of comps) {
+    const qty = c.quantity != null ? c.quantity : 1;
+    let price = c.price;
+    if (price === null || price === undefined) {
+      const base = await Accessories.calculateAccessoryCost(c.child_accessory_id);
+      price = +(base * factor).toFixed(2);
+    } else {
+      price = +price.toFixed(2);
+    }
+    totalAccessories += +(price * qty).toFixed(2);
+  }
+
+  const total_materials_cost = +totalMaterials.toFixed(2);
+  const total_accessories_cost = +totalAccessories.toFixed(2);
+  const total_cost = +(total_materials_cost + total_accessories_cost).toFixed(2);
+  return { markup_percentage: markup, total_materials_cost, total_accessories_cost, total_cost };
+};
+
 /**
  * @openapi
  * /accessories:
@@ -399,21 +448,30 @@ router.put('/accessories/:id', async (req, res) => {
       await AccessoryComponents.createComponentLinksBatch(id, comps, owner_id);
     }
 
-    if (
-      markup_percentage !== undefined ||
-      totals.total_materials_cost !== undefined ||
-      totals.total_accessories_cost !== undefined ||
-      totals.total_cost !== undefined
+    const computed = await calculateAccessoryTotals(id, owner_id, markup_percentage);
+    const almostEqual = (a, b) => Math.abs(+a - +b) < 0.01;
+
+    if (totals.total_cost === undefined) {
+      totals.total_materials_cost = computed.total_materials_cost;
+      totals.total_accessories_cost = computed.total_accessories_cost;
+      totals.total_cost = computed.total_cost;
+    } else if (
+      !almostEqual(totals.total_materials_cost ?? computed.total_materials_cost, computed.total_materials_cost) ||
+      !almostEqual(totals.total_accessories_cost ?? computed.total_accessories_cost, computed.total_accessories_cost) ||
+      !almostEqual(totals.total_cost, computed.total_cost)
     ) {
-      await AccessoryPricing.upsertPricing(
-        id,
-        owner_id,
-        markup_percentage ?? 0,
-        totals.total_materials_cost ?? 0,
-        totals.total_accessories_cost ?? 0,
-        totals.total_cost ?? 0
-      );
+      await rollback();
+      return res.status(400).json({ message: 'Totales inconsistentes con los costos calculados' });
     }
+
+    await AccessoryPricing.upsertPricing(
+      id,
+      owner_id,
+      markup_percentage ?? computed.markup_percentage,
+      totals.total_materials_cost ?? computed.total_materials_cost,
+      totals.total_accessories_cost ?? computed.total_accessories_cost,
+      totals.total_cost ?? computed.total_cost
+    );
 
     await commit();
     res.json({ message: 'Accesorio actualizado' });
