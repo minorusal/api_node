@@ -6,6 +6,7 @@ const AccessoryComponents = require('../models/accessoryComponentsModel');
 const { buildAccessoryPricing } = require('./accessoryMaterials');
 const AccessoryPricing = require('../models/accessoryPricingModel');
 const { ensureColumn } = require('../Modules/dbUtils');
+const db = require('../db');
 const router = express.Router();
 
 // cost and price are stored as totals so avoid modifying them
@@ -201,8 +202,7 @@ router.get('/accessories/:id', async (req, res) => {
       accessory.id,
       ownerId
     );
-    let pricing = await AccessoryPricing.findByAccessory(accessory.id, ownerId);
-    if (!pricing) pricing = await buildAccessoryPricing(accessory.id, ownerId);
+    const pricing = await AccessoryPricing.findByAccessory(accessory.id, ownerId);
     res.json({ ...accessory, ...pricing, materials, accessories });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -334,13 +334,91 @@ router.post('/accessories', async (req, res) => {
  * @route PUT /accessories/:id
  */
 router.put('/accessories/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  const {
+    name,
+    description,
+    markup_percentage,
+    materials,
+    accessories,
+    totals = {},
+    owner_id = 1
+  } = req.body;
+
+  const begin = () =>
+    new Promise((resolve, reject) => {
+      db.beginTransaction(err => (err ? reject(err) : resolve()));
+    });
+  const commit = () =>
+    new Promise((resolve, reject) => {
+      db.commit(err => (err ? reject(err) : resolve()));
+    });
+  const rollback = () =>
+    new Promise(resolve => {
+      db.rollback(() => resolve());
+    });
+
   try {
-    const { name, description } = req.body;
-    const accessory = await Accessories.findById(req.params.id);
-    if (!accessory) return res.status(404).json({ message: 'Accesorio no encontrado' });
-    await Accessories.updateAccessory(req.params.id, name, description);
+    await begin();
+
+    const accessory = await Accessories.findById(id);
+    if (!accessory) {
+      await rollback();
+      return res.status(404).json({ message: 'Accesorio no encontrado' });
+    }
+
+    await Accessories.updateAccessory(id, name, description);
+
+    if (Array.isArray(materials)) {
+      await AccessoryMaterials.deleteByAccessory(id);
+      const mapped = materials.map(m =>
+        applyQuantityTotals({
+          material_id: m.material_id,
+          cost: m.cost,
+          profit_percentage: m.profit_percentage,
+          price: m.price,
+          quantity: m.quantity,
+          width: m.width,
+          length: m.length,
+          investment: m.investment,
+          description: m.description
+        })
+      );
+      await AccessoryMaterials.linkMaterialsBatch(id, mapped, owner_id);
+    }
+
+    if (Array.isArray(accessories)) {
+      await AccessoryComponents.deleteByParent(id);
+      const comps = accessories.map(a => ({
+        accessory_id: a.accessory_id,
+        quantity: a.quantity,
+        name: a.name,
+        cost: a.cost,
+        price: a.price
+      }));
+      await AccessoryComponents.createComponentLinksBatch(id, comps, owner_id);
+    }
+
+    if (
+      markup_percentage !== undefined ||
+      totals.total_materials_cost !== undefined ||
+      totals.total_accessories_cost !== undefined ||
+      totals.total_cost !== undefined
+    ) {
+      await AccessoryPricing.upsertPricing(
+        id,
+        owner_id,
+        markup_percentage ?? 0,
+        totals.total_materials_cost ?? 0,
+        totals.total_accessories_cost ?? 0,
+        totals.total_cost ?? 0
+      );
+    }
+
+    await commit();
     res.json({ message: 'Accesorio actualizado' });
   } catch (error) {
+    await rollback();
     res.status(500).json({ message: error.message });
   }
 });
