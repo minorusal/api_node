@@ -1,6 +1,7 @@
 const express = require('express');
 const Materials = require('../models/materialsModel');
 const AccessoryMaterials = require('../models/accessoryMaterialsModel');
+const Accessories = require('../models/accessoriesModel');
 const { buildAccessoryPricing } = require('./accessoryMaterials');
 const router = express.Router();
 
@@ -207,6 +208,16 @@ router.post('/materials', async (req, res) => {
   }
 });
 
+const syncAccessories = async materialId => {
+  await AccessoryMaterials.updateCostsByMaterial(materialId);
+  const accessoryIds = await AccessoryMaterials.findAccessoryIdsByMaterial(materialId);
+  for (const id of accessoryIds) {
+    const accessory = await Accessories.findById(id);
+    const ownerId = accessory?.owner_id || 1;
+    await buildAccessoryPricing(id, ownerId);
+  }
+};
+
 /**
  * Actualiza un material existente.
  * @route PUT /materials/:id
@@ -235,13 +246,7 @@ router.put('/materials/:id', async (req, res) => {
       price,
       material_type_id
     );
-    await AccessoryMaterials.updateCostsByMaterial(req.params.id);
-    const accessoryIds = await AccessoryMaterials.findAccessoryIdsByMaterial(
-      req.params.id
-    );
-    for (const accId of accessoryIds) {
-      await buildAccessoryPricing(accId, material.owner_id || 1);
-    }
+    await syncAccessories(req.params.id);
     res.json({ message: 'Material actualizado' });
   } catch (error) {
     res.status(500).json({ message: error.message });
