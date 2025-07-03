@@ -186,5 +186,36 @@ describe('Model logic', () => {
     const ids = await accessoryMaterials.findAccessoryIdsByMaterial(1);
     expect(ids).to.deep.equal([2, 3]);
   });
+
+  it('updateCostsByMaterial recalculates link totals', async () => {
+    const calls = [];
+    db.query = (sql, params, callback) => {
+      if (sql.startsWith('SELECT id, width_m')) {
+        return callback(null, [
+          { id: 10, width_m: 1, length_m: 1, quantity: 2, porcentaje_ganancia: 50 }
+        ]);
+      }
+      if (sql.includes('FROM raw_materials')) {
+        return callback(null, [
+          { width_m: 2, length_m: 3, price: 10 }
+        ]);
+      }
+      if (sql.startsWith('UPDATE accessory_materials')) {
+        calls.push(params);
+        return callback(null, {});
+      }
+      callback(null, []);
+    };
+
+    await accessoryMaterials.updateCostsByMaterial(1);
+
+    const expectedCost = (10 / (2 * 3)) * (1 * 1) * 2;
+    const expectedPrice = +(expectedCost * 1.5).toFixed(2);
+
+    expect(calls).to.have.lengthOf(1);
+    expect(calls[0][0]).to.be.closeTo(expectedCost, 0.001);
+    expect(calls[0][1]).to.be.closeTo(expectedPrice, 0.001);
+    expect(calls[0][2]).to.equal(10);
+  });
 });
 
