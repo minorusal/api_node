@@ -27,7 +27,12 @@ const buildAccessoryPricing = async (accessoryId, ownerId = 1) => {
       );
     }
     cost = +cost.toFixed(2);
-    const price = +(cost * factor).toFixed(2);
+    let price;
+    if (m.price !== null && m.price !== undefined) {
+      price = +m.price.toFixed(2);
+    } else {
+      price = +(cost * factor).toFixed(2);
+    }
     totalMaterials += price;
     materials.push({
       accessory_id: accessoryId,
@@ -401,7 +406,9 @@ router.put('/accessory-materials/:id', async (req, res) => {
       price: bodyPrice,
       quantity,
       width,
-      length
+      length,
+      investment,
+      description
     } = req.body;
 
     let profit_percentage =
@@ -415,7 +422,7 @@ router.put('/accessory-materials/:id', async (req, res) => {
     if (typeof accessoryId !== 'number' || typeof materialId !== 'number')
       return res.status(400).json({ message: 'Datos incompletos' });
 
-    const numericFields = { cost, profit_percentage, price, quantity, width, length };
+    const numericFields = { cost, profit_percentage, price, quantity, width, length, investment };
     for (const [key, value] of Object.entries(numericFields)) {
       if (value !== undefined && value !== null && typeof value !== 'number')
         return res.status(400).json({ message: `${key} invalido` });
@@ -467,6 +474,7 @@ router.get('/accessories/:id/materials', async (req, res) => {
       width_m: row.material_width,
       length_m: row.material_length,
       price: row.price,
+      material_price: row.material_price,
       quantity: row.quantity,
       width_m_used: row.width_m,
       length_m_used: row.length_m,
