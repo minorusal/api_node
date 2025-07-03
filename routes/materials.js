@@ -235,6 +235,7 @@ router.put('/materials/:id', async (req, res) => {
       price,
       material_type_id
     );
+    await AccessoryMaterials.updateCostsByMaterial(req.params.id);
     const accessoryIds = await AccessoryMaterials.findAccessoryIdsByMaterial(
       req.params.id
     );
