@@ -1,5 +1,7 @@
 const express = require('express');
 const Materials = require('../models/materialsModel');
+const AccessoryMaterials = require('../models/accessoryMaterialsModel');
+const { buildAccessoryPricing } = require('./accessoryMaterials');
 const router = express.Router();
 
 /**
@@ -233,6 +235,12 @@ router.put('/materials/:id', async (req, res) => {
       price,
       material_type_id
     );
+    const accessoryIds = await AccessoryMaterials.findAccessoryIdsByMaterial(
+      req.params.id
+    );
+    for (const accId of accessoryIds) {
+      await buildAccessoryPricing(accId, material.owner_id || 1);
+    }
     res.json({ message: 'Material actualizado' });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -174,5 +174,17 @@ describe('Model logic', () => {
 
     accessoryMaterials.calculateCost = originalCalc;
   });
+
+  it('findAccessoryIdsByMaterial returns ids list', async () => {
+    db.query = (sql, params, callback) => {
+      callback(null, [
+        { accessory_id: 2 },
+        { accessory_id: 3 }
+      ]);
+    };
+
+    const ids = await accessoryMaterials.findAccessoryIdsByMaterial(1);
+    expect(ids).to.deep.equal([2, 3]);
+  });
 });
 
