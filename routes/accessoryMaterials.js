@@ -86,10 +86,8 @@ const buildAccessoryPricing = async (accessoryId, ownerId = 1) => {
   };
 };
 
+// cost and price already include the quantity so leave them unchanged
 const applyQuantityTotals = item => {
-  const qty = item.quantity != null ? item.quantity : 1;
-  if (item.cost !== undefined && item.cost !== null) item.cost *= qty;
-  if (item.price !== undefined && item.price !== null) item.price *= qty;
   return item;
 };
 
