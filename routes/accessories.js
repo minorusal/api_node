@@ -194,16 +194,87 @@ router.get('/accessories/:id', async (req, res) => {
     const rawMaterials = await AccessoryMaterials.findMaterialsByAccessory(
       accessory.id
     );
-    const materials = rawMaterials.map(m => ({
-      ...m,
-      unit: m.unit
-    }));
-    const accessories = await AccessoryComponents.findByParentDetailed(
+    const pricing = await AccessoryPricing.findByAccessory(accessory.id, ownerId);
+    let markup = pricing ? +pricing.markup_percentage : undefined;
+    if (markup === undefined) {
+      const owner = await OwnerCompanies.findById(ownerId);
+      markup = owner ? +owner.profit_percentage : 0;
+    }
+    const factor = 1 + markup / 100;
+
+    const materials = [];
+    let totalMaterialsCost = 0;
+    let totalMaterialsPrice = 0;
+    for (const m of rawMaterials) {
+      let cost;
+      if (m.costo !== null && m.costo !== undefined) {
+        cost = m.costo;
+      } else {
+        cost = await AccessoryMaterials.calculateCost(
+          m.material_id,
+          m.width_m || 0,
+          m.length_m || 0,
+          m.quantity != null ? m.quantity : 1
+        );
+      }
+      cost = +cost.toFixed(2);
+      const price = +(cost * factor).toFixed(2);
+      totalMaterialsCost += cost;
+      totalMaterialsPrice += price;
+      const quantity =
+        m.quantity && m.quantity !== 0
+          ? m.quantity
+          : m.width_m && m.length_m
+          ? +(m.width_m * m.length_m).toFixed(2)
+          : m.quantity;
+      materials.push({
+        ...m,
+        quantity,
+        cost,
+        profit_percentage: markup,
+        price
+      });
+    }
+
+    const compRows = await AccessoryComponents.findByParentDetailed(
       accessory.id,
       ownerId
     );
-    const pricing = await AccessoryPricing.findByAccessory(accessory.id, ownerId);
-    res.json({ ...accessory, ...pricing, materials, accessories });
+    const accessories = [];
+    let totalAccessoriesCost = 0;
+    let totalAccessoriesPrice = 0;
+    for (const c of compRows) {
+      const qty = c.quantity != null ? c.quantity : 1;
+      const unitCost = c.cost;
+      const cost = +(unitCost * qty).toFixed(2);
+      const price = +(cost * factor).toFixed(2);
+      totalAccessoriesCost += cost;
+      totalAccessoriesPrice += price;
+      accessories.push({
+        ...c,
+        cost,
+        price,
+        quantity: qty
+      });
+    }
+
+    const totalCost = +(totalMaterialsCost + totalAccessoriesCost).toFixed(2);
+    totalMaterialsPrice = +totalMaterialsPrice.toFixed(2);
+    totalAccessoriesPrice = +totalAccessoriesPrice.toFixed(2);
+    const totalPrice = +(totalMaterialsPrice + totalAccessoriesPrice).toFixed(2);
+
+    res.json({
+      ...accessory,
+      markup_percentage: markup,
+      total_materials_cost: +totalMaterialsCost.toFixed(2),
+      total_accessories_cost: +totalAccessoriesCost.toFixed(2),
+      total_cost: totalCost,
+      total_materials_price: totalMaterialsPrice,
+      total_accessories_price: totalAccessoriesPrice,
+      total_price: totalPrice,
+      materials,
+      accessories
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
