@@ -13,7 +13,8 @@ const buildAccessoryPricing = async (accessoryId, ownerId = 1) => {
 
   const mats = await AccessoryMaterials.findMaterialsByAccessory(accessoryId);
   const materials = [];
-  let totalMaterials = 0;
+  let totalMaterialsCost = 0;
+  let totalMaterialsPrice = 0;
   for (const m of mats) {
     let cost;
     if (m.costo !== null && m.costo !== undefined) {
@@ -27,13 +28,9 @@ const buildAccessoryPricing = async (accessoryId, ownerId = 1) => {
       );
     }
     cost = +cost.toFixed(2);
-    let price;
-    if (m.price !== null && m.price !== undefined) {
-      price = +m.price.toFixed(2);
-    } else {
-      price = +(cost * factor).toFixed(2);
-    }
-    totalMaterials += price;
+    const price = +(cost * factor).toFixed(2);
+    totalMaterialsCost += cost;
+    totalMaterialsPrice += price;
     materials.push({
       accessory_id: accessoryId,
       material_id: m.material_id,
@@ -48,12 +45,15 @@ const buildAccessoryPricing = async (accessoryId, ownerId = 1) => {
 
   const comps = await AccessoryComponents.findByParentDetailed(accessoryId, ownerId);
   const accessories = [];
-  let totalAccessories = 0;
+  let totalAccessoriesCost = 0;
+  let totalAccessoriesPrice = 0;
   for (const c of comps) {
     const qty = c.quantity != null ? c.quantity : 1;
-    const cost = +(c.cost * qty).toFixed(2);
-    const price = +(c.price * qty).toFixed(2);
-    totalAccessories += price;
+    const unitCost = c.cost;
+    const cost = +(unitCost * qty).toFixed(2);
+    const price = +(cost * factor).toFixed(2);
+    totalAccessoriesCost += cost;
+    totalAccessoriesPrice += price;
     accessories.push({
       accessory_id: c.child_accessory_id,
       price,
@@ -62,9 +62,10 @@ const buildAccessoryPricing = async (accessoryId, ownerId = 1) => {
     });
   }
 
-  const totalMaterialsPrice = +totalMaterials.toFixed(2);
-  const totalAccessoriesPrice = +totalAccessories.toFixed(2);
-  const totalPrice = +(totalMaterials + totalAccessories).toFixed(2);
+  const totalCost = +(totalMaterialsCost + totalAccessoriesCost).toFixed(2);
+  totalMaterialsPrice = +totalMaterialsPrice.toFixed(2);
+  totalAccessoriesPrice = +totalAccessoriesPrice.toFixed(2);
+  const totalPrice = +(totalMaterialsPrice + totalAccessoriesPrice).toFixed(2);
 
   await AccessoryPricing.upsertPricing(
     accessoryId,
@@ -80,6 +81,9 @@ const buildAccessoryPricing = async (accessoryId, ownerId = 1) => {
     markup_percentage: markup,
     materials,
     accessories,
+    total_materials_cost: +totalMaterialsCost.toFixed(2),
+    total_accessories_cost: +totalAccessoriesCost.toFixed(2),
+    total_cost: totalCost,
     total_materials_price: totalMaterialsPrice,
     total_accessories_price: totalAccessoriesPrice,
     total_price: totalPrice
@@ -460,29 +464,56 @@ router.get('/accessories/:id/materials', async (req, res) => {
     const rows = await AccessoryMaterials.findMaterialsByAccessory(req.params.id);
     if (rows.length === 0)
       return res.status(404).json({ message: 'Accesorio no encontrado' });
+    const ownerId = parseInt(req.query.owner_id || '1', 10);
+    const owner = await OwnerCompanies.findById(ownerId);
+    const markup = owner ? +owner.profit_percentage : 0;
+    const factor = 1 + markup / 100;
     const { accessory_id, accessory_name } = rows[0];
-    const materials = rows.map((row) => ({
-      link_id: row.link_id,
-      material_id: row.material_id,
-      material_name: row.material_name,
-      material_type_id: row.material_type_id,
-      material_type_description: row.material_type_description,
-      description: row.description,
-      thickness_mm: row.thickness_mm,
-      width_m: row.material_width,
-      length_m: row.material_length,
-      price: row.price,
-      material_price: row.material_price,
-      quantity: row.quantity,
-      width_m_used: row.width_m,
-      length_m_used: row.length_m,
-      investment: row.investment,
-      descripcion_material: row.descripcion_material,
-      cost: row.costo,
-      profit_percentage: row.porcentaje_ganancia,
-      price_override: row.precio,
-      unit: row.unit
-    }));
+    const materials = await Promise.all(
+      rows.map(async row => {
+        let cost;
+        if (row.costo !== null && row.costo !== undefined) {
+          cost = row.costo;
+        } else {
+          cost = await AccessoryMaterials.calculateCost(
+            row.material_id,
+            row.width_m || 0,
+            row.length_m || 0,
+            row.quantity != null ? row.quantity : 1
+          );
+        }
+        cost = +cost.toFixed(2);
+        const quantity =
+          row.quantity && row.quantity !== 0
+            ? row.quantity
+            : row.width_m && row.length_m
+            ? +(row.width_m * row.length_m).toFixed(2)
+            : row.quantity;
+        const price = +(cost * factor).toFixed(2);
+        return {
+          link_id: row.link_id,
+          material_id: row.material_id,
+          material_name: row.material_name,
+          material_type_id: row.material_type_id,
+          material_type_description: row.material_type_description,
+          description: row.description,
+          thickness_mm: row.thickness_mm,
+          width_m: row.material_width,
+          length_m: row.material_length,
+          price: row.material_price,
+          material_price: row.material_price,
+          quantity,
+          width_m_used: row.width_m,
+          length_m_used: row.length_m,
+          investment: row.investment,
+          descripcion_material: row.descripcion_material,
+          cost,
+          profit_percentage: markup,
+          price_override: price,
+          unit: row.unit
+        };
+      })
+    );
     res.json({ accessory_id, accessory_name, materials });
   } catch (error) {
     res.status(500).json({ message: error.message });
