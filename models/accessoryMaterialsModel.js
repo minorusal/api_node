@@ -381,6 +381,22 @@ const deleteLink = (id) => {
 };
 
 /**
+ * Obtiene los IDs de accesorios que utilizan un material dado.
+ * @param {number} materialId - ID del material.
+ * @returns {Promise<number[]>} Lista de IDs de accesorios.
+ */
+const findAccessoryIdsByMaterial = materialId => {
+  return new Promise((resolve, reject) => {
+    const sql =
+      'SELECT DISTINCT accessory_id FROM accessory_materials WHERE material_id = ?';
+    db.query(sql, [materialId], (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows.map(r => r.accessory_id));
+    });
+  });
+};
+
+/**
  * Elimina todas las relaciones de materiales para un accesorio.
  * @param {number} accessoryId - Identificador del accesorio.
  * @returns {Promise<object>} Resultado de la operación.
@@ -410,5 +426,6 @@ module.exports = {
   updateLinkData,
   deleteByAccessory,
   deleteLink,
-  calculateCost
+  calculateCost,
+  findAccessoryIdsByMaterial
 };
