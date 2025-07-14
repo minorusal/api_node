@@ -7,7 +7,7 @@ const router = express.Router();
  * @openapi
  * /playsets:
  *   get:
- *     summary: Listar playsets con costo calculado
+ *     summary: Listar playsets con costo calculado 
  *     tags:
  *       - Playsets
  *     responses:

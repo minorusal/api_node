@@ -2,13 +2,18 @@
   "name": "api",
   "version": "1.0.0",
   "description": "",
-  "main": "api.js",
+  "main": "src/index.js",
   "scripts": {
+<<<<<<< HEAD
     "start": "nodemon api.js",
     "test": "mocha --require dotenv/config 'test/**/*.js' --timeout 5000 --exit",
     "test:coverage": "nyc npm test",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
+=======
+    "start": "nodemon src/index.js",
+    "test": "mocha"
+>>>>>>> 4acc93166002582e734bb1d3656494074f34c381
   },
   "keywords": [],
   "author": "Minoru Daniel Salazar",
@@ -42,7 +47,12 @@
     "eslint": "^8.57.1",
     "globals": "^16.3.0",
     "mocha": "^10.2.0",
+<<<<<<< HEAD
     "nodemon": "^3.0.3",
     "nyc": "^17.1.0"
+=======
+    "chai": "^4.3.7",
+    "supertest": "^6.3.3"
+>>>>>>> 4acc93166002582e734bb1d3656494074f34c381
   }
 }
