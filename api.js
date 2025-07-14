@@ -1,34 +1,18 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const passport = require('passport');
-const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 require('./middlewares/passport');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
-
-const userRouter = require('./routes/users');
-const authRouter = require('./routes/auth');
-const filesRouter = require('./routes/files');
-const getApis = require('./routes/getApis');
-const operaciones = require('./routes/operaciones')
-const materialsRouter = require('./routes/materials');
-const accessoriesRouter = require('./routes/accessories');
-const playsetsRouter = require('./routes/playsets');
-const playsetAccessoriesRouter = require('./routes/playsetAccessories');
-const materialAttributesRouter = require('./routes/materialAttributes');
-const accessoryMaterialsRouter = require('./routes/accessoryMaterials');
-const accessoryComponentsRouter = require('./routes/accessoryComponents');
-const clientsRouter = require('./routes/clients');
+const mainRouter = require('./routes/index'); // Importar el enrutador principal
 const projectsRouter = require('./routes/projects');
-const installationCostsRouter = require('./routes/installationCosts');
-const ownerCompaniesRouter = require('./routes/ownerCompanies');
-const remissionStyleRouter = require('./routes/remissionStyle');
 const remissionsRouter = require('./routes/remissions');
-const menusRouter = require('./routes/menus');
-const materialTypesRouter = require('./routes/materialTypes');
+const menusRouter = require('./routes/menus'); // Añadido
+const tempSeedRouter = require('./routes/temp_seed'); // Temporal
+const tempTruncateRouter = require('./routes/temp_truncate'); // Temporal
 
 const app = express();
 app.use(passport.initialize());
@@ -61,85 +45,50 @@ if (process.env.CORS_ORIGIN) {
 }
 
 app.use(cors(corsOptions));
-const port = process.env.PORT || 3000;
+// const port = process.env.PORT || 3000; // Se define más abajo
 
 app.use(cookieParser());
-
 app.use(bodyParser.json());
 
-// Serve uploaded files so templates can access logos
+// Servir archivos estáticos
 app.use('/uploads', express.static('uploads'));
-// Serve generated remission PDFs
 app.use('/remissions', express.static('remissions'));
+
+app.use('/api/projects', passport.authenticate('jwt', { session: false }), projectsRouter);
+app.use('/api/remissions', passport.authenticate('jwt', { session: false }), remissionsRouter);
+app.use('/api/menus', passport.authenticate('jwt', { session: false }), menusRouter); // Añadido
+app.use('/api/temp', tempSeedRouter); // No requiere autenticación
+app.use('/api/temp-truncate', tempTruncateRouter); // No requiere autenticación
 
 // Documentación Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-
-// Rutas de autentcacion
-app.use('/auth', authRouter);
-
-// Rutas de archivos
-app.use('/files', filesRouter);
-
-// Rutas de public apis
-app.use('/public-apis', getApis);
-
-// Rutas de suma
-app.use('/operaciones', operaciones);
-
-// Middleware para la autenticacion de passport
-const authenticateJWT = (req, res, next) => {
-    const cookieToken = req.cookies.jwt;
-    const headerToken = req.headers.authorization && req.headers.authorization.startsWith('Bearer ')
-        ? req.headers.authorization.split(' ')[1]
-        : null;
-
-    const token = headerToken || cookieToken;
-
-    if (!token) {
-        return res.status(401).json({ message: 'Token no proporcionado' });
-    }
-
-    if (headerToken && cookieToken && headerToken !== cookieToken) {
-        return res.status(401).json({ message: 'Tokens JWT no coinciden' });
-    }
-
-    jwt.verify(token, process.env.JWT_SECRET, (err) => {
-        if (err) {
-            return res.status(401).json({ message: 'Token inválido' });
-        }
-        next();
-    });
-};
-
-// Rutas protegidas
-app.use('/', authenticateJWT, userRouter);
-app.use('/', authenticateJWT, materialsRouter);
-app.use('/', authenticateJWT, accessoryMaterialsRouter);
-app.use('/', authenticateJWT, accessoryComponentsRouter);
-app.use('/', authenticateJWT, accessoriesRouter);
-app.use('/', authenticateJWT, playsetsRouter);
-app.use('/', authenticateJWT, playsetAccessoriesRouter);
-app.use('/', authenticateJWT, materialAttributesRouter);
-app.use('/', authenticateJWT, materialTypesRouter);
-app.use('/', authenticateJWT, clientsRouter);
-app.use('/', authenticateJWT, projectsRouter);
-app.use('/', authenticateJWT, installationCostsRouter);
-app.use('/', authenticateJWT, ownerCompaniesRouter);
-app.use('/', authenticateJWT, remissionStyleRouter);
-app.use('/', authenticateJWT, remissionsRouter);
-app.use('/', authenticateJWT, menusRouter);
+// Usar el enrutador principal para todas las rutas de la API
+app.use('/api', mainRouter);
 
 // Middleware para manejar errores
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
+    console.error(err.stack);
+
     if (err.name === 'UnauthorizedError') {
         return res.status(401).json({ message: 'Token inválido o no proporcionado' });
     }
-    console.error(err.stack);
-    res.status(500).send('Algo salió mal en el servidor');
+    
+    // Si el error tiene un código de estado, úsalo. Si no, es un error 500.
+    const statusCode = err.statusCode || 500;
+    const message = err.message || 'Algo salió mal en el servidor';
+    
+    res.status(statusCode).json({ message });
 });
 
-app.listen(port, () => {
-    console.log(`Aplicación levantada en el puerto: ${port}`);
-});
+const PORT = process.env.PORT || 3000;
+
+// Solo iniciar el servidor si este archivo es ejecutado directamente
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
+  });
+}
+
+module.exports = app; // Exportar la app para las pruebas

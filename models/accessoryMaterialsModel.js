@@ -1,471 +1,136 @@
 const db = require('../db');
+const materialTypesModel = require('./materialTypesModel'); // Necesitamos este modelo
+const ownerCompanyModel = require('./ownerCompaniesModel');
 
 /**
- * Relaciona un material con un accesorio.
- * @param {number} accessoryId - ID del accesorio.
- * @param {number} materialId - ID del material.
- * @param {number} quantity - Cantidad de material.
- * @param {number} width - Ancho de la pieza en metros.
- * @param {number} length - Largo de la pieza en metros.
- * @returns {Promise<object>} Registro creado con su ID.
- * @throws {Error} Si ocurre un error en la inserción.
+ * Lógica centralizada para calcular el costo y precio de un material dentro de un accesorio.
+ * @param {object} material - El objeto del material base.
+ * @param {object} usageData - Datos de uso { quantity, width, length, owner_id }.
+ * @returns {Promise<object>} - { proportionalCost, salePrice, profitPercentage }.
  */
-const linkMaterial = (
-  accessoryId,
-  materialId,
-  cost,
-  profitPercentage,
-  price,
-  quantity,
-  width,
-  length,
-  investment,
-  description,
-  ownerId = 1
-) => {
-  return new Promise((resolve, reject) => {
-    const sql =
-      'INSERT INTO accessory_materials (accessory_id, material_id, costo, porcentaje_ganancia, precio, quantity, width_m, length_m, investment, descripcion_material, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    db.query(
-      sql,
-      [
-        accessoryId,
-        materialId,
-        cost,
-        profitPercentage,
-        price,
-        quantity,
-        width,
-        length,
-        investment,
-        description,
-        ownerId
-      ],
-      (err, result) => {
-        if (err) return reject(err);
-        resolve({
-          id: result.insertId,
-          accessoryId,
-          materialId,
-          cost,
-          profit_percentage: profitPercentage,
-          price,
-          quantity,
-          width,
-          length,
-          investment,
-          description,
-          owner_id: ownerId
-        });
-      }
-    );
-  });
-};
+const calculateMaterialCost = async (material, usageData) => {
+    const { quantity, width, length, owner_id } = usageData;
+
+    const materialType = await materialTypesModel.getMaterialTypeById(material.material_type_id);
+    if (!materialType) throw new Error('El tipo de material no fue encontrado.');
+
+    const ownerCompany = await ownerCompanyModel.getOwnerCompanyById(owner_id);
+    const profitPercentage = ownerCompany ? parseFloat(ownerCompany.profit_percentage) : 0;
+    const profitMultiplier = 1 + (profitPercentage / 100);
+
+    let proportionalCost = 0;
+    if (materialType.name.toLowerCase().includes('area')) {
+        const area = (width || 0) * (length || 0);
+        proportionalCost = (material.purchase_price || 0) * area;
+    } else {
+        proportionalCost = (material.purchase_price || 0) * quantity;
+    }
+
+    const salePrice = proportionalCost * profitMultiplier;
+
+    return { proportionalCost, salePrice, profitPercentage };
+}
 
 /**
- * Inserta varios materiales para un accesorio de una sola vez.
- * @param {number} accessoryId - ID del accesorio.
- * @param {object[]} materials - Arreglo de materiales a vincular.
- * @param {number} materials[].material_id - ID del material.
- * @param {number} [materials[].quantity] - Cantidad del material.
- * @param {number} [materials[].width] - Ancho utilizado en metros.
- * @param {number} [materials[].length] - Largo utilizado en metros.
- * @param {number} [ownerId=1] - ID del propietario.
- * @returns {Promise<object[]>} Registros creados con sus IDs.
+ * Añade un material a un accesorio, utilizando la lógica de cálculo centralizada.
+ * @param {object} data - Datos para la asociación.
  */
-const linkMaterialsBatch = (accessoryId, materials, ownerId = 1) => {
-  return new Promise((resolve, reject) => {
-    if (!materials.length) return resolve([]);
-    const values = materials.map((m) => [
-      accessoryId,
-      m.material_id,
-      m.cost,
-      m.profit_percentage,
-      m.price,
-      m.quantity,
-      m.width,
-      m.length,
-      m.investment,
-      m.description,
-      ownerId
-    ]);
-    const sql =
-      'INSERT INTO accessory_materials (accessory_id, material_id, costo, porcentaje_ganancia, precio, quantity, width_m, length_m, investment, descripcion_material, owner_id) VALUES ?';
-    db.query(sql, [values], (err, result) => {
-      if (err) return reject(err);
-      const inserted = materials.map((m, idx) => ({
-        id: result.insertId + idx,
-        accessoryId,
-        materialId: m.material_id,
-        cost: m.cost,
-        profit_percentage: m.profit_percentage,
-        price: m.price,
-        quantity: m.quantity,
-        width: m.width,
-        length: m.length,
-        investment: m.investment,
-        description: m.description,
-        owner_id: ownerId
-      }));
-      resolve(inserted);
-    });
-  });
-};
+const addMaterialToAccessory = async (data) => {
+    const { accessory_id, material_id, quantity, owner_id, width, length } = data;
 
-/**
- * Calcula el costo de utilizar una porción de material.
- * @param {number} materialId - ID del material.
- * @param {number} width - Ancho de la pieza en metros.
- * @param {number} length - Largo de la pieza en metros.
- * @param {number} [quantity=1] - Cantidad de piezas.
- * @returns {Promise<number>} Costo total calculado.
- * @throws {Error} Si el material no existe o falla la consulta.
- */
-const calculateCost = (materialId, width, length, quantity = 1) => {
-  return new Promise((resolve, reject) => {
-    const sql =
-      'SELECT width_m, length_m, price FROM raw_materials WHERE id = ?';
-    db.query(sql, [materialId], (err, rows) => {
-      if (err) return reject(err);
-      if (rows.length === 0) return reject(new Error('Material not found'));
-      const material = rows[0];
-      const fullArea = material.width_m * material.length_m;
-      const pieceArea = width * length;
-      const unitCost = (material.price / fullArea) * pieceArea;
-      resolve(unitCost * quantity);
-    });
-  });
-};
+    const materialModel = require('./materialsModel');
+    const material = await materialModel.getMaterialById(material_id);
+    if (!material) throw new Error('El material especificado no existe.');
 
-/**
- * Obtiene un registro de vínculo por su ID.
- * @param {number} id - Identificador del vínculo.
- * @returns {Promise<object>} Registro encontrado o undefined.
- * @throws {Error} Si ocurre un error en la consulta.
- */
-const findById = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM accessory_materials WHERE id = ?', [id], (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows[0]);
-    });
-  });
-};
-
-/**
- * Lista todos los vínculos entre accesorios y materiales.
- * @returns {Promise<object[]>} Arreglo de registros de vínculos.
- * @throws {Error} Si la consulta falla.
- */
-const findAll = () => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM accessory_materials', (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows);
-    });
-  });
-};
-
-/**
- * Devuelve los accesorios con el detalle de materiales y costos asociados.
- * @returns {Promise<object[]>} Lista detallada de accesorios y costos.
- * @throws {Error} Si la consulta a la base de datos falla.
- */
-const findAccessoriesWithMaterialsCost = () => {
-  return new Promise((resolve, reject) => {
+    const { proportionalCost, salePrice, profitPercentage } = await calculateMaterialCost(material, data);
+    
+    const attributesToStore = { width, length };
+    
     const sql = `
-      SELECT a.id AS accessory_id, a.name AS accessory_name,
-             am.costo, am.quantity, am.width_m AS piece_width, am.length_m AS piece_length,
-             rm.id AS material_id, rm.name AS material_name,
-             rm.price, rm.width_m AS material_width, rm.length_m AS material_length
-      FROM accessories a
-      JOIN accessory_materials am ON a.id = am.accessory_id
-      JOIN raw_materials rm ON rm.id = am.material_id`;
-    db.query(sql, (err, rows) => {
-      if (err) return reject(err);
-      const detailed = rows.map((row) => {
-        let cost;
-        if (row.costo !== null && row.costo !== undefined) {
-          cost = row.costo;
-        } else {
-          cost = row.price * row.quantity;
-          if (row.piece_width && row.piece_length) {
-            const fullArea = row.material_width * row.material_length;
-            const pieceArea = row.piece_width * row.piece_length;
-            const unitCost = (row.price / fullArea) * pieceArea;
-            cost = unitCost * row.quantity;
-          }
-        }
-        return {
-          accessory_id: row.accessory_id,
-          accessory_name: row.accessory_name,
-          material_id: row.material_id,
-          material_name: row.material_name,
-          quantity: row.quantity,
-          width_m: row.piece_width,
-          length_m: row.piece_length,
-          cost,
-          unit: row.unit
-        };
-      });
-      resolve(detailed);
-    });
-  });
-};
-
-/**
- * Obtiene los costos de materiales para un accesorio específico.
- * @param {number} accessoryId - ID del accesorio.
- * @returns {Promise<object[]>} Detalle de materiales y costos.
- * @throws {Error} Si ocurre un error en la consulta.
- */
-const findMaterialsCostByAccessory = (accessoryId) => {
-  return new Promise((resolve, reject) => {
-  const sql = `
-      SELECT a.id AS accessory_id, a.name AS accessory_name,
-             am.costo, am.quantity, am.width_m AS piece_width, am.length_m AS piece_length,
-             rm.id AS material_id, rm.name AS material_name,
-             rm.price, rm.width_m AS material_width, rm.length_m AS material_length,
-             mt.unit
-      FROM accessories a
-      JOIN accessory_materials am ON a.id = am.accessory_id
-      JOIN raw_materials rm ON rm.id = am.material_id
-      LEFT JOIN material_types mt ON rm.material_type_id = mt.id
-      WHERE a.id = ?`;
-    db.query(sql, [accessoryId], (err, rows) => {
-      if (err) return reject(err);
-      const detailed = rows.map((row) => {
-        let cost;
-        if (row.costo !== null && row.costo !== undefined) {
-          cost = row.costo;
-        } else {
-          cost = row.price * row.quantity;
-          if (row.piece_width && row.piece_length) {
-            const fullArea = row.material_width * row.material_length;
-            const pieceArea = row.piece_width * row.piece_length;
-            const unitCost = (row.price / fullArea) * pieceArea;
-            cost = unitCost * row.quantity;
-          }
-        }
-        return {
-          accessory_id: row.accessory_id,
-          accessory_name: row.accessory_name,
-          material_id: row.material_id,
-          material_name: row.material_name,
-          quantity: row.quantity,
-          width_m: row.piece_width,
-          length_m: row.piece_length,
-          cost
-        };
-      });
-      resolve(detailed);
-    });
-  });
-};
-
-/**
- * Obtiene la lista de materiales asociados a un accesorio.
- * @param {number} accessoryId - ID del accesorio.
- * @returns {Promise<object[]>} Materiales vinculados al accesorio.
- */
-const findMaterialsByAccessory = (accessoryId) => {
-  return new Promise((resolve, reject) => {
-    const sql = `
-      SELECT a.id AS accessory_id, a.name AS accessory_name,
-             am.id AS link_id, am.quantity, am.width_m, am.length_m,
-             am.costo, am.porcentaje_ganancia, am.precio, am.precio AS price,
-             am.investment, am.descripcion_material,
-             rm.id AS material_id, rm.name AS material_name, rm.description,
-             rm.thickness_mm, rm.width_m AS material_width, rm.length_m AS material_length,
-             rm.price AS material_price, rm.material_type_id,
-             mt.description AS material_type_description,
-             mt.unit AS unit
-      FROM accessories a
-      JOIN accessory_materials am ON a.id = am.accessory_id
-      JOIN raw_materials rm ON rm.id = am.material_id
-      LEFT JOIN material_types mt ON rm.material_type_id = mt.id
-      WHERE a.id = ?`;
-    db.query(sql, [accessoryId], (err, rows) => {
-      if (err) return reject(err);
-      const mapped = rows.map(r => ({
-        ...r,
-        porcentaje_ganancia: r.porcentaje_ganancia ?? 0
-      }));
-      resolve(mapped);
-    });
-  });
-};
-
-/**
- * Actualiza la cantidad de un vínculo existente.
- * @param {number} id - ID del vínculo.
- * @param {number} quantity - Nueva cantidad.
- * @returns {Promise<object>} Resultado de la actualización.
- * @throws {Error} Si la consulta falla.
- */
-const updateLink = (id, quantity) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'UPDATE accessory_materials SET quantity = ? WHERE id = ?';
-    db.query(sql, [quantity, id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
-};
-
-/**
- * Actualiza todos los datos de un vínculo existente.
- * @param {number} id - ID del vínculo.
- * @param {number} accessoryId - Nuevo ID del accesorio.
- * @param {number} materialId - Nuevo ID del material.
- * @param {number} cost - Costo del material.
- * @param {number} profitPercentage - Porcentaje de ganancia.
- * @param {number} price - Precio del material.
- * @param {number} quantity - Cantidad utilizada.
- * @param {number} width - Ancho utilizado en metros.
- * @param {number} length - Largo utilizado en metros.
- * @returns {Promise<object>} Resultado de la actualización.
- */
-const updateLinkData = (
-  id,
-  accessoryId,
-  materialId,
-  cost,
-  profitPercentage,
-  price,
-  quantity,
-  width,
-  length,
-  investment,
-  description
-) => {
-  return new Promise((resolve, reject) => {
-    const sql =
-      'UPDATE accessory_materials SET accessory_id = ?, material_id = ?, costo = ?, porcentaje_ganancia = ?, precio = ?, quantity = ?, width_m = ?, length_m = ?, investment = ?, descripcion_material = ? WHERE id = ?';
-    db.query(
-      sql,
-      [
-        accessoryId,
-        materialId,
-        cost,
-        profitPercentage,
-        price,
+        INSERT INTO accessory_materials
+        (accessory_id, material_id, quantity, attributes, proportional_cost, profit_percentage, sale_price, owner_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const params = [
+        accessory_id,
+        material_id,
         quantity,
-        width,
-        length,
-        investment,
-        description,
-        id
-      ],
-      (err, result) => {
-        if (err) return reject(err);
-        resolve(result);
-      }
-    );
-  });
+        JSON.stringify(attributesToStore),
+        proportionalCost,
+        profitPercentage,
+        salePrice,
+        owner_id
+    ];
+    
+    const [result] = await db.query(sql, params);
+    const [createdRow] = await db.query('SELECT * FROM accessory_materials WHERE id = ?', [result.insertId]);
+    return createdRow[0];
+};
+
+
+const getMaterialsForAccessory = async (accessoryId) => {
+    const sql = `
+        SELECT
+            am.id,
+            am.material_id,
+            m.name,
+            am.quantity,
+            am.attributes,
+            am.proportional_cost,
+            am.profit_percentage,
+            am.sale_price
+        FROM
+            accessory_materials am
+        JOIN
+            materials m ON am.material_id = m.id
+        WHERE
+            am.accessory_id = ?
+    `;
+    const [rows] = await db.query(sql, [accessoryId]);
+    return rows.map(row => ({
+        ...row,
+        attributes: typeof row.attributes === 'string' ? JSON.parse(row.attributes) : row.attributes
+    }));
+};
+
+const removeMaterialFromAccessory = async (accessoryMaterialId) => {
+    const sql = 'DELETE FROM accessory_materials WHERE id = ?';
+    const [result] = await db.query(sql, [accessoryMaterialId]);
+    return result;
 };
 
 /**
- * Elimina un vínculo entre accesorio y material.
- * @param {number} id - Identificador del vínculo.
- * @returns {Promise<object>} Resultado de la operación.
- * @throws {Error} Si la consulta falla.
+ * Actualiza los snapshots de precios en 'accessory_materials' para un material específico.
+ * @param {number} materialId - El ID del material que cambió.
  */
-const deleteLink = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('DELETE FROM accessory_materials WHERE id = ?', [id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
-};
+const updateMaterialSnapshots = async (materialId) => {
+    // Se usa require local para evitar dependencia circular.
+    const materialModel = require('./materialsModel');
+    const material = await materialModel.getMaterialById(materialId);
+    if (!material) return;
 
-/**
- * Obtiene los IDs de accesorios que utilizan un material dado.
- * @param {number} materialId - ID del material.
- * @returns {Promise<number[]>} Lista de IDs de accesorios.
- */
-const findAccessoryIdsByMaterial = materialId => {
-  return new Promise((resolve, reject) => {
-    const sql =
-      'SELECT DISTINCT accessory_id FROM accessory_materials WHERE material_id = ?';
-    db.query(sql, [materialId], (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows.map(r => r.accessory_id));
-    });
-  });
-};
+    const [links] = await db.query('SELECT * FROM accessory_materials WHERE material_id = ?', [materialId]);
 
-/**
- * Elimina todas las relaciones de materiales para un accesorio.
- * @param {number} accessoryId - Identificador del accesorio.
- * @returns {Promise<object>} Resultado de la operación.
- */
-const deleteByAccessory = (accessoryId) => {
-  return new Promise((resolve, reject) => {
-    db.query(
-      'DELETE FROM accessory_materials WHERE accessory_id = ?',
-      [accessoryId],
-      (err, result) => {
-        if (err) return reject(err);
-        resolve(result);
-      }
-    );
-  });
-};
+    for (const link of links) {
+        const attributes = typeof link.attributes === 'string' ? JSON.parse(link.attributes) : {};
+        const usageData = {
+            quantity: link.quantity,
+            width: attributes.width,
+            length: attributes.length,
+            owner_id: link.owner_id
+        };
+        
+        const { proportionalCost, salePrice, profitPercentage } = await calculateMaterialCost(material, usageData);
 
-/**
- * Recalcula y actualiza costo y precio de los vínculos de un material.
- * @param {number} materialId - ID del material editado.
- * @returns {Promise<void>} Promesa que se resuelve al finalizar.
- */
-const updateCostsByMaterial = async (materialId) => {
-  const getLinks = () =>
-    new Promise((resolve, reject) => {
-      const sql =
-        'SELECT id, width_m, length_m, quantity, porcentaje_ganancia FROM accessory_materials WHERE material_id = ?';
-      db.query(sql, [materialId], (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows);
-      });
-    });
-
-  const updateLinkCost = (id, cost, price) =>
-    new Promise((resolve, reject) => {
-      const sql = 'UPDATE accessory_materials SET costo = ?, precio = ? WHERE id = ?';
-      db.query(sql, [cost, price, id], (err, result) => {
-        if (err) return reject(err);
-        resolve(result);
-      });
-    });
-
-  const links = await getLinks();
-  for (const link of links) {
-    const cost = await calculateCost(
-      materialId,
-      link.width_m || 0,
-      link.length_m || 0,
-      link.quantity != null ? link.quantity : 1
-    );
-    const profit = link.porcentaje_ganancia ? +link.porcentaje_ganancia : 0;
-    const price = +(cost * (1 + profit / 100)).toFixed(2);
-    await updateLinkCost(link.id, cost, price);
-  }
+        const updateSql = 'UPDATE accessory_materials SET proportional_cost = ?, sale_price = ?, profit_percentage = ? WHERE id = ?';
+        await db.query(updateSql, [proportionalCost, salePrice, profitPercentage, link.id]);
+    }
 };
 
 module.exports = {
-  linkMaterial,
-  linkMaterialsBatch,
-  findById,
-  findAll,
-  findAccessoriesWithMaterialsCost,
-  findMaterialsCostByAccessory,
-  findMaterialsByAccessory,
-  updateLink,
-  updateLinkData,
-  deleteByAccessory,
-  deleteLink,
-  calculateCost,
-  findAccessoryIdsByMaterial,
-  updateCostsByMaterial
+    addMaterialToAccessory,
+    getMaterialsForAccessory,
+    removeMaterialFromAccessory,
+    calculateMaterialCost,
+    updateMaterialSnapshots,
 };

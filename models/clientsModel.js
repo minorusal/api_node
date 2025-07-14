@@ -1,65 +1,33 @@
 const db = require('../db');
 
-const createClient = (
-  contactName,
-  companyName,
-  address,
-  requiresInvoice,
-  billingInfo,
-  ownerId = 1
-) => {
-  return new Promise((resolve, reject) => {
-    const sql = `INSERT INTO clients (contact_name, company_name, address, requires_invoice, billing_info, owner_id) VALUES (?, ?, ?, ?, ?, ?)`;
-    db.query(sql, [contactName, companyName, address, requiresInvoice, billingInfo, ownerId], (err, result) => {
-      if (err) return reject(err);
-      resolve({
-        id: result.insertId,
-        contact_name: contactName,
-        company_name: companyName,
-        address,
-        requires_invoice: requiresInvoice,
-        billing_info: billingInfo,
-        owner_id: ownerId
-      });
-    });
-  });
+const createClient = async (clientData, ownerCompanyId) => {
+    const { contact_name, company_name, address, requires_invoice, billing_info } = clientData;
+    const sql = `INSERT INTO clients (contact_name, company_name, address, requires_invoice, billing_info, owner_company_id) VALUES (?, ?, ?, ?, ?, ?)`;
+    const [result] = await db.query(sql, [contact_name, company_name, address, requires_invoice, billing_info, ownerCompanyId]);
+    return { id: result.insertId, ...clientData, owner_company_id: ownerCompanyId };
 };
 
-const findById = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM clients WHERE id = ?', [id], (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows[0]);
-    });
-  });
+const findById = async (id, ownerCompanyId) => {
+    const [rows] = await db.query('SELECT * FROM clients WHERE id = ? AND owner_company_id = ?', [id, ownerCompanyId]);
+    return rows[0];
 };
 
-const findAll = () => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM clients', (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows);
-    });
-  });
+const findAll = async (ownerCompanyId) => {
+    const [rows] = await db.query('SELECT * FROM clients WHERE owner_company_id = ?', [ownerCompanyId]);
+    return rows;
 };
 
-const updateClient = (id, contactName, companyName, address, requiresInvoice, billingInfo) => {
-  return new Promise((resolve, reject) => {
-    const sql = `UPDATE clients SET contact_name = ?, company_name = ?, address = ?, requires_invoice = ?, billing_info = ? WHERE id = ?`;
-    db.query(sql, [contactName, companyName, address, requiresInvoice, billingInfo, id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
+const updateClient = async (id, clientData, ownerCompanyId) => {
+    const { contact_name, company_name, address, requires_invoice, billing_info } = clientData;
+    const sql = `UPDATE clients SET contact_name = ?, company_name = ?, address = ?, requires_invoice = ?, billing_info = ? WHERE id = ? AND owner_company_id = ?`;
+    const [result] = await db.query(sql, [contact_name, company_name, address, requires_invoice, billing_info, id, ownerCompanyId]);
+    return result;
 };
 
-const deleteClient = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('DELETE FROM clients WHERE id = ?', [id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
+const deleteClient = async (id, ownerCompanyId) => {
+    const sql = 'DELETE FROM clients WHERE id = ? AND owner_company_id = ?';
+    const [result] = await db.query(sql, [id, ownerCompanyId]);
+    return result;
 };
 
 module.exports = {

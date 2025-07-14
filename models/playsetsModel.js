@@ -1,88 +1,38 @@
 const db = require('../db');
 
-/**
- * Crea un nuevo playset.
- * @param {string} name - Nombre del playset.
- * @param {string} description - Descripción del playset.
- * @returns {Promise<object>} Playset creado con su ID.
- * @throws {Error} Si la inserción falla.
- */
-const createPlayset = (name, description, ownerId = 1) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO playsets (name, description, owner_id) VALUES (?, ?, ?)';
-    db.query(sql, [name, description, ownerId], (err, result) => {
-      if (err) return reject(err);
-      resolve({ id: result.insertId, name, description, owner_id: ownerId });
-    });
-  });
+const getAllPlaysets = async (ownerCompanyId) => {
+    const [rows] = await db.query('SELECT * FROM playsets WHERE owner_company_id = ?', [ownerCompanyId]);
+    return rows;
 };
 
-/**
- * Busca un playset por su ID.
- * @param {number} id - Identificador del playset.
- * @returns {Promise<object>} Playset encontrado o undefined.
- * @throws {Error} Si ocurre un error en la consulta.
- */
-const findById = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM playsets WHERE id = ?', [id], (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows[0]);
-    });
-  });
+const getPlaysetById = async (id, ownerCompanyId) => {
+    const [rows] = await db.query('SELECT * FROM playsets WHERE id = ? AND owner_company_id = ?', [id, ownerCompanyId]);
+    return rows[0];
 };
 
-/**
- * Lista todos los playsets registrados.
- * @returns {Promise<object[]>} Arreglo de playsets.
- * @throws {Error} Si la consulta falla.
- */
-const findAll = () => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM playsets', (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows);
-    });
-  });
+const createPlayset = async (playset, ownerCompanyId) => {
+    const { name, description, status, image_url } = playset;
+    const sql = 'INSERT INTO playsets (name, description, status, image_url, owner_company_id) VALUES (?, ?, ?, ?, ?)';
+    const [result] = await db.query(sql, [name, description, status, image_url, ownerCompanyId]);
+    return { id: result.insertId, ...playset, owner_company_id: ownerCompanyId };
 };
 
-/**
- * Actualiza la información de un playset.
- * @param {number} id - ID del playset.
- * @param {string} name - Nombre del playset.
- * @param {string} description - Descripción del playset.
- * @returns {Promise<object>} Resultado de la actualización.
- * @throws {Error} Si ocurre un error al actualizar.
- */
-const updatePlayset = (id, name, description) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'UPDATE playsets SET name = ?, description = ? WHERE id = ?';
-    db.query(sql, [name, description, id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
+const updatePlayset = async (id, playset, ownerCompanyId) => {
+    const { name, description, status, image_url } = playset;
+    const sql = 'UPDATE playsets SET name = ?, description = ?, status = ?, image_url = ? WHERE id = ? AND owner_company_id = ?';
+    const [result] = await db.query(sql, [name, description, status, image_url, id, ownerCompanyId]);
+    return result;
 };
 
-/**
- * Elimina un playset por su ID.
- * @param {number} id - Identificador del playset.
- * @returns {Promise<object>} Resultado de la operación.
- * @throws {Error} Si la consulta falla.
- */
-const deletePlayset = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('DELETE FROM playsets WHERE id = ?', [id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
+const deletePlayset = async (id, ownerCompanyId) => {
+    const [result] = await db.query('DELETE FROM playsets WHERE id = ? AND owner_company_id = ?', [id, ownerCompanyId]);
+    return result;
 };
 
 module.exports = {
-  createPlayset,
-  findById,
-  findAll,
-  updatePlayset,
-  deletePlayset
+    getAllPlaysets,
+    getPlaysetById,
+    createPlayset,
+    updatePlayset,
+    deletePlayset
 };

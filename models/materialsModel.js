@@ -1,179 +1,93 @@
 const db = require('../db');
+const ownerCompanyModel = require('./ownerCompaniesModel');
 
-/**
- * Crea un nuevo material.
- * @param {string} name - Nombre del material.
- * @param {string} description - Descripción del material.
- * @param {number} thickness - Espesor en milímetros.
- * @param {number} width - Ancho en metros.
- * @param {number} length - Largo en metros.
- * @param {number} price - Precio del material.
- * @returns {Promise<object>} Material creado con su ID.
- * @throws {Error} Si ocurre un error en la base de datos.
- */
-const createMaterial = (
-  name,
-  description,
-  thickness,
-  width,
-  length,
-  price,
-  materialTypeId,
-  ownerId = 1
-) => {
-  return new Promise((resolve, reject) => {
-    const sql =
-      'INSERT INTO raw_materials (name, description, thickness_mm, width_m, length_m, price, material_type_id, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-    db.query(
-      sql,
-      [name, description, thickness, width, length, price, materialTypeId, ownerId],
-      (err, result) => {
-        if (err) return reject(err);
-        resolve({
-          id: result.insertId,
-          name,
-          description,
-          thickness_mm: thickness,
-          width_m: width,
-          length_m: length,
-          price,
-          material_type_id: materialTypeId,
-          owner_id: ownerId
-        });
-      }
-    );
-  });
+const createMaterial = async (materialData) => {
+    const { name, description, material_type_id, owner_id, purchase_price, attributes } = materialData;
+    
+    const ownerCompany = await ownerCompanyModel.getOwnerCompanyById(owner_id);
+    const profitPercentage = ownerCompany ? ownerCompany.profit_percentage : 0;
+    const sale_price = purchase_price * (1 + profitPercentage / 100);
+
+    const sql = `INSERT INTO materials (name, description, material_type_id, owner_id, purchase_price, profit_percentage_at_creation, sale_price, attributes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    const params = [name, description, material_type_id, owner_id, purchase_price, profitPercentage, sale_price, JSON.stringify(attributes)];
+    
+    const [result] = await db.query(sql, params);
+    const [newMaterial] = await db.query('SELECT * FROM materials WHERE id = ?', [result.insertId]);
+    return newMaterial[0];
 };
 
-/**
- * Busca un material por su ID.
- * @param {number} id - Identificador del material.
- * @returns {Promise<object>} Material encontrado o undefined.
- * @throws {Error} Si la consulta falla.
- */
-const findById = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM raw_materials WHERE id = ?', [id], (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows[0]);
-    });
-  });
+const getMaterialById = async (id) => {
+    const [rows] = await db.query('SELECT * FROM materials WHERE id = ?', [id]);
+    if (rows.length > 0) {
+        rows[0].attributes = typeof rows[0].attributes === 'string' ? JSON.parse(rows[0].attributes) : rows[0].attributes;
+    }
+    return rows[0];
 };
 
-/**
- * Obtiene todos los materiales registrados.
- * @returns {Promise<object[]>} Listado de materiales.
- * @throws {Error} Si ocurre un error al consultar la base de datos.
- */
-const findAll = () => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM raw_materials', (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows);
-    });
-  });
+const findPaginated = async (page = 1, limit = 10, search = '') => {
+    const offset = (page - 1) * limit;
+    const searchQuery = search ? `%${search}%` : '%';
+    const sql = `
+        SELECT m.*, mt.name as material_type_name 
+        FROM materials m 
+        LEFT JOIN material_types mt ON m.material_type_id = mt.id
+        WHERE m.name LIKE ? OR m.description LIKE ?
+        LIMIT ? OFFSET ?
+    `;
+    const [rows] = await db.query(sql, [searchQuery, searchQuery, limit, offset]);
+    return rows;
 };
 
-/**
- * Obtiene materiales con paginación.
- * @param {number} page - Número de página.
- * @param {number} limit - Cantidad de registros por página.
- * @returns {Promise<object[]>} Listado de materiales paginado.
- * @throws {Error} Si ocurre un error al consultar la base de datos.
- */
-const buildSearchQuery = (search) => {
-  if (!search) return { clause: '', params: [] };
-  const pattern = `%${search}%`;
-  const clause =
-    'WHERE CONCAT_WS(" ", id, name, description, thickness_mm, width_m, length_m, price, created_at, updated_at, owner_id) LIKE ?';
-  return { clause, params: [pattern] };
+const countAll = async (search = '') => {
+    const searchQuery = search ? `%${search}%` : '%';
+    const sql = 'SELECT COUNT(*) as count FROM materials WHERE name LIKE ? OR description LIKE ?';
+    const [rows] = await db.query(sql, [searchQuery, searchQuery]);
+    return rows[0].count;
 };
 
-const findPaginated = (page = 1, limit = 10, search = '') => {
-  const offset = (page - 1) * limit;
-  return new Promise((resolve, reject) => {
-    const { clause, params } = buildSearchQuery(search);
-    const sql = `SELECT * FROM raw_materials ${clause} LIMIT ? OFFSET ?`;
-    db.query(sql, [...params, parseInt(limit, 10), offset], (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows);
-    });
-  });
+const updateMaterial = async (id, materialData) => {
+    const { name, description, material_type_id, purchase_price, attributes } = materialData;
+    const material = await getMaterialById(id);
+    if (!material) throw new Error('Material not found');
+
+    const ownerCompany = await ownerCompanyModel.getOwnerCompanyById(material.owner_id);
+    const profitPercentage = ownerCompany ? ownerCompany.profit_percentage : material.profit_percentage_at_creation;
+    const sale_price = purchase_price * (1 + profitPercentage / 100);
+    
+    const sql = `UPDATE materials SET name = ?, description = ?, material_type_id = ?, purchase_price = ?, attributes = ?, sale_price = ? WHERE id = ?`;
+    const params = [name, description, material_type_id, purchase_price, JSON.stringify(attributes), sale_price, id];
+    
+    await db.query(sql, params);
+
+    // INICIO: Lógica de actualización en cascada de 2 pasos
+    const accessoriesModel = require('./accessoriesModel');
+    const accessoryMaterialsModel = require('./accessoryMaterialsModel');
+
+    // 1. Actualizar los snapshots en la tabla intermedia.
+    await accessoryMaterialsModel.updateMaterialSnapshots(id);
+
+    // 2. Encontrar todos los accesorios afectados para recalcular su precio TOTAL.
+    const amSql = 'SELECT DISTINCT accessory_id, owner_id FROM accessory_materials WHERE material_id = ?';
+    const [accessoryLinks] = await db.query(amSql, [id]);
+
+    for (const link of accessoryLinks) {
+        await accessoriesModel.updateAccessoryPrice(link.accessory_id, link.owner_id);
+    }
+    // FIN: Lógica de actualización en cascada
+
+    return getMaterialById(id);
 };
 
-/**
- * Cuenta el total de materiales registrados.
- * @returns {Promise<number>} Cantidad de materiales.
- * @throws {Error} Si ocurre un error al consultar la base de datos.
- */
-const countAll = (search = '') => {
-  return new Promise((resolve, reject) => {
-    const { clause, params } = buildSearchQuery(search);
-    const sql = `SELECT COUNT(*) AS count FROM raw_materials ${clause}`;
-    db.query(sql, params, (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows[0].count);
-    });
-  });
-};
-
-/**
- * Actualiza los datos de un material.
- * @param {number} id - ID del material.
- * @param {string} name - Nombre del material.
- * @param {string} description - Descripción del material.
- * @param {number} thickness - Espesor en milímetros.
- * @param {number} width - Ancho en metros.
- * @param {number} length - Largo en metros.
- * @param {number} price - Precio del material.
- * @returns {Promise<object>} Resultado de la actualización.
- * @throws {Error} Si ocurre un error en la base de datos.
- */
-const updateMaterial = (
-  id,
-  name,
-  description,
-  thickness,
-  width,
-  length,
-  price,
-  materialTypeId
-) => {
-  return new Promise((resolve, reject) => {
-    const sql =
-      'UPDATE raw_materials SET name = ?, description = ?, thickness_mm = ?, width_m = ?, length_m = ?, price = ?, material_type_id = ? WHERE id = ?';
-    db.query(
-      sql,
-      [name, description, thickness, width, length, price, materialTypeId, id],
-      (err, result) => {
-        if (err) return reject(err);
-        resolve(result);
-      }
-    );
-  });
-};
-
-/**
- * Elimina un material por su ID.
- * @param {number} id - Identificador del material.
- * @returns {Promise<object>} Resultado de la operación.
- * @throws {Error} Si la eliminación falla.
- */
-const deleteMaterial = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('DELETE FROM raw_materials WHERE id = ?', [id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
+const deleteMaterial = async (id) => {
+    const [result] = await db.query('DELETE FROM materials WHERE id = ?', [id]);
+    return result;
 };
 
 module.exports = {
-  createMaterial,
-  findById,
-  findAll,
-  findPaginated,
-  countAll,
-  updateMaterial,
-  deleteMaterial
+    createMaterial,
+    getMaterialById,
+    findPaginated,
+    countAll,
+    updateMaterial,
+    deleteMaterial
 };

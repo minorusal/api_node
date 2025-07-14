@@ -1,570 +1,188 @@
 const express = require('express');
 const Accessories = require('../models/accessoriesModel');
-const OwnerCompanies = require('../models/ownerCompaniesModel');
 const AccessoryMaterials = require('../models/accessoryMaterialsModel');
 const AccessoryComponents = require('../models/accessoryComponentsModel');
-const { buildAccessoryPricing } = require('./accessoryMaterials');
-const AccessoryPricing = require('../models/accessoryPricingModel');
-const { ensureColumn } = require('../Modules/dbUtils');
-const db = require('../db');
+
 const router = express.Router();
 
-// cost and price are stored as totals so avoid modifying them
-const applyQuantityTotals = item => {
-  return item;
-};
+// --- Rutas Principales ---
 
-const calculateAccessoryTotals = async (accessoryId, ownerId = 1, markup) => {
-  if (markup === undefined || markup === null) {
-    const owner = await OwnerCompanies.findById(ownerId);
-    markup = owner ? +owner.profit_percentage : 0;
-  }
-  const factor = 1 + markup / 100;
+router.get('/', async (req, res) => {
+    try {
+        const ownerId = req.user.owner_company_id;
+        
+        const page = parseInt(req.query.page || '1', 10);
+        const limit = parseInt(req.query.limit || '10', 10);
+        const search = req.query.search || '';
 
-  const mats = await AccessoryMaterials.findMaterialsByAccessory(accessoryId);
-  let totalMaterials = 0;
-  for (const m of mats) {
-    let cost = m.costo;
-    if (cost === null || cost === undefined) {
-      cost = await AccessoryMaterials.calculateCost(
-        m.material_id,
-        m.width_m || 0,
-        m.length_m || 0,
-        m.quantity != null ? m.quantity : 1
-      );
+        const accessories = await Accessories.findByOwnerWithCostsPaginated(ownerId, page, limit, search);
+        const totalDocs = await Accessories.countByOwner(ownerId, search);
+
+        res.json({
+            docs: accessories,
+            totalDocs,
+            totalPages: Math.ceil(totalDocs / limit),
+            page,
+            limit,
+            search,
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
     }
-    cost = +cost.toFixed(2);
-    let price = m.price;
-    if (price === null || price === undefined) {
-      price = +(cost * factor).toFixed(2);
-    } else {
-      price = +price.toFixed(2);
-    }
-    totalMaterials += price;
-  }
-
-  const comps = await AccessoryComponents.findByParent(accessoryId);
-  let totalAccessories = 0;
-  for (const c of comps) {
-    const qty = c.quantity != null ? c.quantity : 1;
-    let price = c.price;
-    if (price === null || price === undefined) {
-      const base = await Accessories.calculateAccessoryCost(c.child_accessory_id);
-      price = +(base * factor).toFixed(2);
-    } else {
-      price = +price.toFixed(2);
-    }
-    totalAccessories += +(price * qty).toFixed(2);
-  }
-
-  const total_materials_cost = +totalMaterials.toFixed(2);
-  const total_accessories_cost = +totalAccessories.toFixed(2);
-  const total_cost = +(total_materials_cost + total_accessories_cost).toFixed(2);
-  return { markup_percentage: markup, total_materials_cost, total_accessories_cost, total_cost };
-};
-
-/**
- * @openapi
- * /accessories:
- *   get:
- *     summary: Listar accesorios
- *     tags:
- *       - Accessories
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *         required: false
- *         description: Número de página (por defecto 1)
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *         required: false
- *         description: Cantidad de elementos por página (por defecto 10)
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         required: false
- *         description: Texto a buscar en nombre o descripción
- *     responses:
- *       200:
- *         description: Lista de accesorios
- *   post:
- *     summary: Crear accesorio y vincular materiales
- *     tags:
- *       - Accessories
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               description:
- *                 type: string
- *               owner_id:
- *                 type: integer
- *               materials:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     material_id:
- *                       type: integer
- *                     quantity:
- *                       type: number
- *                     width:
- *                       type: number
- *                     length:
- *                       type: number
- *                     cost:
- *                       type: number
- *                     price:
- *                       type: number
- *               accessories:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     accessory_id:
- *                       type: integer
- *                     quantity:
- *                       type: number
- *     responses:
- *       201:
- *         description: Accesorio creado
- *
- * /accessories/{id}:
- *   get:
- *     summary: Obtener accesorio por ID
- *     tags:
- *       - Accessories
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Accesorio encontrado
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: integer
- *                 name:
- *                   type: string
- *                 description:
- *                   type: string
- *                 materials:
- *                   type: array
- *                   items:
- *                     type: object
- *                 accessories:
- *                   type: array
- *                   items:
- *                     type: object
- *       404:
- *         description: Accesorio no encontrado
- *   put:
- *     summary: Actualizar accesorio
- *     tags:
- *       - Accessories
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               description:
- *                 type: string
- *     responses:
- *       200:
- *         description: Accesorio actualizado
- *       404:
- *         description: Accesorio no encontrado
- *   delete:
- *     summary: Eliminar accesorio
- *     tags:
- *       - Accessories
- *     responses:
- *       200:
- *         description: Accesorio eliminado
- *       404:
- *         description: Accesorio no encontrado
- */
-router.get('/accessories', async (req, res) => {
-  try {
-    const ownerId = parseInt(req.query.owner_id || '1', 10);
-    const page = parseInt(req.query.page || '1', 10);
-    const limit = parseInt(req.query.limit || '10', 10);
-    const search = req.query.search || '';
-
-    const [accessories, totalDocs] = await Promise.all([
-      Accessories.findByOwnerWithCostsPaginated(ownerId, page, limit, search),
-      Accessories.countByOwner(ownerId, search)
-    ]);
-
-    const totalPages = Math.ceil(totalDocs / limit);
-
-    res.json({
-      docs: accessories,
-      totalDocs,
-      totalPages,
-      page,
-      limit,
-      search
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
 });
 
-/**
- * Obtiene un accesorio por ID.
- * @route GET /accessories/:id
- */
-router.get('/accessories/:id', async (req, res) => {
-  try {
-    const accessory = await Accessories.findById(req.params.id);
-    if (!accessory)
-      return res.status(404).json({ message: 'Accesorio no encontrado' });
-    const ownerId = parseInt(req.query.owner_id || '1', 10);
-    const rawMaterials = await AccessoryMaterials.findMaterialsByAccessory(
-      accessory.id
-    );
-    const pricing = await AccessoryPricing.findByAccessory(accessory.id, ownerId);
-    let markup = pricing ? +pricing.markup_percentage : undefined;
-    if (markup === undefined) {
-      const owner = await OwnerCompanies.findById(ownerId);
-      markup = owner ? +owner.profit_percentage : 0;
+router.post('/', async (req, res) => {
+    try {
+        const ownerId = req.user.owner_company_id;
+
+        const accessoryData = { ...req.body, owner_id: ownerId };
+        
+        // Corregido: Llamar a la función 'create' exportada
+        const newAccessory = await Accessories.create(accessoryData);
+        
+        res.status(201).json(newAccessory);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
     }
-    const factor = 1 + markup / 100;
-
-    const materials = [];
-    let totalMaterialsCost = 0;
-    let totalMaterialsPrice = 0;
-    for (const m of rawMaterials) {
-      let cost;
-      if (m.costo !== null && m.costo !== undefined) {
-        cost = m.costo;
-      } else {
-        cost = await AccessoryMaterials.calculateCost(
-          m.material_id,
-          m.width_m || 0,
-          m.length_m || 0,
-          m.quantity != null ? m.quantity : 1
-        );
-      }
-      cost = +cost.toFixed(2);
-      const price = +(cost * factor).toFixed(2);
-      totalMaterialsCost += cost;
-      totalMaterialsPrice += price;
-      const quantity =
-        m.quantity && m.quantity !== 0
-          ? m.quantity
-          : m.width_m && m.length_m
-          ? +(m.width_m * m.length_m).toFixed(2)
-          : m.quantity;
-      materials.push({
-        ...m,
-        quantity,
-        cost,
-        profit_percentage: markup,
-        price
-      });
-    }
-
-    const compRows = await AccessoryComponents.findByParentDetailed(
-      accessory.id,
-      ownerId
-    );
-    const accessories = [];
-    let totalAccessoriesCost = 0;
-    let totalAccessoriesPrice = 0;
-    for (const c of compRows) {
-      const qty = c.quantity != null ? c.quantity : 1;
-      const unitCost = c.cost;
-      const cost = +(unitCost * qty).toFixed(2);
-      const price = +(cost * factor).toFixed(2);
-      totalAccessoriesCost += cost;
-      totalAccessoriesPrice += price;
-      accessories.push({
-        ...c,
-        cost,
-        price,
-        quantity: qty
-      });
-    }
-
-    const totalCost = +(totalMaterialsCost + totalAccessoriesCost).toFixed(2);
-    totalMaterialsPrice = +totalMaterialsPrice.toFixed(2);
-    totalAccessoriesPrice = +totalAccessoriesPrice.toFixed(2);
-    const totalPrice = +(totalMaterialsPrice + totalAccessoriesPrice).toFixed(2);
-
-    res.json({
-      ...accessory,
-      markup_percentage: markup,
-      total_materials_cost: +totalMaterialsCost.toFixed(2),
-      total_accessories_cost: +totalAccessoriesCost.toFixed(2),
-      total_cost: totalCost,
-      total_materials_price: totalMaterialsPrice,
-      total_accessories_price: totalAccessoriesPrice,
-      total_price: totalPrice,
-      materials,
-      accessories
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
 });
 
-/**
- * Calcula el costo y precio de un accesorio.
- * @route GET /accessories/:id/cost
- */
-router.get('/accessories/:id/cost', async (req, res) => {
-  try {
-    const accessory = await Accessories.findById(req.params.id);
-    if (!accessory)
-      return res.status(404).json({ message: 'Accesorio no encontrado' });
-    const ownerId = parseInt(req.query.owner_id || '1', 10);
-    const owner = await OwnerCompanies.findById(ownerId);
-    const profitPercentage = owner ? +owner.profit_percentage : 0;
-    const margin = profitPercentage / 100;
-    const factor = 1 + margin;
-    const cost = await Accessories.calculateAccessoryCost(accessory.id);
-    const price = +(cost * factor).toFixed(2);
-    res.json({
-      accessory_id: accessory.id,
-      accessory_name: accessory.name,
-      cost,
-      price,
-      profit_margin: margin,
-      profit_percentage: profitPercentage
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+router.get('/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const ownerId = req.user.owner_company_id;
+        
+        // Esta función ahora calcula y devuelve todo
+        const accessory = await Accessories.getAccessoryWithPrice(id, ownerId);
+
+        if (!accessory) {
+            return res.status(404).json({ message: 'Accesorio no encontrado o no pertenece a su compañía.' });
+        }
+        
+        res.json(accessory);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
+    }
 });
 
-/**
- * Crea un accesorio.
- * @route POST /accessories
- */
-router.post('/accessories', async (req, res) => {
-  try {
-    const {
-      name,
-      description,
-      owner_id = 1,
-      markup_percentage,
-      total_materials_cost,
-      total_accessories_cost,
-      total_cost,
-      materials,
-      accessories
-    } = req.body;
+// Las rutas de composición (materials, components) ya no son necesarias para la creación,
+// pero las mantenemos por si se quieren añadir/eliminar materiales a un accesorio existente.
+// Se necesitaría refactorizar para usar owner_company_id.
 
-    await Promise.all([
-      ensureColumn('accessory_materials', 'investment', 'DECIMAL(10,2)'),
-      ensureColumn('accessory_materials', 'descripcion_material', 'VARCHAR(255)'),
-      ensureColumn('accessory_components', 'child_accessory_name', 'VARCHAR(100)'),
-      ensureColumn('accessory_components', 'cost', 'DECIMAL(10,2)'),
-      ensureColumn('accessory_components', 'price', 'DECIMAL(10,2)'),
-      ensureColumn('accessory_pricing', 'markup_percentage', 'DECIMAL(10,2) DEFAULT 0'),
-      ensureColumn('accessory_pricing', 'total_materials_price', 'DECIMAL(10,2) DEFAULT 0'),
-      ensureColumn('accessory_pricing', 'total_accessories_price', 'DECIMAL(10,2) DEFAULT 0'),
-      ensureColumn('accessory_pricing', 'total_price', 'DECIMAL(10,2) DEFAULT 0')
-    ]);
-
-    const accessory = await Accessories.createAccessory(name, description, owner_id);
-
-    if (Array.isArray(materials) && materials.length) {
-      const mapped = materials.map(m =>
-        applyQuantityTotals({
-          material_id: m.material_id,
-          cost: m.cost,
-          profit_percentage: m.profit_percentage,
-          price: m.price,
-          quantity: m.quantity,
-          width: m.width,
-          length: m.length,
-          investment: m.investment,
-          description: m.description
-        })
-      );
-      await AccessoryMaterials.linkMaterialsBatch(accessory.id, mapped, owner_id);
+router.get('/:id/price', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const accessory = await Accessories.getAccessoryById(id);
+        if (!accessory) {
+            return res.status(404).json({ message: 'Accesorio no encontrado.' });
+        }
+        const priceDetails = await Accessories.updateAccessoryPrice(id, accessory.owner_id);
+        res.json(priceDetails);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
     }
-
-    if (Array.isArray(accessories) && accessories.length) {
-      const comps = accessories.map(a => ({
-        accessory_id: a.accessory_id,
-        quantity: a.quantity,
-        name: a.name,
-        cost: a.cost,
-        price: a.price
-      }));
-      await AccessoryComponents.createComponentLinksBatch(accessory.id, comps, owner_id);
-    }
-
-    let pricing;
-    if (
-      markup_percentage !== undefined ||
-      total_materials_cost !== undefined ||
-      total_accessories_cost !== undefined ||
-      total_cost !== undefined
-    ) {
-      await AccessoryPricing.upsertPricing(
-        accessory.id,
-        owner_id,
-        markup_percentage ?? 0,
-        total_materials_cost ?? 0,
-        total_accessories_cost ?? 0,
-        total_cost ?? 0
-      );
-      pricing = {
-        accessory_id: accessory.id,
-        markup_percentage: markup_percentage ?? 0,
-        total_materials_price: total_materials_cost ?? 0,
-        total_accessories_price: total_accessories_cost ?? 0,
-        total_price: total_cost ?? 0
-      };
-    } else {
-      pricing = await buildAccessoryPricing(accessory.id, owner_id);
-    }
-    res.status(201).json(pricing);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
 });
 
-/**
- * Actualiza un accesorio existente.
- * @route PUT /accessories/:id
- */
-router.put('/accessories/:id', async (req, res) => {
-  const id = Number(req.params.id);
-  const {
-    name,
-    description,
-    markup_percentage,
-    materials,
-    accessories,
-    totals = {},
-    owner_id = 1
-  } = req.body;
-
-  const begin = () =>
-    new Promise((resolve, reject) => {
-      db.beginTransaction(err => (err ? reject(err) : resolve()));
-    });
-  const commit = () =>
-    new Promise((resolve, reject) => {
-      db.commit(err => (err ? reject(err) : resolve()));
-    });
-  const rollback = () =>
-    new Promise(resolve => {
-      db.rollback(() => resolve());
-    });
-
-  try {
-    await begin();
-
-    const accessory = await Accessories.findById(id);
-    if (!accessory) {
-      await rollback();
-      return res.status(404).json({ message: 'Accesorio no encontrado' });
+router.get('/:id/materials', async (req, res) => {
+    try {
+        const materials = await AccessoryMaterials.getMaterialsForAccessory(req.params.id);
+        res.json(materials);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
     }
-
-    await Accessories.updateAccessory(id, name, description);
-
-    if (Array.isArray(materials)) {
-      await AccessoryMaterials.deleteByAccessory(id);
-      const mapped = materials.map(m =>
-        applyQuantityTotals({
-          material_id: m.material_id,
-          cost: m.cost,
-          profit_percentage: m.profit_percentage,
-          price: m.price,
-          quantity: m.quantity,
-          width: m.width,
-          length: m.length,
-          investment: m.investment,
-          description: m.description
-        })
-      );
-      await AccessoryMaterials.linkMaterialsBatch(id, mapped, owner_id);
-    }
-
-    if (Array.isArray(accessories)) {
-      await AccessoryComponents.deleteByParent(id);
-      const comps = accessories.map(a => ({
-        accessory_id: a.accessory_id,
-        quantity: a.quantity,
-        name: a.name,
-        cost: a.cost,
-        price: a.price
-      }));
-      await AccessoryComponents.createComponentLinksBatch(id, comps, owner_id);
-    }
-
-    const computed = await calculateAccessoryTotals(id, owner_id, markup_percentage);
-    const almostEqual = (a, b) => Math.abs(+a - +b) < 0.01;
-
-    if (totals.total_cost === undefined) {
-      totals.total_materials_cost = computed.total_materials_cost;
-      totals.total_accessories_cost = computed.total_accessories_cost;
-      totals.total_cost = computed.total_cost;
-    } else if (
-      !almostEqual(totals.total_materials_cost ?? computed.total_materials_cost, computed.total_materials_cost) ||
-      !almostEqual(totals.total_accessories_cost ?? computed.total_accessories_cost, computed.total_accessories_cost) ||
-      !almostEqual(totals.total_cost, computed.total_cost)
-    ) {
-      await rollback();
-      return res.status(400).json({ message: 'Totales inconsistentes con los costos calculados' });
-    }
-
-    await AccessoryPricing.upsertPricing(
-      id,
-      owner_id,
-      markup_percentage ?? computed.markup_percentage,
-      totals.total_materials_cost ?? computed.total_materials_cost,
-      totals.total_accessories_cost ?? computed.total_accessories_cost,
-      totals.total_cost ?? computed.total_cost
-    );
-
-    await commit();
-    res.json({ message: 'Accesorio actualizado' });
-  } catch (error) {
-    await rollback();
-    res.status(500).json({ message: error.message });
-  }
 });
 
-/**
- * Elimina un accesorio.
- * @route DELETE /accessories/:id
- */
-router.delete('/accessories/:id', async (req, res) => {
-  try {
-    const accessory = await Accessories.findById(req.params.id);
-    if (!accessory) return res.status(404).json({ message: 'Accesorio no encontrado' });
-    await Accessories.deleteAccessory(req.params.id);
-    res.json({ message: 'Accesorio eliminado' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+router.post('/:id/materials', async (req, res) => {
+    try {
+        const accessoryId = parseInt(req.params.id, 10);
+        const ownerId = req.user.owner_company_id;
+
+        // Verificar que el accesorio principal pertenece a la compañía
+        const accessory = await Accessories.getAccessoryById(accessoryId);
+        if (!accessory || accessory.owner_id !== ownerId) {
+            return res.status(404).json({ message: 'Accesorio no encontrado o no pertenece a su compañía.' });
+        }
+        
+        const materialData = { ...req.body, accessory_id: accessoryId, owner_id: ownerId };
+        const newMaterialLink = await AccessoryMaterials.addMaterialToAccessory(materialData);
+        
+        await Accessories.updateAccessoryPrice(accessoryId, ownerId);
+        
+        res.status(201).json(newMaterialLink);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+router.delete('/:accessoryId/materials/:accessoryMaterialId', async (req, res) => {
+    try {
+        await AccessoryMaterials.removeMaterialFromAccessory(req.params.accessoryMaterialId);
+        
+        // Recalcular el precio total del accesorio
+        const accessory = await Accessories.getAccessoryById(req.params.accessoryId);
+        if (accessory) {
+            await Accessories.updateAccessoryPrice(accessory.id, accessory.owner_id);
+        }
+        
+        res.status(200).json({ message: 'Material del accesorio eliminado correctamente.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+
+router.get('/:id/components', async (req, res) => {
+    try {
+        const components = await AccessoryComponents.getComponentsForAccessory(req.params.id);
+        res.json(components);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+router.post('/:id/components', async (req, res) => {
+    try {
+        const accessoryId = parseInt(req.params.id, 10);
+        const accessory = await Accessories.getAccessoryById(accessoryId);
+        if (!accessory) {
+            return res.status(404).json({ message: 'Accesorio no encontrado.' });
+        }
+
+        const componentData = { ...req.body, parent_accessory_id: accessoryId, owner_id: accessory.owner_id };
+        const newComponentLink = await AccessoryComponents.addComponentToAccessory(componentData);
+        
+        // Recalcular el precio total del accesorio
+        await Accessories.updateAccessoryPrice(accessoryId, accessory.owner_id);
+
+        res.status(201).json(newComponentLink);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+router.delete('/:accessoryId/components/:accessoryComponentId', async (req, res) => {
+    try {
+        await AccessoryComponents.removeComponentFromAccessory(req.params.accessoryComponentId);
+
+        // Recalcular el precio total del accesorio
+        const accessory = await Accessories.getAccessoryById(req.params.accessoryId);
+        if (accessory) {
+            await Accessories.updateAccessoryPrice(accessory.id, accessory.owner_id);
+        }
+        
+        res.status(200).json({ message: 'Componente del accesorio eliminado correctamente.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
+    }
 });
 
 module.exports = router;

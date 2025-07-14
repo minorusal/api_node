@@ -1,259 +1,219 @@
 const db = require('../db');
+const ownerCompanyModel = require('./ownerCompaniesModel');
+const AccessoryMaterials = require('./accessoryMaterialsModel');
 
 /**
- * Crea un nuevo accesorio.
- * @param {string} name - Nombre del accesorio.
- * @param {string} description - Descripción del accesorio.
- * @returns {Promise<object>} Accesorio creado con su ID.
- * @throws {Error} Si ocurre un error en la base de datos.
+ * CALCULA Y GUARDA el precio total de un accesorio.
+ * Suma los precios de sus materiales y los precios de sus sub-accesorios (recursivamente).
+ * Luego, guarda el resultado en la tabla accessory_pricing.
+ *
+ * @param {number} accessoryId - El ID del accesorio a calcular.
+ * @param {number} ownerId - El ID de la empresa dueña.
+ * @returns {Promise<object>} El precio total desglosado.
  */
-const createAccessory = (name, description, ownerId = 1) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO accessories (name, description, owner_id) VALUES (?, ?, ?)';
-    db.query(sql, [name, description, ownerId], (err, result) => {
-      if (err) return reject(err);
-      resolve({ id: result.insertId, name, description, owner_id: ownerId });
-    });
-  });
-};
+async function updateAccessoryPrice(accessoryId, ownerId) {
+    // Se usa require local para evitar dependencia circular.
+    const accessoryMaterialsModel = require('./accessoryMaterialsModel');
 
-/**
- * Obtiene un accesorio por su identificador.
- * @param {number} id - ID del accesorio.
- * @returns {Promise<object>} Accesorio encontrado o undefined.
- * @throws {Error} Si ocurre un fallo en la consulta.
- */
-const findById = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM accessories WHERE id = ?', [id], (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows[0]);
-    });
-  });
-};
+    // 1. Obtener el porcentaje de ganancia de la compañía.
+    const ownerCompany = await ownerCompanyModel.getOwnerCompanyById(ownerId);
+    const markupPercentage = ownerCompany ? parseFloat(ownerCompany.profit_percentage) : 0;
 
-/**
- * Lista todos los accesorios disponibles.
- * @returns {Promise<object[]>} Arreglo de accesorios.
- * @throws {Error} Si ocurre un error al realizar la consulta.
- */
-const findAll = () => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM accessories', (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows);
-    });
-  });
-};
+    // 2. Calcular costos de materiales DIRECTOS on-the-fly.
+    const materialsSql = `
+        SELECT
+            am.quantity,
+            am.attributes,
+            am.owner_id,
+            m.id as material_id,
+            m.name,
+            m.purchase_price,
+            m.material_type_id
+        FROM accessory_materials am
+        JOIN materials m ON am.material_id = m.id
+        WHERE am.accessory_id = ?
+    `;
+    const [directMaterials] = await db.query(materialsSql, [accessoryId]);
 
-const calculateAccessoryCost = async (accessoryId, visited = new Set()) => {
-  if (visited.has(accessoryId)) return 0;
-  visited.add(accessoryId);
+    let totalCost = 0;
+    let totalPrice = 0;
 
-  const query = (sql, params = []) =>
-    new Promise((resolve, reject) => {
-      db.query(sql, params, (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows);
-      });
-    });
+    for (const materialLink of directMaterials) {
+        const material = {
+            id: materialLink.material_id,
+            name: materialLink.name,
+            purchase_price: materialLink.purchase_price,
+            material_type_id: materialLink.material_type_id,
+        };
+        const attributes = typeof materialLink.attributes === 'string' ? JSON.parse(materialLink.attributes) : {};
+        const usageData = {
+            quantity: materialLink.quantity,
+            width: attributes.width,
+            length: attributes.length,
+            owner_id: materialLink.owner_id,
+        };
 
-  const mats = await query(
-    `SELECT am.costo, am.quantity, am.width_m, am.length_m,
-            rm.price AS material_price, rm.width_m AS mat_width, rm.length_m AS mat_length
-     FROM accessory_materials am
-     JOIN raw_materials rm ON rm.id = am.material_id
-     WHERE am.accessory_id = ?`,
-    [accessoryId]
-  );
-
-  let cost = 0;
-  for (const m of mats) {
-    let c;
-    if (m.costo !== null && m.costo !== undefined) {
-      c = m.costo;
-    } else {
-      c = (m.material_price || 0) * (m.quantity || 0);
-      if (m.width_m && m.length_m) {
-        const fullArea = m.mat_width * m.mat_length;
-        const pieceArea = m.width_m * m.length_m;
-        const unitCost = (m.material_price / fullArea) * pieceArea;
-        c = unitCost * (m.quantity || 0);
-      }
+        const { proportionalCost, salePrice } = await accessoryMaterialsModel.calculateMaterialCost(material, usageData);
+        
+        totalCost += proportionalCost;
+        totalPrice += salePrice;
     }
-    cost += c;
-  }
 
-  const children = await query(
-    'SELECT child_accessory_id, quantity FROM accessory_components WHERE parent_accessory_id = ?',
-    [accessoryId]
-  );
+    // 3. Sumar costos y precios de venta de COMPONENTES (que son otros accesorios).
+    const componentsSql = 'SELECT child_accessory_id, quantity FROM accessory_components WHERE parent_accessory_id = ?';
+    const [components] = await db.query(componentsSql, [accessoryId]);
 
-  for (const child of children) {
-    const childCost = await calculateAccessoryCost(child.child_accessory_id, visited);
-    cost += childCost * (child.quantity || 0);
-  }
+    for (const component of components) {
+        // Asegurarse de que el precio del sub-componente esté actualizado.
+        await updateAccessoryPrice(component.child_accessory_id, ownerId);
 
-  return +cost.toFixed(2);
+        const pricingSql = 'SELECT total_materials_price, total_price FROM accessory_pricing WHERE accessory_id = ?';
+        const [pricingResult] = await db.query(pricingSql, [component.child_accessory_id]);
+        
+        if (pricingResult.length > 0) {
+            const componentCost = parseFloat(pricingResult[0].total_materials_price || 0);
+            const componentPrice = parseFloat(pricingResult[0].total_price || 0);
+            totalCost += componentCost * component.quantity;
+            totalPrice += componentPrice * component.quantity;
+        }
+    }
+
+    // 4. Guardar los totales en la tabla accessory_pricing
+    const upsertSql = `
+        INSERT INTO accessory_pricing (accessory_id, owner_id, total_materials_price, markup_percentage, total_price)
+        VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+        total_materials_price = VALUES(total_materials_price),
+        markup_percentage = VALUES(markup_percentage),
+        total_price = VALUES(total_price)
+    `;
+    const upsertParams = [accessoryId, ownerId, totalCost, markupPercentage, totalPrice];
+    await db.query(upsertSql, upsertParams);
+
+    return { totalCost, totalPrice };
 };
 
 /**
- * Lista accesorios de un propietario calculando costo y precio.
- * @param {number} ownerId - ID del propietario.
- * @returns {Promise<object[]>} Arreglo de accesorios con costo y precio.
+ * Inserts a new accessory into the database.
+ * @param {object} data - The accessory data to insert.
+ * @returns {Promise<object>} The newly created accessory object.
  */
-const findByOwnerWithCosts = async (ownerId = 1) => {
-  const query = (sql, params = []) =>
-    new Promise((resolve, reject) => {
-      db.query(sql, params, (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows);
-      });
-    });
+const create = async (data) => {
+    // Se confía en los totales calculados por el frontend. NO SE RECALCULA NADA.
+    const { name, description, owner_id, materials, components, total_cost, total_price, markup_percentage } = data;
 
-  const accessories = await query(
-    'SELECT * FROM accessories WHERE owner_id = ?',
-    [ownerId]
-  );
+    // 1. Crear el accesorio base.
+    const [newAccessoryResult] = await db.query('INSERT INTO accessories (name, description, owner_id) VALUES (?, ?, ?)', [name, description, owner_id]);
+    const newAccessoryId = newAccessoryResult.insertId;
 
-  const ownerRows = await query(
-    'SELECT profit_percentage FROM owner_companies WHERE id = ?',
-    [ownerId]
-  );
-  const profitPercentage = ownerRows.length
-    ? +ownerRows[0].profit_percentage
-    : 0;
-  const margin = profitPercentage / 100;
-  const factor = 1 + margin;
+    // 2. Guardar el detalle de materiales (solo para registro, no para cálculo).
+    if (materials && materials.length > 0) {
+        for (const material of materials) {
+            await AccessoryMaterials.addMaterialToAccessory({ ...material, accessory_id: newAccessoryId, owner_id });
+        }
+    }
+    
+    // 3. Guardar el detalle de componentes.
+    if (components && components.length > 0) {
+        for (const component of components) {
+            await db.query('INSERT INTO accessory_components (parent_accessory_id, child_accessory_id, quantity) VALUES (?, ?, ?)', [newAccessoryId, component.child_accessory_id, component.quantity]);
+        }
+    }
 
-  for (const acc of accessories) {
-    const cost = await calculateAccessoryCost(acc.id);
-    acc.cost = cost;
-    acc.price = +(cost * factor).toFixed(2);
-    acc.profit_margin = margin;
-    acc.profit_percentage = profitPercentage;
-  }
+    // 4. Guardar los totales enviados desde el frontend directamente.
+    const pricingSql = `
+        INSERT INTO accessory_pricing (accessory_id, owner_id, total_materials_price, markup_percentage, total_price)
+        VALUES (?, ?, ?, ?, ?)
+    `;
+    const pricingParams = [newAccessoryId, owner_id, total_cost, markup_percentage, total_price];
+    await db.query(pricingSql, pricingParams);
 
-  return accessories;
+    // 5. Devolver los mismos datos que se recibieron, más el nuevo ID.
+    return { 
+        id: newAccessoryId, 
+        name, 
+        description, 
+        owner_id,
+        total_cost: total_cost,
+        total_price: total_price,
+        markup_percentage: markup_percentage
+    }
 };
 
-/**
- * Obtiene accesorios de un propietario con costos usando paginación.
- * @param {number} ownerId - ID del propietario.
- * @param {number} page - Número de página.
- * @param {number} limit - Cantidad de registros por página.
- * @returns {Promise<object[]>} Arreglo de accesorios con costo y precio.
- */
-const buildSearchQuery = search => {
-  if (!search) return { clause: '', params: [] };
-  const pattern = `%${search}%`;
-  const clause = 'AND (name LIKE ? OR description LIKE ?)';
-  return { clause, params: [pattern, pattern] };
+const getAccessoryById = async (id) => {
+    const [rows] = await db.query('SELECT * FROM accessories WHERE id = ?', [id]);
+    return rows[0];
 };
 
-const findByOwnerWithCostsPaginated = async (
-  ownerId = 1,
-  page = 1,
-  limit = 10,
-  search = ''
-) => {
-  const offset = (page - 1) * limit;
-  const query = (sql, params = []) =>
-    new Promise((resolve, reject) => {
-      db.query(sql, params, (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows);
-      });
-    });
+const getAccessoryWithPrice = async (accessoryId, ownerId) => {
+    const accessoryData = await getAccessoryById(accessoryId);
+    if (!accessoryData) {
+        return null;
+    }
 
-  const { clause, params } = buildSearchQuery(search);
+    // Se cambió para que no recalcule y guarde en una petición GET.
+    // Ahora solo busca el precio almacenado.
+    const pricingSql = `
+      SELECT total_materials_price as totalCost, total_price as totalPrice 
+      FROM accessory_pricing 
+      WHERE accessory_id = ? AND owner_id = ?
+    `;
+    const [pricingResult] = await db.query(pricingSql, [accessoryId, ownerId]);
+    
+    const priceData = pricingResult[0] || { totalCost: 0, totalPrice: 0 };
 
-  const accessories = await query(
-    `SELECT * FROM accessories WHERE owner_id = ? ${clause} LIMIT ? OFFSET ?`,
-    [ownerId, ...params, parseInt(limit, 10), offset]
-  );
+    // Combinar los datos del accesorio con los datos del precio almacenado.
+    return { ...accessoryData, ...priceData };
+}
 
-  const ownerRows = await query(
-    'SELECT profit_percentage FROM owner_companies WHERE id = ?',
-    [ownerId]
-  );
-  const profitPercentage = ownerRows.length
-    ? +ownerRows[0].profit_percentage
-    : 0;
-  const margin = profitPercentage / 100;
-  const factor = 1 + margin;
+const findByOwnerWithCostsPaginated = async (owner_id, page = 1, limit = 10, search = '') => {
+    const offset = (page - 1) * limit;
+    
+    let query = `
+        SELECT 
+            a.id, 
+            a.name, 
+            a.description, 
+            a.owner_id,
+            COALESCE(ap.total_price, 0.00) as total_price,
+            COALESCE(ap.total_materials_price, 0.00) as total_cost,
+            COALESCE(ap.markup_percentage, 0.00) as markup_percentage
+        FROM accessories a
+        LEFT JOIN accessory_pricing ap ON a.id = ap.accessory_id
+        WHERE a.owner_id = ?
+    `;
 
-  for (const acc of accessories) {
-    const cost = await calculateAccessoryCost(acc.id);
-    acc.cost = cost;
-    acc.price = +(cost * factor).toFixed(2);
-    acc.profit_margin = margin;
-    acc.profit_percentage = profitPercentage;
-  }
+    const params = [owner_id];
 
-  return accessories;
+    if (search) {
+        query += ` AND (a.name LIKE ? OR a.description LIKE ?)`;
+        params.push(`%${search}%`, `%${search}%`);
+    }
+
+    query += ` LIMIT ? OFFSET ?`;
+    params.push(limit, offset);
+
+    const [rows] = await db.query(query, params);
+    return rows;
 };
 
-/**
- * Cuenta los accesorios de un propietario.
- * @param {number} ownerId - ID del propietario.
- * @returns {Promise<number>} Cantidad de accesorios.
- */
-const countByOwner = (ownerId = 1, search = '') => {
-  return new Promise((resolve, reject) => {
-    const { clause, params } = buildSearchQuery(search);
-    db.query(
-      `SELECT COUNT(*) AS count FROM accessories WHERE owner_id = ? ${clause}`,
-      [ownerId, ...params],
-      (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows[0].count);
-      }
-    );
-  });
-};
-
-/**
- * Actualiza un accesorio existente.
- * @param {number} id - ID del accesorio a actualizar.
- * @param {string} name - Nuevo nombre del accesorio.
- * @param {string} description - Nueva descripción del accesorio.
- * @returns {Promise<object>} Resultado de la actualización.
- * @throws {Error} Si la consulta falla.
- */
-const updateAccessory = (id, name, description) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'UPDATE accessories SET name = ?, description = ? WHERE id = ?';
-    db.query(sql, [name, description, id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
-};
-
-/**
- * Elimina un accesorio por su ID.
- * @param {number} id - Identificador del accesorio.
- * @returns {Promise<object>} Resultado de la operación.
- * @throws {Error} Si la consulta falla.
- */
-const deleteAccessory = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('DELETE FROM accessories WHERE id = ?', [id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
+const countByOwner = async (ownerId, search) => {
+    const searchQuery = search ? `%${search}%` : '%';
+    const sql = `
+        SELECT COUNT(*) as count
+        FROM accessories a
+        WHERE a.owner_id = ?
+        AND (a.name LIKE ? OR a.description LIKE ?);
+    `;
+    const [rows] = await db.query(sql, [ownerId, searchQuery, searchQuery]);
+    return rows[0].count;
 };
 
 module.exports = {
-  createAccessory,
-  findById,
-  findAll,
-  findByOwnerWithCosts,
-  findByOwnerWithCostsPaginated,
-  countByOwner,
-  updateAccessory,
-  deleteAccessory,
-  calculateAccessoryCost
+    create,
+    updateAccessoryPrice,
+    getAccessoryById,
+    getAccessoryWithPrice,
+    findByOwnerWithCostsPaginated,
+    countByOwner
 };

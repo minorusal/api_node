@@ -1,72 +1,36 @@
 const db = require('../db');
 
-const createInstallationCosts = (
-  projectId,
-  workers,
-  days,
-  mealPerPerson,
-  hotelPerDay,
-  laborCost,
-  personalTransport,
-  localTransport,
-  extraExpenses,
-  ownerId = 1
-) => {
-  return new Promise((resolve, reject) => {
-    const sql = `INSERT INTO installation_costs (project_id, workers, days, meal_per_person, hotel_per_day, labor_cost, personal_transport, local_transport, extra_expenses, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    const params = [projectId, workers, days, mealPerPerson, hotelPerDay, laborCost, personalTransport, localTransport, extraExpenses, ownerId];
-    db.query(sql, params, (err, result) => {
-      if (err) return reject(err);
-      resolve({
-        id: result.insertId,
-        project_id: projectId,
-        workers,
-        days,
-        meal_per_person: mealPerPerson,
-        hotel_per_day: hotelPerDay,
-        labor_cost: laborCost,
-        personal_transport: personalTransport,
-        local_transport: localTransport,
-        extra_expenses: extraExpenses,
-        owner_id: ownerId
-      });
-    });
-  });
+const findByProjectId = async (projectId) => {
+    const [rows] = await db.query('SELECT * FROM installation_costs WHERE project_id = ?', [projectId]);
+    return rows[0];
 };
 
-const findByProjectId = (projectId) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM installation_costs WHERE project_id = ?';
-    db.query(sql, [projectId], (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows[0]);
-    });
-  });
+const createInstallationCosts = async (projectId, workers, days, mealPerPerson, hotelPerDay, laborCost, personalTransport, localTransport, extraExpenses, ownerId) => {
+    const sql = `
+        INSERT INTO installation_costs 
+        (project_id, workers, days, meal_per_person, hotel_per_day, labor_cost, personal_transport, local_transport, extra_expenses, owner_id) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const [result] = await db.query(sql, [projectId, workers, days, mealPerPerson, hotelPerDay, laborCost, personalTransport, localTransport, extraExpenses, ownerId]);
+    const [newRecord] = await db.query('SELECT * FROM installation_costs WHERE id = ?', [result.insertId]);
+    return newRecord[0];
 };
 
-const updateInstallationCosts = (
-  projectId,
-  workers,
-  days,
-  mealPerPerson,
-  hotelPerDay,
-  laborCost,
-  personalTransport,
-  localTransport,
-  extraExpenses
-) => {
-  return new Promise((resolve, reject) => {
-    const sql = `UPDATE installation_costs SET workers = ?, days = ?, meal_per_person = ?, hotel_per_day = ?, labor_cost = ?, personal_transport = ?, local_transport = ?, extra_expenses = ? WHERE project_id = ?`;
-    const params = [workers, days, mealPerPerson, hotelPerDay, laborCost, personalTransport, localTransport, extraExpenses, projectId];
-    db.query(sql, params, (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
+const updateInstallationCosts = async (projectId, workers, days, mealPerPerson, hotelPerDay, laborCost, personalTransport, localTransport, extraExpenses) => {
+    const sql = `
+        UPDATE installation_costs 
+        SET workers = ?, days = ?, meal_per_person = ?, hotel_per_day = ?, labor_cost = ?, personal_transport = ?, local_transport = ?, extra_expenses = ?
+        WHERE project_id = ?
+    `;
+    const [result] = await db.query(sql, [workers, days, mealPerPerson, hotelPerDay, laborCost, personalTransport, localTransport, extraExpenses, projectId]);
+    if (result.affectedRows === 0) {
+        return null;
+    }
+    return findByProjectId(projectId);
 };
 
 module.exports = {
-  createInstallationCosts,
-  findByProjectId,
-  updateInstallationCosts
+    findByProjectId,
+    createInstallationCosts,
+    updateInstallationCosts,
 };

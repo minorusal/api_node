@@ -1,79 +1,44 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const OwnerCompanies = require('../models/ownerCompaniesModel');
+const catchAsync = require('../Modules/catchAsync');
 
-/**
- * Ruta de la carpeta donde se guardarán los archivos
- */
-const uploadDirectory = './uploads';
-if (!fs.existsSync(uploadDirectory)) {
-  fs.mkdirSync(uploadDirectory);
-}
+// --- RUTAS CRUD ---
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDirectory);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
+router.get('/', catchAsync(async (req, res) => {
+    const companies = await OwnerCompanies.getAllOwnerCompanies();
+    res.json(companies);
+}));
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const fileTypes = /jpeg|jpg|png/;
-    const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = fileTypes.test(file.mimetype);
-    if (extname && mimetype) {
-      cb(null, true);
+router.get('/:id', catchAsync(async (req, res) => {
+    const company = await OwnerCompanies.getOwnerCompanyById(req.params.id);
+    if (company) {
+        res.json(company);
     } else {
-      cb('Error: Solo se permiten imágenes (jpeg, jpg, png)');
+        res.status(404).json({ message: 'Compañía no encontrada' });
     }
-  }
-});
+}));
 
-/**
- * @openapi
- * /owner-companies/{id}/logo:
- *   post:
- *     summary: Subir logo de la empresa
- *     tags:
- *       - OwnerCompanies
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *     responses:
- *       200:
- *         description: Logo actualizado
- */
-router.post('/owner-companies/:id/logo', upload.single('file'), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: 'No se proporcionó ningún archivo' });
-  }
-  try {
-    const fileUrl = `${req.protocol}://${req.get('host')}/${req.file.path}`;
-    await OwnerCompanies.updateLogoPath(req.params.id, fileUrl);
-    res.json({ message: 'Logo actualizado', logoPath: fileUrl });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+router.post('/', catchAsync(async (req, res) => {
+    const newCompany = await OwnerCompanies.createOwnerCompany(req.body);
+    res.status(201).json(newCompany);
+}));
+
+router.put('/:id', catchAsync(async (req, res) => {
+    const result = await OwnerCompanies.updateOwnerCompany(req.params.id, req.body);
+     if (result.affectedRows === 0) {
+        return res.status(404).json({ message: 'Compañía no encontrada' });
+    }
+    const updatedCompany = await OwnerCompanies.getOwnerCompanyById(req.params.id);
+    res.json(updatedCompany);
+}));
+
+router.delete('/:id', catchAsync(async (req, res) => {
+    const result = await OwnerCompanies.deleteOwnerCompany(req.params.id);
+    if (result.affectedRows === 0) {
+        return res.status(404).json({ message: 'Compañía no encontrada' });
+    }
+    res.json({ message: 'Compañía eliminada correctamente' });
+}));
 
 module.exports = router;

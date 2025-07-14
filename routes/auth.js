@@ -3,7 +3,7 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/usersModel');
-const OwnerCompanies = require('../models/ownerCompaniesModel');
+const OwnerCompany = require('../models/ownerCompaniesModel');
 const router = express.Router();
 require('dotenv').config();
 const jwtSecret = process.env.JWT_SECRET;
@@ -12,7 +12,7 @@ const jwtSecret = process.env.JWT_SECRET;
  * @openapi
  * /auth/register:
  *   post:
- *     summary: Registrar un nuevo usuario
+ *     summary: Registrar un nuevo usuario para una compañía
  *     tags:
  *       - Auth
  *     requestBody:
@@ -26,9 +26,14 @@ const jwtSecret = process.env.JWT_SECRET;
  *                 type: string
  *               password:
  *                 type: string
+ *               companyIdentifier:
+ *                 type: string
+ *                 description: "Nombre de la compañía a la que pertenecerá el usuario"
  *     responses:
  *       201:
  *         description: Usuario creado
+ *       404:
+ *         description: La compañía no existe
  *
  * /auth/login:
  *   post:
@@ -46,6 +51,9 @@ const jwtSecret = process.env.JWT_SECRET;
  *                 type: string
  *               password:
  *                 type: string
+ *               companyIdentifier:
+ *                 type: string
+ *                 description: "Nombre de la compañía a la que se desea acceder"
  *     responses:
  *       200:
  *         description: Autenticación exitosa
@@ -87,11 +95,21 @@ const jwtSecret = process.env.JWT_SECRET;
 // Ruta de registro de usuarios
 router.post('/register', async (req, res, next) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, companyIdentifier } = req.body;
+
+        const company = await OwnerCompany.findByName(companyIdentifier);
+        if (!company) {
+            return res.status(404).json({ message: 'La compañía especificada no existe.' });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
-        await User.createUser(username, hashedPassword);
-        res.status(201).json({ message: 'Usuario creado exitosamente' });
+        await User.createUser(username, hashedPassword, company.id);
+        res.status(201).json({ message: 'Usuario creado exitosamente para la compañía ' + company.name });
     } catch (error) {
+        // Manejar error de usuario duplicado (mismo email en la misma compañia)
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ message: 'Este nombre de usuario ya existe en esta compañía.' });
+        }
         next(error);
     }
 });
@@ -101,28 +119,35 @@ router.post('/register', async (req, res, next) => {
  * @route POST /login
  */
 router.post('/login', async (req, res, next) => {
-    passport.authenticate('local', (err, user, info) => {
+    passport.authenticate('local', { session: false }, (err, user, info) => {
         try {
-            if (err || !user) {
-                return res.status(401).json({ message: info.message });
+            // Primero, manejar errores del sistema (ej. fallo de DB)
+            if (err) {
+                return next(err);
             }
+            // Luego, manejar fallos de autenticación (usuario/pass incorrecto)
+            if (!user) {
+                // Si 'info' existe, usamos su mensaje, si no, uno genérico.
+                return res.status(401).json({ message: info ? info.message : 'Credenciales inválidas.' });
+            }
+            // Si todo va bien, procedemos con el login
             req.login(user, { session: false }, async (error) => {
-                if (error) {
-                    return next(error);
-                }
-                const token = jwt.sign({ sub: user.id }, jwtSecret);
-                res.cookie('jwt', token, { httpOnly: true });
+                if (error) return next(error);
+                
+                const payload = {
+                    sub: user.id,
+                    owner_company_id: user.owner_company_id
+                };
+                const token = jwt.sign(payload, jwtSecret);
+                
                 let ownerCompany = null;
-                try {
-                    if (user.owner_id) {
-                        ownerCompany = await OwnerCompanies.findById(user.owner_id);
-                    } else if (OwnerCompanies.getFirst) {
-                        ownerCompany = await OwnerCompanies.getFirst();
-                    }
-                } catch (e) {
-                    ownerCompany = null;
+                if (user.owner_company_id) {
+                    ownerCompany = await OwnerCompany.getOwnerCompanyById(user.owner_company_id);
                 }
+                
+                // eslint-disable-next-line no-unused-vars
                 const { password, ...userData } = user;
+                
                 return res.status(200).json({
                     message: 'Autenticación exitosa',
                     token,

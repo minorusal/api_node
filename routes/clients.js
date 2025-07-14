@@ -88,52 +88,57 @@ const router = express.Router();
  *       404:
  *         description: Cliente no encontrado
  */
-router.get('/clients', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const clients = await Clients.findAll();
+    const ownerCompanyId = req.user.owner_company_id;
+    const clients = await Clients.findAll(ownerCompanyId);
     res.json(clients);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-router.get('/clients/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const client = await Clients.findById(req.params.id);
-    if (!client) return res.status(404).json({ message: 'Cliente no encontrado' });
+    const ownerCompanyId = req.user.owner_company_id;
+    const client = await Clients.findById(req.params.id, ownerCompanyId);
+    if (!client) return res.status(404).json({ message: 'Cliente no encontrado o no pertenece a esta compañía' });
     res.json(client);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-router.post('/clients', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const { contact_name, company_name, address, requires_invoice, billing_info } = req.body;
-    const client = await Clients.createClient(contact_name, company_name, address, requires_invoice, billing_info, 1);
+    const ownerCompanyId = req.user.owner_company_id;
+    const client = await Clients.createClient(req.body, ownerCompanyId);
     res.status(201).json(client);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
-router.put('/clients/:id', async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
-    const { contact_name, company_name, address, requires_invoice, billing_info } = req.body;
-    const client = await Clients.findById(req.params.id);
-    if (!client) return res.status(404).json({ message: 'Cliente no encontrado' });
-    await Clients.updateClient(req.params.id, contact_name, company_name, address, requires_invoice, billing_info);
+    const ownerCompanyId = req.user.owner_company_id;
+    const result = await Clients.updateClient(req.params.id, req.body, ownerCompanyId);
+    if (result.affectedRows === 0) {
+        return res.status(404).json({ message: 'Cliente no encontrado o no pertenece a esta compañía' });
+    }
     res.json({ message: 'Cliente actualizado' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
-router.delete('/clients/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const client = await Clients.findById(req.params.id);
-    if (!client) return res.status(404).json({ message: 'Cliente no encontrado' });
-    await Clients.deleteClient(req.params.id);
+    const ownerCompanyId = req.user.owner_company_id;
+    const result = await Clients.deleteClient(req.params.id, ownerCompanyId);
+    if (result.affectedRows === 0) {
+        return res.status(404).json({ message: 'Cliente no encontrado o no pertenece a esta compañía' });
+    }
     res.json({ message: 'Cliente eliminado' });
   } catch (error) {
     res.status(500).json({ message: error.message });

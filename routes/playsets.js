@@ -93,12 +93,16 @@ const router = express.Router();
  *       404:
  *         description: Playset no encontrado
  */
-router.get('/playsets', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const playsets = await Playsets.findAll();
+    const ownerCompanyId = req.user.owner_company_id;
+    const playsets = await Playsets.getAllPlaysets(ownerCompanyId);
+    // Nota: La lógica de cálculo de costos puede necesitar ser revisada
+    // para asegurar el aislamiento de datos si los accesorios/materiales
+    // también son específicos de la compañía.
     const detailed = await Promise.all(
       playsets.map(async (p) => {
-        const costInfo = await PlaysetAccessories.calculatePlaysetCost(p.id);
+        const costInfo = await PlaysetAccessories.calculatePlaysetCost(p.id, ownerCompanyId);
         return {
           id: p.id,
           name: p.name,
@@ -114,77 +118,68 @@ router.get('/playsets', async (req, res) => {
   }
 });
 
-/**
- * Obtiene un playset por ID.
- * @route GET /playsets/:id
- */
-router.get('/playsets/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const playset = await Playsets.findById(req.params.id);
-    if (!playset) return res.status(404).json({ message: 'Playset no encontrado' });
+    const ownerCompanyId = req.user.owner_company_id;
+    const playset = await Playsets.getPlaysetById(req.params.id, ownerCompanyId);
+    if (!playset) return res.status(404).json({ message: 'Playset no encontrado o no pertenece a esta compañía' });
     res.json(playset);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-/**
- * Calcula el costo de un playset específico.
- * @route GET /playsets/:id/cost
- */
-router.get('/playsets/:id/cost', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const result = await PlaysetAccessories.calculatePlaysetCost(req.params.id);
-    if (!result) return res.status(404).json({ message: 'Playset no encontrado' });
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-/**
- * Crea un playset.
- * @route POST /playsets
- */
-router.post('/playsets', async (req, res) => {
-  try {
-    const { name, description } = req.body;
-    const playset = await Playsets.createPlayset(name, description, 1);
+    const ownerCompanyId = req.user.owner_company_id;
+    const playset = await Playsets.createPlayset(req.body, ownerCompanyId);
     res.status(201).json(playset);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
-/**
- * Actualiza un playset existente.
- * @route PUT /playsets/:id
- */
-router.put('/playsets/:id', async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
-    const { name, description } = req.body;
-    const playset = await Playsets.findById(req.params.id);
-    if (!playset) return res.status(404).json({ message: 'Playset no encontrado' });
-    await Playsets.updatePlayset(req.params.id, name, description);
+    const ownerCompanyId = req.user.owner_company_id;
+    const result = await Playsets.updatePlayset(req.params.id, req.body, ownerCompanyId);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Playset no encontrado o no pertenece a esta compañía' });
+    }
     res.json({ message: 'Playset actualizado' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
-/**
- * Elimina un playset.
- * @route DELETE /playsets/:id
- */
-router.delete('/playsets/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const playset = await Playsets.findById(req.params.id);
-    if (!playset) return res.status(404).json({ message: 'Playset no encontrado' });
-    await Playsets.deletePlayset(req.params.id);
+    const ownerCompanyId = req.user.owner_company_id;
+    const result = await Playsets.deletePlayset(req.params.id, ownerCompanyId);
+     if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Playset no encontrado o no pertenece a esta compañía' });
+    }
     res.json({ message: 'Playset eliminado' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+});
+
+router.get('/:id/cost', async (req, res) => {
+    try {
+      const ownerCompanyId = req.user.owner_company_id;
+      // Primero, verificar que el playset pertenece a la compañía
+      const playset = await Playsets.getPlaysetById(req.params.id, ownerCompanyId);
+      if (!playset) {
+        return res.status(404).json({ message: 'Playset no encontrado o no pertenece a esta compañía' });
+      }
+      
+      // Ahora calcular el costo
+      const result = await PlaysetAccessories.calculatePlaysetCost(req.params.id, ownerCompanyId);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
 });
 
 module.exports = router;

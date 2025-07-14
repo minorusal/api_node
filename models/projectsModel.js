@@ -1,63 +1,32 @@
 const db = require('../db');
 
-const createProject = (
-  clientId,
-  playsetId,
-  salePrice,
-  contactEmail,
-  ownerId = 1
-) => {
-  return new Promise((resolve, reject) => {
-    const sql = `INSERT INTO projects (client_id, playset_id, sale_price, contact_email, owner_id) VALUES (?, ?, ?, ?, ?)`;
-    db.query(sql, [clientId, playsetId, salePrice, contactEmail, ownerId], (err, result) => {
-      if (err) return reject(err);
-      resolve({
-        id: result.insertId,
-        client_id: clientId,
-        playset_id: playsetId,
-        sale_price: salePrice,
-        contact_email: contactEmail,
-        owner_id: ownerId
-      });
-    });
-  });
+const createProject = async (projectData, ownerCompanyId) => {
+    const { client_id, playset_id, sale_price, contact_email } = projectData;
+    const sql = `INSERT INTO projects (client_id, playset_id, sale_price, contact_email, owner_company_id) VALUES (?, ?, ?, ?, ?)`;
+    const [result] = await db.query(sql, [client_id, playset_id, sale_price, contact_email, ownerCompanyId]);
+    return { id: result.insertId, ...projectData, owner_company_id: ownerCompanyId };
 };
 
-const findById = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM projects WHERE id = ?', [id], (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows[0]);
-    });
-  });
+const findById = async (id, ownerCompanyId) => {
+    const [rows] = await db.query('SELECT * FROM projects WHERE id = ? AND owner_company_id = ?', [id, ownerCompanyId]);
+    return rows[0];
 };
 
-const findAll = () => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM projects', (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows);
-    });
-  });
+const findAll = async (ownerCompanyId) => {
+    const [rows] = await db.query('SELECT * FROM projects WHERE owner_company_id = ?', [ownerCompanyId]);
+    return rows;
 };
 
-const updateProject = (id, clientId, playsetId, salePrice, contactEmail) => {
-  return new Promise((resolve, reject) => {
-    const sql = `UPDATE projects SET client_id = ?, playset_id = ?, sale_price = ?, contact_email = ? WHERE id = ?`;
-    db.query(sql, [clientId, playsetId, salePrice, contactEmail, id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
+const updateProject = async (id, projectData, ownerCompanyId) => {
+    const { client_id, playset_id, sale_price, contact_email } = projectData;
+    const sql = `UPDATE projects SET client_id = ?, playset_id = ?, sale_price = ?, contact_email = ? WHERE id = ? AND owner_company_id = ?`;
+    const [result] = await db.query(sql, [client_id, playset_id, sale_price, contact_email, id, ownerCompanyId]);
+    return result;
 };
 
-const deleteProject = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('DELETE FROM projects WHERE id = ?', [id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
+const deleteProject = async (id, ownerCompanyId) => {
+    const [result] = await db.query('DELETE FROM projects WHERE id = ? AND owner_company_id = ?', [id, ownerCompanyId]);
+    return result;
 };
 
 module.exports = {

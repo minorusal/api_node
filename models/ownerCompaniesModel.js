@@ -1,79 +1,46 @@
 const db = require('../db');
 
-const createOwnerCompany = (name, address, profitPercentage = 0, logoPath = null) => {
-  return new Promise((resolve, reject) => {
-    const sql =
-      `INSERT INTO owner_companies (name, address, profit_percentage, logo_path) VALUES (?, ?, ?, ?)`;
-    db.query(sql, [name, address, profitPercentage, logoPath], (err, result) => {
-      if (err) return reject(err);
-      resolve({ id: result.insertId, name, address, profit_percentage: profitPercentage, logo_path: logoPath });
-    });
-  });
+const getAllOwnerCompanies = async () => {
+    const [rows] = await db.query('SELECT * FROM owner_companies');
+    return rows;
 };
 
-const findById = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM owner_companies WHERE id = ?', [id], (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows[0]);
-    });
-  });
+const getOwnerCompanyById = async (id) => {
+    const [rows] = await db.query('SELECT * FROM owner_companies WHERE id = ?', [id]);
+    return rows[0];
 };
 
-const findAll = () => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM owner_companies', (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows);
-    });
-  });
+const createOwnerCompany = async (company) => {
+    const { name, profit_percentage } = company;
+    const sql = 'INSERT INTO owner_companies (name, profit_percentage) VALUES (?, ?)';
+    const [result] = await db.query(sql, [name, profit_percentage]);
+    const [newCompany] = await db.query('SELECT * FROM owner_companies WHERE id = ?', [result.insertId]);
+    return newCompany[0];
 };
 
-const updateOwnerCompany = (id, name, address, profitPercentage, logoPath = null) => {
-  return new Promise((resolve, reject) => {
-    const sql =
-      `UPDATE owner_companies SET name = ?, address = ?, profit_percentage = ?, logo_path = ? WHERE id = ?`;
-    db.query(sql, [name, address, profitPercentage, logoPath, id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
+const findByName = async (name) => {
+    const query = 'SELECT * FROM owner_companies WHERE TRIM(LOWER(name)) = TRIM(LOWER(?))';
+    const [rows] = await db.query(query, [name]);
+    return rows[0];
 };
 
-const updateLogoPath = (id, logoPath) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'UPDATE owner_companies SET logo_path = ? WHERE id = ?';
-    db.query(sql, [logoPath, id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
+const updateOwnerCompany = async (id, company) => {
+    const { name, profit_percentage } = company;
+    const sql = 'UPDATE owner_companies SET name = ?, profit_percentage = ? WHERE id = ?';
+    const [result] = await db.query(sql, [name, profit_percentage, id]);
+    return result;
 };
 
-const deleteOwnerCompany = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query('DELETE FROM owner_companies WHERE id = ?', [id], (err, result) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
-};
-
-const getFirst = () => {
-  return new Promise((resolve, reject) => {
-    db.query('SELECT * FROM owner_companies LIMIT 1', (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows[0]);
-    });
-  });
+const deleteOwnerCompany = async (id) => {
+    const [result] = await db.query('DELETE FROM owner_companies WHERE id = ?', [id]);
+    return result;
 };
 
 module.exports = {
-  createOwnerCompany,
-  findById,
-  findAll,
-  updateOwnerCompany,
-  updateLogoPath,
-  deleteOwnerCompany,
-  getFirst
+    getAllOwnerCompanies,
+    getOwnerCompanyById,
+    createOwnerCompany,
+    findByName,
+    updateOwnerCompany,
+    deleteOwnerCompany
 };
